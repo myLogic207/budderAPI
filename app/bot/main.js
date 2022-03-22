@@ -1,22 +1,21 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require('discord.js');
-const { token, prefix } = require('./config.json');
+// var args = process.argv.slice(2);
 
 // Create a new client instance
-const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const BOT = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
 // When the client is ready, run this code (only once)
-client.once('ready', () => {
-  client.user.setStatus('My Purpose? Serve ~~budder~~ Data!')
-  client.user.setActivity("all your data", {
+BOT.once('ready', () => {
+  BOT.user.setActivity("all your data", {
     type: "STREAMING",
     url: "https://www.twitch.tv/monstercat"
     // url: "https://cfvr.tech/"
   });
-	console.log(client.user.tag.concat(' is Ready!'));
+	console.log(BOT.user.tag.concat(' is Ready!'));
 });
 
-client.on('interactionCreate', async interaction => {
+BOT.on('interactionCreate', async interaction => {
 	if (!interaction.isCommand()) return;
 
 	const { commandName } = interaction;
@@ -30,10 +29,7 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
-client.on("message", msg => {
-  if (msg.content === "Ping") {
-    msg.reply("pong");
-  }
-})
-// Login to Discord with your client's token
-client.login(token);
+// Login to Discord with your BOT's token
+BOT.login(process.env.TOKEN);
+
+module.exports = BOT;

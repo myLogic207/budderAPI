@@ -1,0 +1,24 @@
+{
+  "name": "budder-bot",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node index.js",
+    "preinstall": "cd $(pwd)"
+  },
+  "description": "A first attempt to do discord bot stuff",
+  "author": "Logic",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/rest": "^0.3.0",
+    "@discordjs/voice": "^0.8.0",
+    "discord-api-types": "^0.29.0",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "esbuild": "^0.14.27",
+    "express": "^4.17.3"
+  },
+  "devDependencies": {
+    "typescript": "^4.6.2"
+  }
+}
