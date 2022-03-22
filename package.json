@@ -1,0 +1,14 @@
+{
+  "name": "budder-bot",
+  "version": "0.1.0",
+  "description": "A first attempt to do discord bot stuff",
+  "main": "index.js",
+  "scripts": {
+    "test": "print('Hello, world!')"
+  },
+  "author": "Logic",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^13.6.0"
+  }
+}
