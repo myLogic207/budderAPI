@@ -91,4 +91,5 @@ lerna-debug.log
 Thumbs.db
 
 #extra files
-config.json
+.env
+test.js
