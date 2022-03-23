@@ -2,7 +2,7 @@
   "name": "budder-bot",
   "version": "0.1.0",
   "scripts": {
-    "start": "node index.js",
+    "start": "node core.js",
     "preinstall": "cd $(pwd)"
   },
   "description": "A first attempt to do discord bot stuff",
