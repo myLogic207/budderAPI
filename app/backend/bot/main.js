@@ -30,20 +30,12 @@ BOT.on('interactionCreate', async interaction => {
 });
 
 BOT.on('messageCreate', msg => {
-	if (msg.content === "!tester") {
-		msg.author.send("You are DMing me now!");
-		msg.react('👍');
+	if (msg.content === "!budder") {
+		msg.author.send("Here you go 🧈!");
+		msg.react('🧈');
 		return;
 	}
 });
-
-BOT.on('messageCreate', msg => {
-	if (msg.channel.type === "DM") {
-		msg.react('👍');
-	  	msg.author.send("You are DMing me now!");
-	  	return;
-	}
-  });
 
 // Login to Discord with your BOT's token
 BOT.login(process.env.TOKEN);
