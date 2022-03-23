@@ -3,7 +3,7 @@ const { Client, Intents } = require('discord.js');
 // var args = process.argv.slice(2);
 
 // Create a new client instance
-const BOT = new Client({ intents: [Intents.FLAGS.GUILDS] });
+const BOT = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.DIRECT_MESSAGE_REACTIONS] });
 
 // When the client is ready, run this code (only once)
 BOT.once('ready', () => {
@@ -28,6 +28,22 @@ BOT.on('interactionCreate', async interaction => {
 		await interaction.reply('User info.');
 	}
 });
+
+BOT.on('messageCreate', msg => {
+	if (msg.content === "!tester") {
+		msg.author.send("You are DMing me now!");
+		msg.react('👍');
+		return;
+	}
+});
+
+BOT.on('messageCreate', msg => {
+	if (msg.channel.type === "DM") {
+		msg.react('👍');
+	  	msg.author.send("You are DMing me now!");
+	  	return;
+	}
+  });
 
 // Login to Discord with your BOT's token
 BOT.login(process.env.TOKEN);
