@@ -1,15 +1,24 @@
-require ("dotenv").config();
-import fetch from 'node-fetch';
-// var args = process.argv.slice(2);
+var express = require('express');
+var app = express();
 
-const message = document.getElementById('message');
-const id = document.getElementById('id');
+app.use(express.static('frontend'));
 
-const response = await fetch(process.env.HOST + '/bot/test' + process.env.PORT, {
-	method: 'post',
-	body: JSON.stringify({message: message, id: id}),
-	headers: {'Content-Type': 'application/json'}
+app.get('/', function(req, res){
+  res.sendFile(__dirname + '/www/index.html');
 });
-const data = await response.json();
 
-console.log(data);
+// async function triggerMessage(){
+//   console.log('triggerMessage');
+//   const message = document.getElementById('message').value;
+//   const id = document.getElementById('id').value;
+  
+//   const response = await fetch('/bot/test', {
+//     method: 'post',
+//     headers: {'Content-Type': 'application/json'},
+//     body: JSON.stringify({message: message, id: id})
+//   });
+//   const data = await response.json();
+//   console.log(data);
+// }
+  
+module.exports = app;
