@@ -1,5 +1,5 @@
 
-const BOT = require("./main");
+const BOT = require("./bot");
 
 const actions = {}
 

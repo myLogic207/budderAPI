@@ -3,7 +3,7 @@ var express = require("express");
 var bodyParser = require('body-parser')
 var app = express();
 const utils = require("../utils/main");
-const botAction = require("./bot/actions");
+const botAction = require("../discord/actions");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
