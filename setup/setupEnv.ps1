@@ -40,6 +40,7 @@ Write-Host "Your application will now run on: http://${ip}:${port}/" -Foreground
 # Discord Bot settings
 $discord = Read-Host "Do you want to use the discord bot? (y/n)"
 if($discord -like "y*") {
+    $variables.Add("DISCORD_ENABLED", "true")
     $discord_token = Read-Host "Please enter your Discord Bot Auth Token" -MaskInput
     $discord_token = if ($discord_token) {$discord_token} else {"null"}
     $variables.Add("DISCORD_TOKEN", $discord_token)
@@ -50,11 +51,14 @@ if($discord -like "y*") {
     $discord_guildID = if ($discord_guildID) {$discord_guildID} else {"null"}
     $variables.Add("DISCORD_GUILDID", $discord_guildID)
     Write-Host "Discord Bot sucessfully setup" -ForegroundColor Green
+} else {
+    $variables.Add("DISCORD_ENABLED", "false")
 }
 
 # Database settings
 $db = Read-Host "Do you want to use a database? (y/n)"
 if($db -like "y*") {
+    $variables.Add("DB_ENABLED", "true")
     $db_type = Read-Host "Please enter the database type, options are: sqlite, mysql, mariadb, postgres, mssql `n (default: sqlite, enter sqlite for custom sqlite database)"
     
     switch ($db_type) {
@@ -100,26 +104,34 @@ if($db -like "y*") {
     }
     $variables.Add("DATABASE_DIALECT", $db_dialect)
     Write-Host "Database sucessfully setup" -ForegroundColor Green
+} else {
+    $variables.Add("DB_ENABLED", "false")
 }
 
 $twitter = Read-Host "Do you want to use the twitter bot? (y/n)"
 if($twitter -like "y*") {
     Write-Host "Told you, not yet implemented" -ForegroundColor Red
     break;
+    $variables.Add("TWITTER_ENABLED", "true")
     $twitter_token = Read-Host "Please enter your Twitter Auth Token" -MaskInput
     $twitter_token = if ($twitter_token) {$twitter_token} else {"null"}
     $variables.Add("TWITTER_TOKEN", $twitter_token)
     Write-Host "Twitter Bot sucessfully setup" -ForegroundColor Green
+} else {
+    $variables.Add("TWITTER_ENABLED", "false")
 }
 
 $callender = Read-Host "Do you want to use the callender? (y/n)"
 if($callender -like "y*") {
     Write-Host "Told you, not yet implemented" -ForegroundColor Red
     break;
+    $variables.Add("CALLENDER_ENABLED", "true")
     $callender_token = Read-Host "Please enter your Microsoft Calander Auth Token" -MaskInput
     $callender_token = if ($callender_token) {$callender_token} else {"null"}
     $variables.Add("CALLENDER_TOKEN", $callender_token)
     Write-Host "Microsoft Calander Bot sucessfully setup" -ForegroundColor Green
+} else {
+    $variables.Add("CALLENDER_ENABLED", "false")
 }
 
 $path = "..\app\.env"

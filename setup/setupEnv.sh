@@ -56,18 +56,22 @@ read -p "Do you want to use the discord bot? (y/n):" discord
 # if discord is y
 if [ "$discord" = "y" ]
 then
+    echo -e "DISCORD_ENABLED=true" >> ${env_path}
     read -p "Please enter your Discord Bot Auth Token:" discord_token
     echo -e "DISCORD_TOKEN=${discord_token}" >> ${env_path}
     read -p "Please enter your Discord Bot ClientID:" discord_clientid
     echo -e "DISCORD_CLIENTID=${discord_clientid}" >> ${env_path}
     read -p "Please enter your Discord Bot GuildID:" discord_guildid
     echo -e "DISCORD_GUILDID=${discord_guildid}" >> ${env_path}
+else
+    echo -e "DISCORD_ENABLED=false" >> ${env_path}
 fi
 
 # Database settings
 read -p "Do you want to use the database? (y/n):" db
 if [ "$db" = "y" ]
 then
+    echo -e "DB_ENABLED=true" >> ${env_path}
     printf "Please enter the database type, options are: sqlite, mysql, mariadb, postgres, mssql (default: sqlite, enter sqlite for custom sqlite database):"
     read db_type
     case "$db_type" in
@@ -99,6 +103,8 @@ then
             printf "\033[0;33mUsing custom database at \"${db_type}://${db_user}:${db_pass}@${db_host}:${db_port}/${db_name}\"\033[0m\n"
             ;;
     esac
+else
+    echo -e "DB_ENABLED=false" >> ${env_path}
 fi
 
 # Twitter setting
@@ -106,16 +112,22 @@ printf "Do you want to use the twitter bot? (y/n):"
 read twitter
 if [ "$twitter" = "y" ]
 then
+    echo -e "TWITTER_ENABLED=true" >> ${env_path}
     read -p "Please enter your Twitter Auth Token:" twitter_token
     echo -e "TWITTER_TOKEN=${twitter_token}" >> ${env_path}
+else
+    echo -e "TWITTER_ENABLED=false" >> ${env_path}
 fi
 
 # Calander settings
 read -p "Do you want to use the calander bot? (y/n):" calander
 if [ "$calander" = "y" ]
 then
+    echo -e "CALANDER_ENABLED=true" >> ${env_path}
     read -p "Please enter your Calander Auth Token:" calander_token
     echo -e "CALANDER_TOKEN=${calander_token}" >> ${env_path}
+else
+    echo -e "CALANDER_ENABLED=false" >> ${env_path}
 fi
 
 if [ -f "$env_path" ]
