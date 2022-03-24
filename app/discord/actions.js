@@ -5,7 +5,6 @@ const actions = {}
 
 actions.sendMessage = async (message, id) => {
     console.log('Begin transmission')
-    // BOT.user.setPresence({ activities: [{ name: 'Sending a quick DM' }], status: 'dnd' });
     // BOT.users.cache.get(id).send(message);
     var result = 'Message sent to user id ' + id
     try {
@@ -18,7 +17,6 @@ actions.sendMessage = async (message, id) => {
     } catch (error) {
         result = error
     } finally {
-        // BOT.user.setPresence({ activities: [{ name: 'Waiting for commands' }], status: 'idle' });
         console.error(result);
         return result
     }
