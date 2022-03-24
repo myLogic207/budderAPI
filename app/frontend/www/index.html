@@ -7,18 +7,16 @@
 
 <body>
     <div class="center">
-        <h1>Node + Express + DiscordBot example</h1>
+        <h1 id="h">Node + Express + DiscordBot example</h1>
         <form action="/bot/msg" method="POST">
             <input type="text" name="message" id="message" placeholder="message">
             <input type="text" name="id" id="id" placeholder="recipientID">
             <input type="submit" id="submitMsg" value="Click me to send message!"/>
-        </form>
+        </form><p id="response1"></p><br>
         <form action="/bot/members" method="GET">
             <input type="text" name="id" id="id" placeholder="guildID">
             <input type="submit" id="submitMembers" value="Click me for members!"/>
-        </form>
-        <p id="response"></p>
+        </form><p id="response2"></p><br>
     </div>
 </body>
-
 </html>
