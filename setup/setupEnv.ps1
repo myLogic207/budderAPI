@@ -30,12 +30,12 @@ Write-Host "To use the default values, just press enter"
 
 # Application settings
 $ip = Read-Host "Please enter the hostname (ip) where your application should run (default: localhost)"
-$if ($ip) {$ip = "localhost"}
+if (-Not $ip) {$ip = "localhost"}
 $variables.Add("APP_HOST", $ip)
 $port = Read-Host "Please enter the port where your application should run (default: 2070)"
-if ($port) {$port = "2070"}
+if (-Not $port) {$port = "2070"}
 $variables.Add("APP_PORT", $port)
-Write-Host "Your application will now run on: ${ip}:${port}" -ForegroundColor Green
+Write-Host "Your application will now run on: http://${ip}:${port}/" -ForegroundColor Green
 
 # Discord Bot settings
 $discord = Read-Host "Do you want to use the discord bot? (y/n)"
@@ -55,17 +55,18 @@ if($discord -like "y*") {
 # Database settings
 $db = Read-Host "Do you want to use a database? (y/n)"
 if($db -like "y*") {
-    Write-Host "Told you, not yet implemented" -ForegroundColor Red
-    break;
     $db_type = Read-Host "Please enter the database type, options are: sqlite, mysql, mariadb, postgres, mssql `n (default: sqlite, enter sqlite for custom sqlite database)"
     
     switch ($db_type) {
         "" {
-            $db_dialect = "sqlite"
             $variables.Add("DATABASE_CUSTOM", "false")
             Write-Host "Using integrated sqlite database" -ForegroundColor Yellow
+            break;
         }
         "sqlite" {
+            Write-Host "Told you, not yet implemented" -ForegroundColor Red
+            break;
+
             $db_dialect = $db_type.ToLower()
             $db_uri = Read-Host "Please enter the database URI"
             $variables.Add("DATABASE_URI", $db_uri)
@@ -73,8 +74,12 @@ if($db -like "y*") {
             $variables.Add("DATABASE_PATH", $db_path)
             $variables.Add("DATABASE_CUSTOM", "true")
             Write-Host "Your SQLite database is stored at ${db_path}" -ForegroundColor Yellow
+            break;
         }
         Default {
+            Write-Host "Told you, not yet implemented" -ForegroundColor Red
+            break;
+
             $db_dialect = $db_type.ToLower()
             $db_uri = Read-Host "Please enter the database URI"
             $variables.Add("DATABASE_URI", $db_uri)
@@ -90,6 +95,7 @@ if($db -like "y*") {
             $variables.Add("DATABASE_NAME", $db_name)
             $variables.Add("DATABASE_CUSTOM", "true")
             Write-Host "Your Database connection: ${db_dialect}://${db_username}:${db_pass}@${db_uri}:${db_port}/${db_name}" -ForegroundColor Yellow
+            break;
         }
     }
     $variables.Add("DATABASE_DIALECT", $db_dialect)
