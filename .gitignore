@@ -94,6 +94,6 @@ Thumbs.db
 .env
 test.js
 # For performance and privacy reasons databases are not included by default.
-.db
+*.db
 # For that reasons, sql dumps should be used instead; include them with `.read [name].sql`
-# .sql
+# *.sql
