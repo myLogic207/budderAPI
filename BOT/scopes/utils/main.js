@@ -1,16 +1,25 @@
-const utils = {};
+require ("dotenv").config();
 
-utils.isJson = (str) => {
-    try {
-        JSON.parse(str);
-    } catch (e) {
+module.exports = {
+    utils : function (str) {
         try {
-            JSON.stringify(str);
+            JSON.parse(str);
         } catch (e) {
-            return false;            
+            try {
+                JSON.stringify(str);
+            } catch (e) {
+                return false;            
+            }
+        }
+        return true;
+    },
+    eLog : function(msg) {
+        if (process.env.ENV === 'dev') {
+            console.log(msg);
+        }
+        if (process.env.ELOG_ENABLED && process.env.DB_ENABLED) {
+            const db = require('../DATABASE/actions');
+            db.logMessage(msg);
         }
     }
-    return true;
 }
-
-module.exports = utils;
