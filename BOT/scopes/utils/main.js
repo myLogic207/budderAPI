@@ -16,8 +16,7 @@ module.exports = {
     eLog : function(msg) {
         if (process.env.ENV === 'dev') {
             console.log(msg);
-        }
-        if (process.env.ELOG_ENABLED && process.env.DB_ENABLED) {
+        } else if (process.env.ELOG_ENABLED && process.env.DB_ENABLED) {
             const db = require('../DATABASE/actions');
             db.logMessage(msg);
         }
