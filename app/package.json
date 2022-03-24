@@ -16,7 +16,9 @@
     "discord.js": "^13.6.0",
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.27",
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "sequelize": "^6.17.0",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {
     "typescript": "^4.6.2"
