@@ -1,11 +1,11 @@
 const express = require('express');
 const app = express();
-const path = require('path');
+const path = require('path')
 
 app.use(express.static(path.join(__dirname, 'www')));
 
-app.get('/cli', function(req, res){
-  res.redirect(__dirname + 'main.html');
+app.get('/', function(req, res){
+  res.sendFile(__dirname + 'index.html');
 });
 
 // async function triggerMessage(){
