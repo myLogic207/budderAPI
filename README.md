@@ -67,6 +67,7 @@ and follow the nice guide!
 ## On the topic of Scopes
 
 A *scope* is the internal term for the modules extending application. It is used for the folder name and the CLI as well as in the FDSN.
+**SCOPES ALWAYS HAVE TO BE UPPERCASE**
 
 ## On the topic of Modules
 
