@@ -1,14 +1,12 @@
-require ("dotenv").config();
-var express = require("express");
-var bodyParser = require('body-parser')
-var app = express();
-const utils = require("../utils/main");
-const botAction = require("../discord/actions");
+var express = require('express');
+var router = express.Router();
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const botAction = require("actions");
 
-app.post('/bot/msg', async (req, res) => {
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: true }));
+
+router.post('/msg', async (req, res) => {
     console.log(req.body);      // the information in your POST request's body
     try {
         res.send(await botAction.sendMessage(req.body.message, req.body.id));
@@ -20,9 +18,9 @@ app.post('/bot/msg', async (req, res) => {
     }    
 });
 
-app.get('/bot/members', async (req, res) => {
+router.get('/members', async (req, res) => {
     res.send(JSON.stringify({members: await botAction.getMemberCount(req.query.id)}));
     res.status(200)
 });
 
-module.exports = app;
+module.exports = router;

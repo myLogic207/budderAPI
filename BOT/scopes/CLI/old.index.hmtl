@@ -1,13 +1,13 @@
-<!DOCTYPE html>
-
-<head>
-    <title>My Website</title>
-    <!-- <link rel="stylesheet" href="index.css"> -->
-</head>
-
-<body>
     <div class="center">
-        <h1 id="h">Node + Express + DiscordBot example</h1>
+        <h1>budderBOT</h1>
+        <h2>To serve and to be served</h2>
+        <h3>devBudderBOTv0.2.4/Magic</h3>
+        <br>
+        <p>
+            <span>If the CLI is enabled, you can go to it with this button :)</span><br><br>
+            <button href>CLI</button>
+        </p>
+        <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
         <form action="/bot/msg" method="POST">
             <input type="text" name="message" id="message" placeholder="message">
             <input type="text" name="id" id="id" placeholder="recipientID">
@@ -18,5 +18,3 @@
             <input type="submit" id="submitMembers" value="Click me for members!"/>
         </form><p id="response2"></p><br>
     </div>
-</body>
-</html>
