@@ -49,7 +49,7 @@ then
     app_port="2070"
 fi
 echo -e "APP_PORT=${app_port}" >> ${env_path}
-printf "\033[0;32mYour application will now run on: \"http:/${app_ip}:${app_port}/\"\033[0m\n";
+printf "\033[0;32mYour application will now run on: \"http://${app_ip}:${app_port}/\"\033[0m\n";
 
 # Discord Bot settings
 read -p "Do you want to use the discord bot? (y/n):" discord
