@@ -20,7 +20,6 @@ module.exports = {
 			.setColor('#0099ff')
 			.setTitle(interaction.options.getString('title'))
 			.setDescription(interaction.options.getString('message'));
-		console.log(exampleEmbed);
 		await interaction.reply({ embeds: [exampleEmbed] });
 	},
 };
