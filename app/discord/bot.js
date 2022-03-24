@@ -47,13 +47,14 @@ BOT.on('messageCreate', msg => {
 	}
 });
 
-BOT.on('messageCreate', msg => {
-	// console.log('NEW MSG:\n' + JSON.stringify(msg) + '\n---');
-	console.log('[MSG] On ' + msg.guild.name + '; ' + msg.author.username + ' in ' + msg.channel.name + ': ' + msg.content);
-	console.log(JSON.stringify({server: msg.guild.name, channel: msg.channel.name, user: msg.author.username, msg:{content: msg.content}}))
-});
+
+// BOT.on('messageCreate', msg => {
+// 	// console.log('NEW MSG:\n' + JSON.stringify(msg) + '\n---');
+// 	console.log('[MSG] On ' + msg.guild.name + '; ' + msg.author.username + ' in ' + msg.channel.name + ': ' + msg.content);
+// 	console.log(JSON.stringify({server: msg.guild.name, channel: msg.channel.name, user: msg.author.username, msg:{content: msg.content}}))
+// });
 
 // Login to Discord with your BOT's token
-BOT.login(process.env.TOKEN);
+BOT.login(process.env.DISCORD_TOKEN);
 
 module.exports = BOT;
