@@ -13,13 +13,13 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('message')
 				.setDescription('The message to embed!')
-				.setRequired(true)	
+				.setRequired(false)	
 		),
 	async execute(interaction) {
-		const exampleEmbed = new MessageEmbed()
-			.setColor('#0099ff')
-			.setTitle(interaction.options.getString('title'))
-			.setDescription(interaction.options.getString('message'));
+		const exampleEmbed = new MessageEmbed().setColor('#0099ff').setTitle(interaction.options.title);
+		if (interaction.options.message) {
+			exampleEmbed.setDescription(interaction.options.message);
+		}
 		await interaction.reply({ embeds: [exampleEmbed] });
 	},
 };
