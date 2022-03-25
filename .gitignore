@@ -90,6 +90,7 @@ lerna-debug.log
 .DS_Store
 Thumbs.db
 
+.vscode
 #extra files
 .env
 test.js

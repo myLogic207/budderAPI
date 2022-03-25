@@ -55,7 +55,11 @@ echo [32mYour application will now run on: "http://%app_ip%:%app_port%/"[0m
 title budder-Bot - Setup .env - Discord
 set discord=
 set /p discord=Do you want to use the discord bot? (y/n):
-if "%discord%"=="n" GOTO END_DISCORD
+if not "%discord%"=="y" (
+    echo DISCORD_ENABLED="false" >> %env_path%
+    GOTO END_DISCORD
+)
+echo DISCORD_ENABLED="true" >> %env_path%
 set discord_token=
 set /p discord_token=Please enter your Discord Bot Auth Token:
 echo DISCORD_TOKEN=%discord_token% >> %env_path%
@@ -72,10 +76,14 @@ echo [32mDiscord Bot sucessfully setup[0m
 title budder-Bot - Setup .env - Database
 set db=
 set /p db=Do you want to use a database? (y/n):
-if "%db%"=="n" GOTO END_DB
+if not "%db%"=="y" (
+    echo DATABASE_ENABLED="false" >> %env_path%
+    GOTO END_DB
+) 
 echo [31m[WARN] NOT YET IMPLEMENTED[0m
 echo Told you it is still WIP
 GOTO END_DB
+echo DATABASE_ENABLED="true" >> %env_path%
 
 set db_type=
 echo Please enter the database type, options are: sqlite, mysql, mariadb, postgres, mssql
@@ -127,10 +135,14 @@ echo [32mDatabase sucessfully setup[0m
 
 set twitter=
 set /p twitter=Do you want to use the twitter bot? (y/n):
-if "%twitter%"=="n" GOTO END_TWITTER 
+if not "%twitter%"=="y" (
+    echo TWITTER_ENABLED="false" >> %env_path%
+    GOTO END_TWITTER 
+)
 echo [31m[WARN] NOT YET IMPLEMENTED[0m
 echo Told you it is still WIP
 GOTO END_TWITTER
+echo TWITTER_ENABLED="true" >> %env_path%
 
 set twitter_token=
 set /p twitter_token=Please enter your Twitter Auth Token:
@@ -142,10 +154,14 @@ echo [32mTwitter Bot sucessfully setup[0m
 title budder-Bot - Setup .env - Callender
 set calender=
 set /p calender=Do you want to use the calender bot? (y/n):
-if "%calender%"=="n" GOTO END_CALENDER
+if not "%calender%"=="y" (
+    echo CALENDER_ENABLED="false" >> %env_path%
+    GOTO END_CALENDER
+)
 echo [31m[WARN] NOT YET IMPLEMENTED[0m
 echo Told you it is still WIP
 GOTO END_CALENDER
+echo CALENDER_ENABLED="true" >> %env_path%
 
 set calender_token=
 set /p calender_token=Please enter your Microsoft Calander Auth Token:
