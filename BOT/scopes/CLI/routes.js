@@ -3,7 +3,7 @@ const router = express.Router();
 const path = require('path');
 const { discordHandle } = require("./scopes/discord");
 
-router.use(express.static(path.join(__dirname)));
+router.use(express.static(path.join(__dirname, "frontend")));
 
 router.get('/', function(req, res){
   res.redirect(__dirname + 'index.html');
