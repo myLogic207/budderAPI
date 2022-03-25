@@ -3,6 +3,7 @@ const customShell = "> devBudderCLIv0.1.0/Milk: $ ";
 const cout = document.getElementById("budderCLI");
 const cin = document.createElement("input");
 cin.id = "customInput";
+cin.autocomplete = "off";
 cin.autofocus = true;
 cin.placeholder = "...";
 cin.focus();
@@ -15,9 +16,16 @@ cout.appendChild(document.createTextNode("> Budder-Bot Version 0.1.0 - rawBudder
 cout.appendChild(document.createElement("br"));
 cout.appendChild(document.createTextNode(customShell));
 cout.appendChild(cin);
-cin.onchange = function () {
-  var cmd = this.value;
-  this.value = "";
+
+cin.addEventListener("keydown", function (e) {
+  if (e.key === "Enter") {  
+    executeCommand();
+  }
+});
+
+function executeCommand () {
+  var cmd = cin.value;
+  cin.value = "";
   cout.removeChild(cin);
   cout.appendChild(document.createTextNode(cmd));
   cout.innerHTML += "<br>";

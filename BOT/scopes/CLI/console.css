@@ -9,7 +9,7 @@ body {
 
 .console {
 	font-family: "Fira Mono";
-	width: 700px;
+	width: 80%;
 	height: 450px;
 	box-sizing: border-box;
 	margin: auto;
@@ -26,12 +26,13 @@ body {
 }
 
 .console .consolebody {
+	overflow-wrap: anywhere;
 	border-bottom-left-radius: 15px;
 	border-bottom-right-radius: 15px;
 	box-sizing: border-box;
 	padding: 20px;
 	height: calc(100% - 40px);
-	overflow: scroll;
+	overflow-y: scroll;
 	background-color: #000;
 	color: #63de00;
 }
@@ -44,6 +45,7 @@ body {
     color: #63de00;
     background: inherit;
     border: none;
+	width: 75%;
 }
 #customInput:focus:focus-visible {
     outline: none;
