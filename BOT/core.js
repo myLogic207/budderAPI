@@ -2,7 +2,7 @@ require ("dotenv").config();
 const express = require("express");
 const app = express();
 const SCOPES = require("./config.json").scopes;
-const { eLog } = require("./scopes/utils/main");
+const { eLog } = require("./scopes/util/main");
 
 // const backend = require("./backend/server");
 const frontend = require("./frontend/client");

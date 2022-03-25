@@ -18,10 +18,14 @@ What started out as discord bot is now slowly becoming the a main connection poi
     - [Versioning](#versioning)
     - [Module Name](#module-name)
       - [FDSN examples](#fdsn-examples)
-  - [Addendum: budderCORE](#addendum-buddercore)
-  - [Addendum: budderDATA](#addendum-budderdata)
-  - [Addendum: budderCLI](#addendum-buddercli)
-  - [Addendum: budderAPI](#addendum-budderapi)
+  - [On the topic of 'Certified' modules](#on-the-topic-of-certified-modules)
+  - [Addendum - Information about included modules](#addendum---information-about-included-modules)
+    - [Addendum: budderCORE](#addendum-buddercore)
+    - [Addendum: budderDATA](#addendum-budderdata)
+    - [Addendum: budderCLI](#addendum-buddercli)
+    - [Addendum: budderAPI](#addendum-budderapi)
+    - [Addendum: budderUTIL](#addendum-budderutil)
+  - [Certified modules](#certified-modules)
 
 ## NodeJS start
 
@@ -118,6 +122,7 @@ Reserved words are:
 - *DATA* - refers to the database [budderDATA](##Addendum:budderDATA)
 - *CLI* - refers to the integrated frontend [budderCLI](##Addendum:budderCLI)
 - *API* - refers to the integrated API functionality [budderAPI](##Addendum:budderAPI)
+- *UTIL* - refers to the utility functions [budderUTIL](##Addendum:budderUTIL)
 
 ### Versioning
 
@@ -150,18 +155,32 @@ All those mentions above are examples, they do not exist.
 *Funfact* budderBOTs current full name currently is:
 **devBudderBOTv0.2.4/Magic**
 
-## Addendum: budderCORE
+## On the topic of 'Certified' modules
+
+Certified modules are modules that have been tested and are known to work.\
+They can optionally also be included in the environmental setup and even the CLI.\
+A list of certified modules can be found [here](#certified-modules).
+
+## Addendum - Information about included modules
+
+### Addendum: budderCORE
 
 (WIP)
 
-## Addendum: budderDATA
+### Addendum: budderDATA
 
 (WIP)
 
-## Addendum: budderCLI
+### Addendum: budderCLI
 
 (WIP)
 
-## Addendum: budderAPI
+### Addendum: budderAPI
 
 (WIP)
+
+### Addendum: budderUTIL
+
+(WIP)
+
+## Certified modules
