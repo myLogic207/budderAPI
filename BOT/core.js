@@ -12,7 +12,7 @@ app.use(frontend)
 // foreach scope, app.use the scope's router
 for (const scope in SCOPES) {
     eLog("[CORE] checking scope: " + scope)
-    if (process.env[scope.toUpperCase() + "_ENABLED"] && scope){
+    if (process.env[scope.toUpperCase() + "_ENABLED"] && SCOPES[scope]) {
             const routes = require(`./scopes/${scope}/routes`);
             app.use(`/${scope.toLowerCase()}`, routes);
             eLog(`[CORE] ${scope} loaded`);

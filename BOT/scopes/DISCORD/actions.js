@@ -1,5 +1,5 @@
 
-const { eLog } = require("../utils/main");
+const { eLog } = require("../util/main");
 const BOT = require("./bot");
 
 module.exports = {
