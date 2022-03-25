@@ -18,6 +18,16 @@ for (const scope in SCOPES) {
             app.use(`/${scope.toLowerCase()}`, routes);
             eLog(`[CORE] ${scope} loaded`);
             addFunction(scope);
+    } else if (scope){
+        eLog(`[CORE] Custom scope ${scope} found`);
+        try{
+            const routes = require(`./scopes/${scope}/routes`);
+            app.use(`/${scope.toLowerCase()}`, routes);
+            eLog(`[CORE] ${scope} loaded`);
+            addFunction(scope);
+        } catch {
+            eLog(`[CORE] Loading of custom scope ${scope} failed`);
+        }
     } else {
         eLog(`[CORE] ${scope} not loaded`);
         eLog(`[CORE] ${scope} either not enabled or not found`);
