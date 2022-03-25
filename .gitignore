@@ -93,7 +93,9 @@ Thumbs.db
 .vscode
 #extra files
 .env
+test.js
 config.json
+.vscode
 # For performance and privacy reasons databases are not included by default.
 *.db
 # For that reasons, sql dumps should be used instead; include them with `.read [name].sql`
