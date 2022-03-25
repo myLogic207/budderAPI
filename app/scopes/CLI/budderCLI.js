@@ -1,17 +1,17 @@
-const customShell = "Budder-CLI: ";
-const cout = document.getElementById("budder-shell");
+"use strict";
+const customShell = "> devBudderCLIv0.1.0/Milk: $ ";
+const cout = document.getElementById("budderCLI");
 const cin = document.createElement("input");
 cin.id = "customInput";
 cin.autofocus = true;
-cin.placeholder = "your command";
+cin.placeholder = "...";
 cin.focus();
 cout.innerHTML = "";
-cout.appendChild(document.createTextNode("budderBot's Interactive Command Line Interface"));
+cout.appendChild(document.createTextNode("> budderBot's Interactive Command Line Interface"));
 cout.appendChild(document.createElement("br"));
-cout.appendChild(document.createTextNode("(c) 2022 Lijon Fogel"));
+cout.appendChild(document.createTextNode("> (c) 2022 Lijon Fogel"));
 cout.appendChild(document.createElement("br"));
-cout.appendChild(document.createTextNode("Budder-Bot Version 0.1.0 - rawBudder/Milk"));
-cout.appendChild(document.createElement("br"));
+cout.appendChild(document.createTextNode("> Budder-Bot Version 0.1.0 - rawBudder/Milk"));
 cout.appendChild(document.createElement("br"));
 cout.appendChild(document.createTextNode(customShell));
 cout.appendChild(cin);
@@ -27,7 +27,6 @@ cin.onchange = function () {
   cmdOut.innerHTML = customShell;
   cout.appendChild(cmdOut).subs;
   count10(cmdOut, cmd).then(function (result) {
-    console.log(result);
     document.getElementById(cid).innerHTML = customShell + result;
     cout.appendChild(cin);
     cin.focus();
@@ -36,23 +35,29 @@ cin.onchange = function () {
   cout.appendChild(document.createTextNode(customShell));
 };
 
+var SCOPE = "";
 function count10(element, cmd) {
-  console.log(cmd);
   return new Promise((resolve) => {
     element.innerHTML = customShell + "Loading...";
-    switch (cmd) {
-      case "help":
-        var cmdres = "help - displays this message";
-        break;
-      case "ping":
-        var cmdres = "ping - pings the server";
+    const cmdarr = (SCOPE + cmd).split(" ");
+    switch (cmdarr[0]) {
+      case "CORE":
+        resolve("CORE COMMAND");
+      break;
+      case "DATA":
+        resolve("DATA COMMAND");
+      break;
+      case "DISCORD":
+        resolve(issueCommand('command/discord', cmdarr.slice(1).join(" ")));
         break;
       default:
-        var cmdres = "Unknown command";
+        resolve("Unknown command");
         break;
     }
-    setTimeout(() => {
-      resolve(cmdres);
-    }, 1000);
   });
+}
+async function issueCommand (url, cmd) {
+  if (cmd.length === 0) cmd = "info";
+  let response = await fetch(url + '?cmd=' + cmd);
+  return response.text();
 }
