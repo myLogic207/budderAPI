@@ -12,10 +12,25 @@ app.use(frontend)
 // foreach scope, app.use the scope's router
 for (const scope in SCOPES) {
     eLog("[CORE] checking scope: " + scope)
-    if (process.env[scope.toUpperCase() + "_ENABLED"] && scope){
+    if (process.env[scope.toUpperCase() + "_ENABLED"] && SCOPES[scope]){
             const routes = require(`./scopes/${scope}/routes`);
             app.use(`/${scope.toLowerCase()}`, routes);
             eLog(`[CORE] ${scope} loaded`);
+        switch (scope) {
+            case "discord":
+                eLog("[CORE] DISCORD Requiers further action");
+                const discord = require("./scopes/discord/bot");
+                
+                try {
+                    discord.login(process.env.DISCORD_TOKEN);
+                    eLog("[CORE] DISCORD bot successfully logged in");
+                } catch (e) {
+                    eLog("[CORE] DISCORD bot login failed with error: " + e);
+                }
+                break;
+            default:
+                break;
+        }
     } else {
         eLog(`[CORE] ${scope} not loaded`);
         eLog(`[CORE] ${scope} either not enabled or not found`);
