@@ -1,5 +1,5 @@
 const { sendMessage } = require("../../DISCORD/actions");
-const { eLog } = require("../../utils/main");
+const { eLog } = require("../../util/main");
 
 module.exports = {
     discordHandle : function(rawcmd) {
