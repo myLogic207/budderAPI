@@ -55,7 +55,9 @@ BOT.on('messageCreate', msg => {
 // 	console.log(JSON.stringify({server: msg.guild.name, channel: msg.channel.name, user: msg.author.username, msg:{content: msg.content}}))
 // });
 
-// Login to Discord with your BOT's token
-BOT.login(process.env.DISCORD_TOKEN);
-
-module.exports = BOT;
+module.exports = {
+	budderDISCORD: BOT,
+	discordLogin: function(token) {
+		BOT.login(token);
+	}
+} 

@@ -6,6 +6,7 @@ const { eLog } = require("./scopes/util/main");
 
 // const backend = require("./backend/server");
 const frontend = require("./frontend/client");
+const { addFunction } = require("./custom");
 // app.use(backend)
 app.use(frontend)
 
@@ -16,6 +17,7 @@ for (const scope in SCOPES) {
             const routes = require(`./scopes/${scope}/routes`);
             app.use(`/${scope.toLowerCase()}`, routes);
             eLog(`[CORE] ${scope} loaded`);
+            addFunction(scope);
     } else {
         eLog(`[CORE] ${scope} not loaded`);
         eLog(`[CORE] ${scope} either not enabled or not found`);
