@@ -5,7 +5,7 @@
     "start": "node core.js",
     "preinstall": "cd $(pwd)"
   },
-  "description": "A first attempt to do discord bot stuff",
+  "description": "committing to the budder",
   "author": "Logic",
   "license": "Apache-2.0",
   "dependencies": {
