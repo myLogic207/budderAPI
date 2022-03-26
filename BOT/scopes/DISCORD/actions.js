@@ -1,6 +1,6 @@
 
-const { eLog } = require("../util/main");
-const { budderDISCORD } = require("./bot");
+const { eLog } = require("../UTIL/actions");
+const { budderDISCORD } = require("./main");
 
 module.exports = {
 
@@ -38,5 +38,11 @@ module.exports = {
         eLog('[DISCORD] End member count retrieval')
         return memberCount
         // .filter(member => !member.user.bot).size
+    },
+
+    shutdown : async () => {
+        eLog('[DISCORD] Start shutdown')
+        budderDISCORD.destroy();
+        eLog('[DISCORD] End shutdown')
     }
 }

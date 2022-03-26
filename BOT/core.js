@@ -1,7 +1,7 @@
 require ("dotenv").config();
+const SCOPES = require("./config.json").scopes;
 const express = require("express");
 const app = express();
-const SCOPES = require("./config.json").scopes;
 const { eLog } = require("./scopes/util/main");
 
 // const backend = require("./backend/server");
@@ -16,15 +16,15 @@ for (const scope in SCOPES) {
     if (process.env[scope.toUpperCase() + "_ENABLED"] && SCOPES[scope]) {
             const routes = require(`./scopes/${scope}/routes`);
             app.use(`/${scope.toLowerCase()}`, routes);
+            addFunction(scope, app);
             eLog(`[CORE] ${scope} loaded`);
-            addFunction(scope);
-    } else if (scope){
+    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && SCOPES[scope] ) {
         eLog(`[CORE] Custom scope ${scope} found`);
         try{
             const routes = require(`./scopes/${scope}/routes`);
             app.use(`/${scope.toLowerCase()}`, routes);
             eLog(`[CORE] ${scope} loaded`);
-            addFunction(scope);
+            addFunction(scope, app);
         } catch {
             eLog(`[CORE] Loading of custom scope ${scope} failed`);
         }

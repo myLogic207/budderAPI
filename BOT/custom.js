@@ -1,20 +1,26 @@
 require ("dotenv").config();
-// const SCOPES = require("./config.json").scopes;
+const SCOPES = require("./config.json").scopes;
 
-const { eLog } = require("./scopes/util/main");
+const { eLog } = require("./scopes/UTIL/actions");
 
 module.exports = {
-    addFunction : function (scope) {
+    addFunction : function (scope, app) {
         switch (scope) {
             // Default modules, do not change (if you don't know what you're doing)
             case "CLI":
-            
+                eLog("[CORE] CLI could require further actions");
+                var changed = false
+                if(process.env.DISCORD_ENABLED && SCOPES.DISCORD) {
+                    app.use("/cli", require("./scopes/discord/routes"));
+                    changed = true
+                }
+                eLog(changed ? "[CORE] CLI further actions loaded" : "[CORE] CLI did not require any actions");
             break;
             // End of default modules - Supported modules starting
             case "discord":
                 eLog("[CORE] DISCORD requires further action");
                 try {
-                    const { discordLogin } = require("./scopes/DISCORD/bot");
+                    const { discordLogin } = require("./scopes/DISCORD/main");
                     discordLogin(process.env.DISCORD_TOKEN);
                     eLog("[CORE] DISCORD bot successfully logged in");
                 } catch (e) {

@@ -1,7 +1,7 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
 const { Client, Collection, Intents } = require('discord.js');
-const { eLog } = require('../util/main');
+const { eLog } = require('../UTIL/actions');
 // var args = process.argv.slice(2);
 
 // Create a new client instance
