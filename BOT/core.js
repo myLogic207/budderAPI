@@ -2,11 +2,11 @@ require ("dotenv").config();
 const SCOPES = require("./config.json").scopes;
 const express = require("express");
 const app = express();
-const { eLog } = require("./scopes/util/main");
+const { eLog } = require("./scopes/UTIL/actions");
+const { addFunction } = require("./custom");
 
 // const backend = require("./backend/server");
 const frontend = require("./frontend/client");
-const { addFunction } = require("./custom");
 // app.use(backend)
 app.use(frontend)
 
@@ -37,3 +37,5 @@ for (const scope in SCOPES) {
 const server = app.listen(process.env.APP_PORT, process.env.APP_HOST, () => {
     eLog(`[CORE] Server running at http://${process.env.APP_HOST}:${process.env.APP_PORT}/`);
 });
+
+module.exports = eLogPath;
