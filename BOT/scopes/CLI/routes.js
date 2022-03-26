@@ -10,7 +10,7 @@ router.get('/', function(req, res){
 });
 
 router.get('/command/core', function(req, res){
-  res.send(await coreHandle(req.query.cmd));
+  res.send(coreHandle(req.query.cmd));
 });
 
 module.exports = router;

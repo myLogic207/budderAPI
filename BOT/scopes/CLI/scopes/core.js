@@ -1,8 +1,8 @@
-const { eLog } = require("../../UTIL/actions")
-const scopes = require("./config.json").scopes;
+const { eLog } = require("../../util/main");
+const scopes = require("../../../config.json").scopes;
 
 module.exports = {
-    coreHandle : function(cmd) {
+    coreHandle : async (cmd) => {
         eLog("[CLI] Received command: " + cmd);
         const cmds = cmd.split(" ");
         switch (cmds[0]) {
@@ -14,13 +14,6 @@ module.exports = {
                 eLog("[CORE] Registered command type: " + cmds[0]);
                 gracefulShutdown();
                 return "Attempting to shutdown... Goodbye!";
-            case "help":
-                eLog("[CORE] Registered command type: " + cmds[0]);
-                return "help - displays this message";
-            case "dm":
-                eLog("[CORE] Registered command type: " + cmds[0]);
-                eLog("[CORE] Sending message to " + cmds[1] + ": " + cmds.slice(2).join(" "));
-                return dmUser(cmds[1], cmds.splice(2).join(" "));
             default:
                 return "Unknown CORE command";
         }
@@ -29,16 +22,16 @@ module.exports = {
 
 async function gracefulShutdown(){
     // Core Scopes without a shutdown function, this is intended
-    const coreScopes = ["CORE", "CLI", "UTIL"];
+    const coreScopes = ["CORE", "CLI", "UTIL", "DATABASE", "TEST"];
     eLog("[CORE] Attempting to shutdown...");
-    scopes.filer(sc => !coreScopes.includes(sc)).forEach(scope => {
+    Object.keys(scopes).filter(sc => !coreScopes.includes(sc)).forEach(scope => {
+        let { shutdown } = require("../../" + scope + "/actions");
+        shutdown()
         try {
-            let { shutdown } = require("../" + scope + "/actions");
-            await shutdown();
-            eLog("[CORE] Shutdown action for " + scope + " completed");
-        } catch (e) {
-            eLog("[CORE] Shutdown action for " + scope + " failed with error: " + e);
-        }
+            eLog("[CORE] Shutdown complete for " + scope);
+        } catch(err){
+            eLog("[CORE] Shutdown failed for " + scope + ": " + err);
+        };
     });
     process.exit(0);
 }
