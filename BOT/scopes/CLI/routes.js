@@ -9,8 +9,8 @@ router.get('/', function(req, res){
   res.redirect(__dirname + 'index.html');
 });
 
-router.get('/command/core', function(req, res){
-  res.send(coreHandle(req.query.cmd));
+router.get('/command/core', async (req, res) => {
+  res.send(await coreHandle(req.query.cmd));
 });
 
 module.exports = router;

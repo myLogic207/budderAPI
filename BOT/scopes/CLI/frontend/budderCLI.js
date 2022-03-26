@@ -1,6 +1,8 @@
 "use strict";
+const version = "devBudderCLIv0.2.3/Milkier"
+let supportedScopes = [];
 let SCOPE = " ";
-const budderCLI = "> devBudderCLIv0.2.3/Milkier:~$";
+const budderCLI = "> " + version + ":~$ ";
 const cout = document.getElementById("budderCLI");
 const cin = document.createElement("input");
 cin.id = "customInput";
@@ -20,12 +22,16 @@ cout.appendChild(document.createTextNode(budderCLI));
 cout.appendChild(cin);
 
 cin.addEventListener("keydown", function (e) {
-  if (e.key === "Enter") {  
+  if (e.key === "Enter") {
     executeCommand();
   }
 });
 
-function executeCommand () {
+async function executeCommand() {
+  if(supportedScopes.length === 0){
+    (await fetch('command/core?cmd=scopes').then(res => res.text())).split(": ")[1].split(",").forEach(scope => supportedScopes.push(scope.trim()));
+    supportedScopes.push("CORE");
+  }
   var cmd = cin.value;
   cin.value = "";
   cout.removeChild(cin);
@@ -34,44 +40,57 @@ function executeCommand () {
   var cid = "cmdOut" + cout.children.length;
   var cmdOut = document.createElement("span");
   cmdOut.id = cid;
-  cmdOut.innerHTML = budderCLI + SCOPE + "Loading...";
+  cmdOut.innerHTML = budderCLI + " " + SCOPE + " Loading...";
   cout.appendChild(cmdOut).subs;
   issueCommand(cmd).then(function (result) {
-    document.getElementById(cid).innerHTML = budderCLI + SCOPE + result;
+    document.getElementById(cid).innerHTML = budderCLI + " " + SCOPE + " " + result;
     cout.appendChild(cin);
     cin.focus();
   });
   cout.innerHTML += "<br>";
-  cout.appendChild(document.createTextNode(budderCLI + SCOPE));
+  cout.appendChild(document.createTextNode(budderCLI + " " + SCOPE + " "));
 };
 
 // call Command handling
-async function issueCommand (rawcmd) {
-  rawcmd = (SCOPE + " " + rawcmd).trim();
-  const supportedScopes = ["CORE", "DISCORD"];
-  const rootCmds = ["info", "cs", "help"];
+async function issueCommand(rawcmd) {
+  if (rawcmd.trim() === "return" || rawcmd.trim() === "exit" || rawcmd.trim() === "cs") {
+    SCOPE = " ";
+    return "Returned to root scope";
+  } else if (rawcmd.trim().startsWith("cs ")) {
+    if (supportedScopes.includes(rawcmd.trim().substring(3, rawcmd.length))) {
+      SCOPE = rawcmd.trim().substring(3, rawcmd.length);
+      return "set to active Scope";
+    } else {
+      return "Scope not supported/available";
+    }
+  }
+  const rootCmds = ["info", "help"];
   const cmdarr = rawcmd.split(" ");
-
-  console.log(cmdarr);
-
-  if (rootCmds.includes(cmdarr[0])) {
+  let scoped = SCOPE.trim() ? SCOPE.trim() : cmdarr[0]
+  if (supportedScopes.includes(scoped)) {
+    let cmd = cmdarr.slice(1).join(" ");
+    if (cmd.length === 0) cmd = "info";
+      const result = await fetch('command/' + scoped + '?cmd=' + cmd.trim());
+      switch(result.status){
+        case 200:
+          return await result.text();
+        case 404:
+          return "Command not found";
+        case 500:
+          return "Internal Server Error";
+        default:
+          return "Unknown Error";
+      }
+  } else if (rootCmds.includes(cmdarr[0])) {
     switch (cmdarr[0]) {
       case "info":
-        return "devBudderCOREv0.1.6/MilkFat";
-      case "cs":
-        let newSCOPE = cmdarr[1]
-        SCOPE = newSCOPE ? newSCOPE : " ";
-        return newSCOPE ? "Root SCOPE set to: " + SCOPE : "Returned back to CLI root scope";
+        return version;
       case "help":
         return "Help command";
       default:
         return "Unknown command";
     }
-  } else if (supportedScopes.includes(cmdarr[0])) {
-    let cmd = cmdarr.slice(1).join(" ");
-    if (cmd.length === 0) cmd = "info";
-    return fetch('command/' + cmdarr[0] + '?cmd=' + cmd).then(response => response.text());
   } else {
-    return "Unknown command";
+    return "Unknown command/Scope not supported (yet)";
   }
 }
