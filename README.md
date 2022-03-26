@@ -23,11 +23,11 @@ What started out as discord bot is now slowly becoming the a main connection poi
   - [On the topic of 'Certified' modules](#on-the-topic-of-certified-modules)
   - [Addendum - Information about included modules](#addendum---information-about-included-modules)
     - [Addendum: budderCORE](#addendum-buddercore)
-    - [Addendum: budderDATA](#addendum-budderdata)
     - [Addendum: budderCLI](#addendum-buddercli)
     - [Addendum: budderAPI](#addendum-budderapi)
     - [Addendum: budderUTIL](#addendum-budderutil)
       - [Extended logging - introducing eLog](#extended-logging---introducing-elog)
+    - [Addendum: budderDATA](#addendum-budderdata)
 
 ## NodeJS start
 
@@ -119,16 +119,18 @@ SCOPE
         index.js
 ```
 
+Any more files can be added to this structure although it is recommended to have any other file a separate folder specific you your module. For example budderDATA has a separate folder *dbms* managing the different database functionalities.
+
+If any script is scope specific it is recommended to have a *scopes* folder that includes the *[SCOPE].js* files.
+
 ## Certified modules
 
 For a module to apply for certification, it has to fullfil following requirements:
 
 - Module with the same SCOPE name does not already exist.
-- *cli.js* file is present and working.
-- A *readme.md* file is present and has explanations.
+- *cli.js* file is present and working with at least an info command.
+- A *readme.md* file is present and has explanations for all actions.
 - Has to follow the [eLog](#extended-logging---introducing-elog) guidelines.
-
----
 
 ## On the topic of Scopes
 
@@ -141,12 +143,13 @@ A Module is defined with by its [FDSN](#fdsns---an-explanation). It extends the 
 
 ## On the topic of naming
 
-*This describes the **Fully Defined (Scope) Names** convention of any module+version combination, it always has to be unique!*\
-*You can refer to your module with just budder followed by its all caps name instead of the FDI at any time*\
+This describes the **Fully Defined (Scope) Names** convention of any module+version combination, it always has to be unique!\
+You can refer to your module with just budder followed by its all caps name instead of the FDI at any time\
 *The FDI should always be used when adding modules as well as in any documentation or support.*\
+Your FDSN can have a sub title, this is completely optional and can be whatever you want.
 Following rules need to be followed when naming:
 
-**TL:DR** *[stage]Budder[SCOPE][version]/[name]* and *budder[SCOPE][version]/[name]* respectively -> *budder[SCOPE]*
+`**TL:DR** *[stage]Budder[SCOPE][version]/[name]* and *budder[SCOPE][version]/[name]* respectively -> *budder[SCOPE]*`
 
 ### FDSNs - an explanation
 
@@ -227,15 +230,21 @@ A list of certified modules can be found [here](#certified-modules).
 
 ### Addendum: budderCORE
 
-(WIP)
+The budderCORE is the base of budderBOT. It handles the initialisation of every module (routes, actions and connection to other scopes).
 
-### Addendum: budderDATA
+This is basically the heart of budderBOT and should never be modified.
 
-(WIP)
+It consists of two scripts, the *core.js* which is called to start budderBOT and the *custom.js* which handles extended initialisation of any scope.
 
 ### Addendum: budderCLI
 
-(WIP)
+The budderCLI is one if not the most important scope that comes bundled with *every* budder package.
+
+The budderCLI is a simple frontend that runs alongside the budderBOT nodeJS backend and aims to provide simple and in depth interaction with every installed module. Being able to trigger all functions of a module within one module makes this a very powerful addition.
+
+The budderCLI should not be port forwarded or opened to everyone, for dynamically interacting with the budderBOT please use your own frontend application or the separate [budderAPP](https://GitHub.com/)
+
+The budderCLI can be disabled, this is not recommended however because this would remove the last possible way to interact with budderBOT (also some good commands like *CORE shutdown* which closes budderBOT gracefully).
 
 ### Addendum: budderAPI
 
@@ -243,8 +252,42 @@ A list of certified modules can be found [here](#certified-modules).
 
 ### Addendum: budderUTIL
 
-(WIP)
+The budderUTIL scope extends the core functions of budderBOT by some useful features and comes bundled with any budder package (even with pureBudder!).
+It aims to reduce the need to re-code simple functions every time you need them.
+
+Currently following functions are implemented:
+
+- *isJson* which tests if the provided string is json and return is back if so
+- *eLog* you can read more about that [here](#extended-logging---introducing-eLog)
+
+Feel free to suggest useful budderUTIL functions at anytime.
 
 #### Extended logging - introducing eLog
+
+To solve the problem of unified logging, budderBOT introduces *eLog*, a format for unified verbose logging that not has to be JSON or setup before anything works.
+*eLog* stands for *extended Logging* and any *eLog* has to be in following format:
+
+`[Severity] [SCOPE] log message`
+
+Note that the square brackets are important.
+
+The severity influences how a logging requests are handled.
+By setting the **LOGLEVEL** process environment variables in the *.env* file everything above is logged into the console as well as into the database (if *eLog* and *budderDATA* is enabled and functional).
+If the environment is set to "Dev" everything is logged into the console with a leading "Devlog:" at anytime anyways.
+
+The eLog function of budderUTIL can be imported/required in every file of the budderBOT scope by using.
+
+ ```js
+ const eLogPath = require { [path to config.json] }.eLogPath
+ const { eLog } = require { eLogPath } 
+```
+
+The eLog function handles your logging request and based on the process variables writes them either to the Logbank (Logging database), a file or the console.
+
+Using *eLog* is highly recommended and required for your module to be certified.
+
+NO SCOPE/MODULR SHOULD LOG SEPARATELY IN A FILE OR DATABASE
+
+### Addendum: budderDATA
 
 (WIP)
