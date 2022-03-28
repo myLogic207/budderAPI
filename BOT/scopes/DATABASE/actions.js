@@ -13,6 +13,6 @@ module.exports = {
         return initLog(logbase);
     },
     logMessage : function (msg) {
-        createLog(msg);
+        console.log(`SEVERITY: ${msg[0]}, SCOPE: ${msg[1]}, MESSAGE: ${msg[2]}`);
     }
 };

@@ -1,6 +1,5 @@
-
-const { eLog } = require("../utils/main");
-const BOT = require("./bot");
+const { eLog } = require("../UTIL/actions");
+const { budderDISCORD } = require("./main");
 
 module.exports = {
 
@@ -9,7 +8,7 @@ module.exports = {
         // BOT.users.cache.get(id).send(message);
         let result = ""
         try {
-            const user = await BOT.users.fetch(id).catch(() => {
+            const user = await budderDISCORD.users.fetch(id).catch(() => {
                 eLog('[DISCORD] User not found')
                 result = "Hmmm, seems like this user does not exist"
             }).then(
@@ -32,11 +31,17 @@ module.exports = {
 
     getMemberCount : async (id) => {
         eLog('[DISCORD] Start member count retrieval')
-        const guild = await BOT.guilds.fetch(id)
+        const guild = await budderDISCORD.guilds.fetch(id)
         const memberCount = guild.memberCount
         eLog('[DISCORD] ' + guild.name + ' has members: ' + memberCount);
         eLog('[DISCORD] End member count retrieval')
         return memberCount
         // .filter(member => !member.user.bot).size
+    },
+
+    shutdown : async () => {
+        eLog('[DISCORD] Start shutdown')
+        budderDISCORD.destroy();
+        eLog('[DISCORD] End shutdown')
     }
 }
