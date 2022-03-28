@@ -267,13 +267,13 @@ Feel free to suggest useful budderUTIL functions at anytime.
 To solve the problem of unified logging, budderBOT introduces *eLog*, a format for unified verbose logging that not has to be JSON or setup before anything works.
 *eLog* stands for *extended Logging* and any *eLog* has to be in following format:
 
-`[Severity] [SCOPE] log message`
+`[SEVERITY] [SCOPE] log message`
 
 Note that the square brackets are important.
 
 The severity influences how a logging requests are handled.
 By setting the **LOGLEVEL** process environment variables in the *.env* file everything above is logged into the console as well as into the database (if *eLog* and *budderDATA* is enabled and functional).
-If the environment is set to "Dev" everything is logged into the console with a leading "Devlog:" at anytime anyways.
+If the environment is set to "DEV" everything is logged into the console with a leading "Devlog:" at anytime anyways.
 
 The eLog function of budderUTIL can be imported/required in every file of the budderBOT scope by using.
 
@@ -286,7 +286,7 @@ The eLog function handles your logging request and based on the process variable
 
 Using *eLog* is highly recommended and required for your module to be certified.
 
-NO SCOPE/MODULR SHOULD LOG SEPARATELY IN A FILE OR DATABASE
+NO SCOPE/MODULE SHOULD LOG SEPARATELY IN A FILE OR DATABASE
 
 ### Addendum: budderDATA
 

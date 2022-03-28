@@ -52,7 +52,7 @@ module.exports = {
                 fs.appendFileSync(logFilePath, `${rawmsg}\n`, "utf8");
             }
             if (config.eLog.dLogEnabled && config.scopes.DATABASE) {
-                const db = require('../../scopes/DATABASE/actions.js');
+                const db = require('../DATABASE/actions');
                 db.logMessage(rawmsg.split(' '));
             } else if (config.eLog.dLogEnabled) {
                 console.log(`"\x1b[33m[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not\x1b[0m`);
@@ -117,7 +117,7 @@ module.exports = {
         // //     console.log(msg);
         // //     cLog = false;
         // // }
-        // // if (cLog || config.eLog.cLogEnabled || process.env.ENV == "dev") {
+        // // if (cLog || config.eLog.cLogEnabled || process.env.ENV == "DEV") {
         // //     console.log(msg);
         // // }
     }

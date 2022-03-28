@@ -1,6 +1,8 @@
+require("dotenv").config();
 const { Sequelize } = require("sequelize");
 const path = require('path');
 
+if(process.env.ENV === 'dev') console.log("\x1b[35m[DEBUG] [DATA] Attempting to connect to UTIL database\x1b[0m");
 const logbank = new Sequelize({
     host: 'localhost',
     dialect: 'sqlite',
@@ -8,12 +10,17 @@ const logbank = new Sequelize({
     // SQLite only
     storage: path.join(__dirname, 'data/UTIL.db')
 });
-
+console.log("\x1b[34m[STATUS] [DATA] Logging database found/created\x1b[0m");
+if(process.env.ENV === 'dev') console.log("\x1b[35m[DEBUG] [DATA] Attempting to find Logbank\x1b[0m");
 const LOG = logbank.define('Logs', {
     logID: {
         type: Sequelize.INTEGER,
         primaryKey: true,
         autoIncrement: true
+    },
+    severity: {
+        type: Sequelize.STRING,
+        allowNull: true
     },
 	scope: {
         type: Sequelize.STRING,
@@ -30,36 +37,43 @@ const LOG = logbank.define('Logs', {
         }
     },
 });
+if(process.env.ENV === 'dev') console.log("\x1b[34m[STATUS] [DATA] Logbank found/created\x1b[0m");
 
 module.exports = {
     initLog: function(){
+        if(process.env.ENV === 'dev') console.log("\x1b[35m[DEBUG] [DATA] Attempting to initialize logging database\x1b[0m");
         LOG.sync().then(() => {
-            console.log('[DATA] Logging Database synced.');
+            console.log('\x1b[34m[STATUS] [DATA] Logging Database synced\x1b[0m');
             LOG.create({
                 logID: 0,
+                severity: 'SEVERITY',
                 scope: 'SCOPE',
                 message: 'log message'
             }.catch((error) => {
                 if (error.name === 'SequelizeUniqueConstraintError') {
-                    elog('[DATA] Using existing logging database.');
+                    console.log('[INFO] [DATA] Using existing logging database.');
                 }
-                throw "[DATA] Logging database initialization failed.";
+                throw "\x1b[31m[ERROR] [DATA] Logging database initialization failed\x1b[0m";
             }));
             return LOG;
-        }).catch(console.error("[DATA] Logging database initialization failed."));
+        }).catch(console.error("\x1b[31m[ERROR] [DATA] Logging database initialization failed\x1b[0m"));
     },
     createLog: function(msg){
         try {
+            if(process.env.ENV === 'dev') console.log("\x1b[35m[DEBUG] [DATA] Attempting to create new log entry\x1b[0m");
             LOG.create({
-                scope: msg.split(" ")[0].slice(1,-1),
-                message: msg.split(" ").slice(1).join(" ")
+                severity: msg[0].slice(1, -1),
+                scope: msg[1].slice(1, -1),
+                message: msg[2]
             });
         } catch (error) {
-            console.log("[DATA] Logging failed with error: " + error);
+            console.log("\x1b[31m[ERROR] [DATA] Logging failed with error:\x1b[0m " + error);
         }
+        if(process.env.ENV === 'dev') console.log("\x1b[35m[DEBUG] [DATA] Logging complete - resync again\x1b[0m");
         LOG.sync();
     },
     readLog: function(logID){
+        if(process.env.ENV === 'dev') console.log("\x1b[35m[DEBUG] [DATA] Attempting to read log entry\x1b[0m");
         if(logID){
             return LOG.findOne({
                 where: {
@@ -67,6 +81,7 @@ module.exports = {
                 }
             }).catch(console.error);
         } else {
+            console.log("\x1b[31m[WARN] [DATA] No log ID provided - reading all logs\x1b[0m");
             return LOG.findAll().catch(console.error);
         }
     },

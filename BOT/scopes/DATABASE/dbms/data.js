@@ -1,9 +1,11 @@
 const { Sequelize, Op, Model, DataTypes } = require("sequelize");
 const path = require('path');
-const { eLog } = require("../../UTIL/main");
+const eLogPath = require("../../../config.json").eLog.eLogPath;
+const { eLog } = require(eLogPath);
 
 module.exports = {
     newDB : function(name, Tags) {
+        eLog("[DEBUG] [DATA] Attempting to build new database");
         const db = new Sequelize({
             host: process.env.DB_HOST,
             dialect: process.env.DB_DIALECT,
@@ -12,6 +14,7 @@ module.exports = {
             storage: path.join(__dirname, 'data/UTIL.log')
         });
 
+        eLog("[DEBUG] [DATA] Attempting to build new Table");
         const cdb = db.define(name, {
             id: {
                 type: Sequelize.INTEGER,
@@ -24,21 +27,23 @@ module.exports = {
             }}.append(Tags));
 
         tags.sync().then(() => {
-            eLog('[DATA] Custom Database synced.');
+            eLog('[STATUS] [DATA] Custom Database synced');
             tags.authenticate().then(() => {
-                eLog('[DATA] Custom Database authenticated.');
+                eLog('[FINE] [DATA] Custom Database authenticated');
                 return cdb;
             }).catch(err => {
-                eLog('[DATA] Custom Database authentication failed with error: ' + err);
+                eLog('[ERROR] [DATA] Custom Database authentication failed with error: ' + err);
             });
         }).catch(() => {
-            eLog('[DATA] Custom Database sync failed.');    
+            eLog('[ERROR] [DATA] Custom Database sync failed.');    
         });
     },  // end newDB
     createEntry: function(base, data) {
+        eLog("[DEBUG] [DATA] Attempting to create new entry");
         base.create(data).catch(console.error);
     },
     readEntry: function(base, id) {
+        eLog("[DEBUG] [DATA] Attempting to read entry");
         if(id){
             return base.findOne({
                 where: {
@@ -46,6 +51,7 @@ module.exports = {
                 }
             }).catch(console.error);
         } else {
+            eLog("[WARN] [DATA] No ID provided - returning all");
             return base.findAll().catch(console.error);
         }
     }
