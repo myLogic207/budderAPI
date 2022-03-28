@@ -3,7 +3,7 @@ const { eLog } = require("../../UTIL/actions");
 
 module.exports = {
     discordHandle : function(rawcmd) {
-        eLog("[DISCORD] Received command: " + rawcmd);
+        eLog("[CLI] Received command: " + rawcmd);
         const cmd = rawcmd.split(" ");
         switch (cmd[0]) {
             case "info":
