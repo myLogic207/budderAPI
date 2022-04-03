@@ -19,7 +19,8 @@ module.exports = {
     },
     logMessage : function (msg) {
         // NO ELOG, IT WOULD LOG ITSELF
-        createLog(msg);
+        const logMsg = [msg.split(' ')[0], msg.split(' ')[1], msg.split(' ').slice(2).join(' ')];
+        createLog(logMsg);
         // console.log(`SEVERITY: ${msg[0]}, SCOPE: ${msg[1]}, MESSAGE: ${msg[2]}`);
     }
 };
