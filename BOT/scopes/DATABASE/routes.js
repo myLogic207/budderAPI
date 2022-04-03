@@ -1,5 +1,4 @@
-const express = require("express");
-const router = express.Router();
+const router = require("express").Router();
 const path = require('path');
 const eLogPath = require("../../config.json").eLog.eLogPath;
 const { eLog } = require(eLogPath);
