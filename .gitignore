@@ -100,3 +100,6 @@ config.json
 *.db
 # For that reasons, sql dumps should be used instead; include them with `.read [name].sql`
 # *.sql
+
+# Output/build folder for the application
+out

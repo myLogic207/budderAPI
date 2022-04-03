@@ -1,0 +1,15 @@
+{
+    "scopes": {
+        "CLI": 
+        "DATABASE":
+        "DISCORD":
+    },
+    "eLog": {
+        "cLogEnabled":
+        "dLogEnabled":
+        "eLogEnabled":
+        "fLogEnabled":
+        "eLogPath": 
+        "filePath": 
+    }
+}

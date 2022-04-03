@@ -1,13 +1,23 @@
 {
   "name": "budderbot",
+  "bin": "core.js",
   "version": "0.1.0",
+  "description": "I can't believe it's not budder",
+  "author": "Logic",
+  "license": "Apache-2.0",
+  "private": true,
+  "keywords": ["budder", "bot", "budderbot"],
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node core.js",
     "preinstall": "cd $(pwd)"
   },
-  "description": "committing to the budder",
-  "author": "Logic",
-  "license": "Apache-2.0",
+  "pkg": {
+    "assets": [
+        "frontend/**"
+    ],
+    "output": "out"
+  },
   "dependencies": {
     "@discordjs/builders": "^0.12.0",
     "@discordjs/rest": "^0.3.0",
@@ -21,6 +31,7 @@
     "sqlite3": "^5.0.2"
   },
   "devDependencies": {
-    "typescript": "^4.6.2"
+    "typescript": "^4.6.2",
+    "nodemon": "^2.0.15"
   }
 }
