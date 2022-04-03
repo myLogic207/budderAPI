@@ -3,7 +3,7 @@ const config = require("../../config.json")
 const fs = require('fs');
 const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
 const logFilePath = `${config.eLog.filePath}eLog-${time}.log`;
-console.log(logFilePath);
+console.log("\x1b[34m[INFO] [UTIL] The log-file for this session is saved in:\x1b[0m " + logFilePath);
 
 module.exports = {
     utils: function (str) {
@@ -40,7 +40,7 @@ module.exports = {
                 msg = "\x1b[37m" + rawmsg + "\x1b[0m";
         }
         if (config.eLog.eLogEnabled) {
-            let cLog = config.eLog.cLogEnabled || process.env.ENV === 'dev';
+            let cLog = config.eLog.cLogEnabled || process.env.NODE_ENV === 'development';
             if (config.eLog.fLogEnabled) {
                 try {
                     if (!fs.existsSync(logFilePath)) {
@@ -53,12 +53,12 @@ module.exports = {
             }
             if (config.eLog.dLogEnabled && config.scopes.DATABASE) {
                 const db = require('../DATABASE/actions');
-                db.logMessage(rawmsg.split(' '));
+                db.logMessage(rawmsg);
             } else if (config.eLog.dLogEnabled) {
-                console.log(`"\x1b[33m[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not\x1b[0m`);
+                console.log(`\x1b[33m[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not\x1b[0m`);
                 cLog = true;
             } else if (config.scopes.DATABASE) {
-                console.log(`"\x1b[33m[UTIL] scope DATABASE is enabled, consider using eLog (DATABASE)\x1b[0m`);
+                console.log(`\x1b[33m[UTIL] scope DATABASE is enabled, consider using eLog (DATABASE)\x1b[0m`);
                 cLog = true;
             }
             if (cLog) {
@@ -70,7 +70,7 @@ module.exports = {
 
         // if(config.eLog.eLogEnabled) {
         //     switch(true) {
-        //         case config.eLog.cLogEnabled || process.env.ENV === 'dev':
+        //         case config.eLog.cLogEnabled || process.env.NODE_ENV === 'development':
         //             console.log(msg);
         //         case config.eLog.fLogEnabled:
         //             try {
@@ -117,7 +117,7 @@ module.exports = {
         // //     console.log(msg);
         // //     cLog = false;
         // // }
-        // // if (cLog || config.eLog.cLogEnabled || process.env.ENV == "DEV") {
+        // // if (cLog || config.eLog.cLogEnabled || process.env.NODE_ENV == "development") {
         // //     console.log(msg);
         // // }
     }

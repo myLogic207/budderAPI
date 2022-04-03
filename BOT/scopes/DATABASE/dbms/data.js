@@ -1,5 +1,6 @@
 const { Sequelize, Op, Model, DataTypes } = require("sequelize");
 const path = require('path');
+const { table } = require("console");
 const eLogPath = require("../../../config.json").eLog.eLogPath;
 const { eLog } = require(eLogPath);
 
@@ -9,7 +10,7 @@ module.exports = {
         const db = new Sequelize({
             host: process.env.DB_HOST,
             dialect: process.env.DB_DIALECT,
-            logging: process.env.ENV,
+            logging: process.env.NODE_ENV,
             // SQLite only
             storage: path.join(__dirname, 'data/UTIL.log')
         });
@@ -38,9 +39,10 @@ module.exports = {
             eLog('[ERROR] [DATA] Custom Database sync failed.');    
         });
     },  // end newDB
-    createEntry: function(base, data) {
+    createEntry: function(table, data) {
         eLog("[DEBUG] [DATA] Attempting to create new entry");
-        base.create(data).catch(console.error);
+        table.create(data).catch(console.error);
+        table.sync();
     },
     readEntry: function(base, id) {
         eLog("[DEBUG] [DATA] Attempting to read entry");
