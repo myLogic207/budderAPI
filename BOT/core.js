@@ -5,9 +5,14 @@ const app = express();
 const eLogPath = require("./config.json").eLog.eLogPath;
 const { eLog } = require(eLogPath);
 const { addFunction } = require("./custom");
-const fs = require('node:fs');
+const fs = require('fs');
 
 eLog(`[INFO] [CORE] Initializing BOT...`);
+
+const botPort = process.env.APP_PORT || 2070;
+eLog("[DEBUG] [CORE] Registered Port: " + botPort);
+const botHost = process.env.APP_HOST || "localhost";
+eLog("[DEBUG] [CORE] Registered Host: " + botHost);
 
 // const backend = require("./backend/server");
 const frontend = require("./frontend/client");
@@ -68,6 +73,6 @@ eLog(`[STATUS] [CORE] Modules loaded`);
 eLog(`[INFO] [CORE] BOT initialized!`);
 eLog(`[INFO] [CORE] Starting BOT...`);
 
-const server = app.listen(process.env.APP_PORT, process.env.APP_HOST, () => {
-    eLog(`[STATUS] [CORE] Server running at http://${process.env.APP_HOST}:${process.env.APP_PORT}/`);
+const server = app.listen(botPort, botHost, () => {
+    eLog(`[STATUS] [CORE] Server running at http://${botHost}:${botPort}/`);
 });
