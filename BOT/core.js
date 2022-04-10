@@ -5,16 +5,15 @@ const app = express();
 const utilPath = require("./config.json").eLog.utilPath;
 const { eLog } = require(`${utilPath}\\actions`);
 const logLevel = require(`${utilPath}\\logLevels`);
-const { addFunction } = require("./custom");
 const fs = require('fs');
 const frontend = require("./frontend/client");
 
 eLog(logLevel.INFO, "CORE", "Initializing BOT...");
 
 const botPort = process.env.APP_PORT || 2070;
-eLog(logLevel.INFO, "CORE", `Registered Port: ${botPort}`);
+eLog(logLevel.FINE, "CORE", `Registered Port: ${botPort}`);
 const botHost = process.env.APP_HOST || "localhost";
-eLog(logLevel.INFO, "CORE", `Registed Host: ${botHost}`);
+eLog(logLevel.FINE, "CORE", `Registed Host: ${botHost}`);
 
 // const backend = require("./backend/server");
 // app.use(backend)
@@ -42,10 +41,12 @@ function initCroutes(scope) {
 for (const scope in SCOPES) {
     eLog(logLevel.INFO, "CORE", `${scope} initializing`)
     if (process.env[scope.toUpperCase() + "_ENABLED"] && SCOPES[scope]) {
-        const routes = require(`./scopes/${scope}/routes`);
+        let routes = require(`./scopes/${scope}/routes`);
+        let { init } = require(`./scopes/${scope}/actions`);
         app.use(`/${scope.toLowerCase()}`, routes);
         eLog(logLevel.DEBUG, "CORE", `Adding extended Functions to ${scope}`);
-        addFunction(scope, app);
+        //addFunction(scope, app);
+        init(scope, app);
         eLog(logLevel.DEBUG, "CORE", `Adding custom routes Functions to ${scope}`);
         initCroutes(scope);
         eLog(logLevel.STATUS, "CORE", `${scope} loaded!`);

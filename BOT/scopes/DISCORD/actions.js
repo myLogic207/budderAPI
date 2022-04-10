@@ -4,6 +4,19 @@ const { eLog } = require(`${utilPath}\\actions`);
 const logLevel = require(`${utilPath}\\logLevels`);
 
 module.exports = {
+    init: () => {
+        eLog(logLevel.INFO, "DISCORD", "Initializing DISCORD...");
+        let changed = false
+        try {
+            const { discordLogin } = require("./main");
+            discordLogin(process.env.DISCORD_TOKEN);
+            eLog(logLevel.FINE, "CORE", "DISCORD bot successfully logged in");
+            changed = true
+        } catch (e) {
+            eLog(logLevel.WARN, "CORE", "DISCORD bot login failed");
+        }
+        eLog(logLevel.INFO, "DISCORD", changed ? "Further actions loaded" : "Did not require any more actions");
+    },
 
     sendMessage : async (message, id) => {
         eLog(logLevel.INFO, "DISCORD", "Start DM transmission");
