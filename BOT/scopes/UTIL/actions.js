@@ -31,6 +31,7 @@ module.exports = {
         return true;
     },
     eLog: function (level, scope, rawmsg) {
+        if (level.value < config.eLog.level) return;
         let msg = getMSG(level, scope, rawmsg);
 
         if (config.eLog.eLogEnabled) {
