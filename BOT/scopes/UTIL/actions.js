@@ -1,6 +1,7 @@
 require("dotenv").config();
 const config = require("../../config.json")
 const fs = require('fs');
+const logLevel = require("./logLevels");
 const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
 const logFilePath = `${config.eLog.filePath}eLog-${time}.log`;
 console.log("\x1b[34m[INFO] [UTIL] The log-file for this session is saved in:\x1b[0m " + logFilePath);
@@ -18,27 +19,31 @@ module.exports = {
         }
         return true;
     },
-    eLog: function (rawmsg) {
+    eLog: function (level, scope, rawmsg) {
         let msg;
-        switch(rawmsg.split(' ')[0].slice(1, -1)) {
-            case 'ERROR':
-                msg = "\x1b[31m" + rawmsg + "\x1b[0m";
+        switch (level) {
+            case logLevel.ERROR:
+                msg = `\x1b[31m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
                 break;
-            case 'WARN':
-                msg = "\x1b[33m" + rawmsg + "\x1b[0m";
+            case logLevel.WARN:
+                msg = `\x1b[33m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
                 break;
-            case 'FINE':
-                msg = "\x1b[32m" + rawmsg + "\x1b[0m";
+            case logLevel.STATUS:
+                msg = `\x1b[34m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
                 break;
-            case 'STATUS':
-                msg = "\x1b[34m" + rawmsg + "\x1b[0m";
+            case logLevel.INFO:
+                msg = `\x1b[37m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
                 break;
-            case 'DEBUG':
-                msg = "\x1b[35m" + rawmsg + "\x1b[0m";
+            case logLevel.FINE:
+                msg = `\x1b[32m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
+                break;
+            case logLevel.DEBUG:
+                msg = `\x1b[35m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
                 break;
             default:
-                msg = "\x1b[37m" + rawmsg + "\x1b[0m";
+                msg = `\x1b[36m[${level.def}] [${scope}] ${rawmsg} (UNSUPPORTED LEVEL)\x1b[0m`;
         }
+
         if (config.eLog.eLogEnabled) {
             let cLog = config.eLog.cLogEnabled || process.env.NODE_ENV === 'development';
             if (config.eLog.fLogEnabled) {
@@ -49,11 +54,11 @@ module.exports = {
                 } catch (err) {
                     console.log("\x1b[31m[ERROR] [UTIL] Error creating eLog file\x1b[0m");
                 }
-                fs.appendFileSync(logFilePath, `${rawmsg}\n`, "utf8");
+                fs.appendFileSync(logFilePath, `${msg.slice(5, -7)}\n`, "utf8");
             }
             if (config.eLog.dLogEnabled && config.scopes.DATABASE) {
                 const db = require('../DATABASE/actions');
-                db.logMessage(rawmsg);
+                db.logMessage(msg.slice(5, -7));
             } else if (config.eLog.dLogEnabled) {
                 console.log(`\x1b[33m[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not\x1b[0m`);
                 cLog = true;

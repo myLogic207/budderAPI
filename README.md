@@ -267,9 +267,13 @@ Feel free to suggest useful budderUTIL functions at anytime.
 To solve the problem of unified logging, budderBOT introduces *eLog*, a format for unified verbose logging that not has to be JSON or setup before anything works.
 *eLog* stands for *extended Logging* and any *eLog* has to be in following format:
 
-`[SEVERITY] [SCOPE] log message`
+```js
+eLog(logLevel.SEVERITY, "SCOPE", "MESSAGE")
+```
 
-Note that the square brackets are important.
+which will be printed like this:
+
+`[SEVERITY] [SCOPE] log message)`
 
 The severity influences how a logging requests are handled.
 By setting the **LOGLEVEL** process environment variables in the *.env* file everything above is logged into the console as well as into the database (if *eLog* and *budderDATA* is enabled and functional).
@@ -278,8 +282,9 @@ If the environment is set to "DEV" everything is logged into the console with a 
 The eLog function of budderUTIL can be imported/required in every file of the budderBOT scope by using.
 
  ```js
- const eLogPath = require { [path to config.json] }.eLogPath
- const { eLog } = require { eLogPath } 
+ const eLogPath = require { [path to config.json] }.utilPath
+ const { eLog } = require { `${utilPath}/actions` }
+ const logLevel = require { `${utilPath}/logLevels` }
 ```
 
 The eLog function handles your logging request and based on the process variables writes them either to the Logbank (Logging database), a file or the console.

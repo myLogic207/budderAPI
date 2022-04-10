@@ -1,7 +1,10 @@
 // Require the necessary discord.js classes
 const fs = require('node:fs');
 const { Client, Collection, Intents } = require('discord.js');
-const { eLog } = require('../UTIL/actions');
+// Require the necessary util.js functions
+const utilPath = require("../../config.json").eLog.utilPath;
+const { eLog } = require(`${utilPath}\\actions`);
+const logLevel = require(`${utilPath}\\logLevels`);
 // var args = process.argv.slice(2);
 
 // Create a new client instance
@@ -22,7 +25,7 @@ BOT.once('ready', () => {
     url: "https://www.twitch.tv/monstercat"
     // url: "https://cfvr.tech/"
   });
-  eLog("[DISCORD] " + BOT.user.tag.concat(' finished Loading'));
+  eLog(logLevel.STATUS, "DISCORD", BOT.user.tag.concat(' finished Loading'));
 });
 
 BOT.on('interactionCreate', async interaction => {

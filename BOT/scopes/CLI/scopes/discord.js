@@ -1,25 +1,24 @@
 const { sendMessage } = require("../../DISCORD/actions");
-const { eLog } = require("../../UTIL/actions");
+const utilPath = require("../../../config.json").eLog.utilPath;
+const { eLog } = require(`${utilPath}\\actions`);
+const logLevel = require(`${utilPath}\\logLevels`);
 
 module.exports = {
     discordHandle : function(rawcmd) {
-        eLog("[INFO] [CLI] Received command: " + rawcmd);
+        eLog(logLevel.INFO, "CLI", "Received command: " + rawcmd);
         const cmd = rawcmd.split(" ");
         switch (cmd[0]) {
             case "info":
-                eLog("[INFO] [CLI] Registered command type: " + cmd[0]);
+                eLog(logLevel.INFO, "CLI", "Showing DISCORD Info");
                 return "devBudderDiscortv0.1.6/Budd#4180";
-            case "test":
-                eLog("[INFO] [CLI] Registered command type: " + cmd[0]);
-                return "test";
             case "help":
-                eLog("[INFO] [CLI] Registered command type: " + cmd[0]);
+                eLog(logLevel.INFO, "CLI", "Showing help for DISCORD");
                 return "help - displays this message";
             case "dm":
-                eLog("[INFO] [CLI] Registered command type: " + cmd[0]);
-                eLog("[INFO] [DISCORD] Sending message to " + cmd[1] + ": " + cmd.slice(2).join(" "));
+                eLog(logLevel.INFO, "CLI", "Attempting to DM user: " + cmd[1]);
                 return dmUser(cmd[1], cmd.splice(2).join(" "));
             default:
+                eLog(logLevel.WARN, "CLI", "DISCORD command not found: " + cmd);
                 return "Unknown DISCORD command";
         }
     }

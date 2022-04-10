@@ -1,7 +1,8 @@
 const router = require("express").Router();
 const path = require('path');
-const eLogPath = require("../../config.json").eLog.eLogPath;
-const { eLog } = require(eLogPath);
+const utilPath = require("../../config.json").eLog.utilPath;
+const { eLog } = require(`${utilPath}\\actions`);
+const logLevel = require(`${utilPath}\\logLevels`);
 
 router.use(express.static(path.join(__dirname, 'frontend')));
 
@@ -12,26 +13,26 @@ router.get('/', (req, res) => {
 router.all("/data", function (req, res, next) {
     if (req.query) next();
 }, (req, res, next) => {
-    eLog("[STATUS] [DATA] DATABASE usage detected");
+    eLog(logLevel.STATUS, "DATA", "DATABASE usage detected");
     switch (req.query.action) {
         case "get":
-            eLog("[INFO] [DATA] Data request");
+            eLog(logLevel.INFO, "DATA", "Database request");
             res.send("Requested: " + req.query);
             break;
         case "post":
-            eLog("[INFO] [DATA] New data received");
+            eLog(logLevel.INFO, "DATA", "New data received");
             res.send("Requested: " + req.query);
             break;
         case "put":
-            eLog("[INFO] [DATA] Data updated");
+            eLog(logLevel.INFO, "DATA", "Data updated");
             res.send("Requested: " + req.query);
             break;
         case "delete":
-            eLog("[WARN] [DATA] Data deleted");
+            eLog(logLevel.WARN, "DATA", "Data deleted");
             res.send("Requested: " + req.query);
             break;
         default:
-            eLog("[ERROR] [DATA] Unknown DATABASE request");
+            eLog(logLevel.ERROR, "DATA", "Unknown DATABASE request");
             res.send("Requested: " + req.query);
             break;
     }

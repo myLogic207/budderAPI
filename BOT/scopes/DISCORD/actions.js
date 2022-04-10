@@ -1,47 +1,49 @@
-const { eLog } = require("../UTIL/actions");
 const { budderDISCORD } = require("./main");
+const utilPath = require("../../config.json").eLog.utilPath;
+const { eLog } = require(`${utilPath}\\actions`);
+const logLevel = require(`${utilPath}\\logLevels`);
 
 module.exports = {
 
     sendMessage : async (message, id) => {
-        eLog('[DISCORD] Start DM transmission')
+        eLog(logLevel.INFO, "DISCORD", "Start DM transmission");
         // BOT.users.cache.get(id).send(message);
         let result = ""
         try {
             const user = await budderDISCORD.users.fetch(id).catch(() => {
-                eLog('[DISCORD] User not found')
+                eLog(logLevel.ERROR, "DISCORD", "User not found");
                 result = "Hmmm, seems like this user does not exist"
             }).then(
                 dm => {
                     dm.send(message);
                 }).catch(() => {
-                    eLog("[DISCORD] User has DMs closed or has no mutual servers with the bot");
+                    eLog(logLevel.ERROR, "DISCORD", "User has DMs closed or has no mutual servers with the bot");
                     const result = 'User has DMs closed or has no mutual servers with the bot';
                 });
             result = 'Message sent to user id ' + id
         } catch (error) {
-            eLog('[DISCORD] Error while sending message:' + error);
+            eLog(logLevel.ERROR, "DISCORD", "Error while sending message: " + error);
             result = 'Message not sent, check JSON format, error was:\n' + error;
         } finally {
-            eLog('[DISCORD] End DM transmission')
+            eLog(logLevel.INFO, "DISCORD", "End DM transmission");
             return result
         }
 
     },
 
     getMemberCount : async (id) => {
-        eLog('[DISCORD] Start member count retrieval')
+        eLog(logLevel.INFO, "DISCORD", "Start member count retrieval");
         const guild = await budderDISCORD.guilds.fetch(id)
         const memberCount = guild.memberCount
-        eLog('[DISCORD] ' + guild.name + ' has members: ' + memberCount);
-        eLog('[DISCORD] End member count retrieval')
+        eLog(logLevel.STATUS, "DISCORD", `${guild.name} has ${memberCount} members`);
+        eLog(logLevel.INFO, "DISCORD", "End member count retrieval");
         return memberCount
         // .filter(member => !member.user.bot).size
     },
 
     shutdown : async () => {
-        eLog('[DISCORD] Start shutdown')
-        budderDISCORD.destroy();
-        eLog('[DISCORD] End shutdown')
+        eLog(logLevel.INFO, "DISCORD", "Shutdown initiated");
+        await budderDISCORD.destroy();
+        eLog(logLevel.INFO, "DISCORD", "Shutdown complete");
     }
 }

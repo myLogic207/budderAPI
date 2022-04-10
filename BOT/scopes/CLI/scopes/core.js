@@ -1,23 +1,26 @@
-const eLogPath = require("../../../config.json").eLog.eLogPath;
-const { eLog } = require(eLogPath);
+const utilPath = require("../../../config.json").eLog.utilPath;
+const { eLog } = require(`${utilPath}\\actions`);
+const logLevel = require(`${utilPath}\\logLevels`);
 const SCOPES = require("../../../config.json").scopes;
 
 module.exports = {
     coreHandle : async (cmd) => {
-        eLog("[CLI] Received command: " + cmd);
+        eLog(logLevel.INFO, "CLI", "Received command: " + cmd);
         const cmds = cmd.split(" ");
         switch (cmds[0]) {
             case "scopes":
+                eLog(logLevel.INFO, "CLI", "Listing Scopes");
                 return "Scopes: " + Object.keys(SCOPES).filter(sc => SCOPES[sc]);
             case "info":
-                eLog("[INFO] [CLI] Registered command type: " + cmds[0]);
+                eLog(logLevel.INFO, "CLI", "Showing CLI Info");
                 return "devBudderCOREv0.1.6/MilkFat";
             case "shutdown":
             case "sd":
-                eLog("[INFO] [CLI] Registered command type: " + cmds[0]);
+                eLog(logLevel.ERROR, "CLI", "Shutdown command received, attempting to shutdown...");
                 gracefulShutdown();
                 return "Attempting to shutdown... Goodbye!";
             default:
+                eLog(logLevel.WARN, "CLI", "Command not found: " + cmd);
                 return "Unknown CORE command";
         }
     }
@@ -26,17 +29,17 @@ module.exports = {
 async function gracefulShutdown(){
     // Core Scopes without a shutdown function, this is intended
     const coreScopes = ["CORE", "CLI", "UTIL", "DATABASE", "TEST"];
-    eLog("[WARN] [CORE] Attempting to shutdown...");
+    eLog(logLevel.WARN, "CORE", "Initiating shutdown...");
     await Object.keys(SCOPES).filter(sc => !coreScopes.includes(sc)).forEach(scope => {
         let { shutdown } = require("../../" + scope + "/actions");
-        shutdown()
         try {
-            eLog("[STATUS] [CORE] Shutdown complete for " + scope);
+            shutdown()
+            eLog(logLevel.WARN, "CORE", "Shutdown complete for " + scope);
         } catch(err){
-            eLog("[STATUS] [CORE] Shutdown failed for " + scope + ": " + err);
+            eLog(logLevel.ERROR, "CORE", "Shutdown failed for " + scope + ": " + err);
         };
     });
-    eLog("[STATUS] [CORE] Module Shutdown complete");
-    eLog("[ERROR] [CORE] Goodbye!");
+    eLog(logLevel.WARN, "CORE", "Shutdown complete");
+    eLog(logLevel.ERROR, "CORE", "Goodbye!");
     process.exit(0);
 }
