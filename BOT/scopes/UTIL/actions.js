@@ -6,6 +6,17 @@ const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T
 const logFilePath = `${config.eLog.filePath}eLog-${time}.log`;
 console.log("\x1b[34m[INFO] [UTIL] The log-file for this session is saved in:\x1b[0m " + logFilePath);
 
+const COLORS = {
+    RED: "\x1b[31m",
+    GREEN: "\x1b[32m",
+    YELLOW: "\x1b[33m",
+    BLUE: "\x1b[34m",
+    PURPLE: "\x1b[35m",
+    CYAN: "\x1b[36m",
+    WHITE: "\x1b[37m",
+    END: "\x1b[0m"
+}
+
 module.exports = {
     utils: function (str) {
         try {
@@ -20,29 +31,7 @@ module.exports = {
         return true;
     },
     eLog: function (level, scope, rawmsg) {
-        let msg;
-        switch (level) {
-            case logLevel.ERROR:
-                msg = `\x1b[31m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
-                break;
-            case logLevel.WARN:
-                msg = `\x1b[33m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
-                break;
-            case logLevel.STATUS:
-                msg = `\x1b[34m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
-                break;
-            case logLevel.INFO:
-                msg = `\x1b[37m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
-                break;
-            case logLevel.FINE:
-                msg = `\x1b[32m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
-                break;
-            case logLevel.DEBUG:
-                msg = `\x1b[35m[${level.def}] [${scope}] ${rawmsg}\x1b[0m`;
-                break;
-            default:
-                msg = `\x1b[36m[${level.def}] [${scope}] ${rawmsg} (UNSUPPORTED LEVEL)\x1b[0m`;
-        }
+        let msg = getMSG(level, scope, rawmsg);
 
         if (config.eLog.eLogEnabled) {
             let cLog = config.eLog.cLogEnabled || process.env.NODE_ENV === 'development';
@@ -125,5 +114,26 @@ module.exports = {
         // // if (cLog || config.eLog.cLogEnabled || process.env.NODE_ENV == "development") {
         // //     console.log(msg);
         // // }
+    },
+    colors: COLORS,
+}
+
+
+function getMSG(level, scope, rawmsg){
+    switch (level) {
+        case logLevel.ERROR:
+            return `${COLORS.RED}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+        case logLevel.WARN:
+            return `${COLORS.YELLOW}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+        case logLevel.STATUS:
+            return `${COLORS.BLUE}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+        case logLevel.INFO:
+            return `${COLORS.WHITE}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+        case logLevel.FINE:
+            return `${COLORS.GREEN}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+        case logLevel.DEBUG:
+            return `${COLORS.PURPLE}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+        default:
+            return `${COLORS.CYAN}[${level.def}] [${scope}] ${rawmsg} (UNSUPPORTED LEVEL)${COLORS.END}`;
     }
 }
