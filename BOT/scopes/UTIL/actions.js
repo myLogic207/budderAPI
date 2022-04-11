@@ -48,7 +48,7 @@ module.exports = {
             }
             if (config.eLog.dLogEnabled && config.scopes.DATABASE) {
                 const db = require('../DATABASE/actions');
-                db.logMessage(msg.slice(5, -7));
+                db.logMessage(msg.slice(28, -7));
             } else if (config.eLog.dLogEnabled) {
                 console.log(`\x1b[33m[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not\x1b[0m`);
                 cLog = true;
@@ -121,20 +121,21 @@ module.exports = {
 
 
 function getMSG(level, scope, rawmsg){
+    let logTime = new Date().toISOString().replace(/T/g, ' ').slice(0,-1);
     switch (level) {
         case logLevel.ERROR:
-            return `${COLORS.RED}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+            return `${COLORS.RED}${logTime} [${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
         case logLevel.WARN:
-            return `${COLORS.YELLOW}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+            return `${COLORS.YELLOW}${logTime} [${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
         case logLevel.STATUS:
-            return `${COLORS.BLUE}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+            return `${COLORS.BLUE}${logTime} [${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
         case logLevel.INFO:
-            return `${COLORS.WHITE}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+            return `${COLORS.WHITE}${logTime} [${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
         case logLevel.FINE:
-            return `${COLORS.GREEN}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+            return `${COLORS.GREEN}${logTime} [${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
         case logLevel.DEBUG:
-            return `${COLORS.PURPLE}[${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
+            return `${COLORS.PURPLE}${logTime} [${level.def}] [${scope}] ${rawmsg}${COLORS.END}`;
         default:
-            return `${COLORS.CYAN}[${level.def}] [${scope}] ${rawmsg} (UNSUPPORTED LEVEL)${COLORS.END}`;
+            return `${COLORS.CYAN}${logTime} [${level.def}] [${scope}] ${rawmsg} (UNSUPPORTED LEVEL)${COLORS.END}`;
     }
 }
