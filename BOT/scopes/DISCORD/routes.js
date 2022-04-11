@@ -13,7 +13,6 @@ router.use(bodyParser.urlencoded({ extended: true }));
 
 router.post('/msg', async (req, res) => {
     eLog(logLevel.INFO, "DISCORD", "Start DM transmission")
-    eLog('[INFO] [DISCORD] Try to dm user ' + req.body.id + ' with message ' + req.body.message)
     eLog(logLevel.DEBUG, "DISCORD", `Try to dm user ${req.body.id} with message ${req.body.message}`)
     try {
         res.send(await botAction.sendMessage(req.body.message, req.body.id));
