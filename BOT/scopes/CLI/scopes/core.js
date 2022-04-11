@@ -1,3 +1,5 @@
+const { serverShutdown } = require("../../../core");
+
 const utilPath = require("../../../config.json").eLog.utilPath;
 const { eLog } = require(`${utilPath}\\actions`);
 const logLevel = require(`${utilPath}\\logLevels`);
@@ -16,7 +18,7 @@ module.exports = {
                 return "devBudderCOREv0.1.6/MilkFat";
             case "shutdown":
             case "sd":
-                eLog(logLevel.ERROR, "CLI", "Shutdown command received, attempting to shutdown...");
+                eLog(logLevel.WARN, "CLI", "Shutdown command received, attempting to shutdown...");
                 gracefulShutdown();
                 return "Attempting to shutdown... Goodbye!";
             default:
@@ -27,19 +29,21 @@ module.exports = {
 };
 
 async function gracefulShutdown(){
+    eLog(logLevel.WARN, "CORE", "Initiating shutdown...");
+    await serverShutdown();
     // Core Scopes without a shutdown function, this is intended
     const coreScopes = ["CORE", "CLI", "UTIL", "DATABASE", "TEST"];
-    eLog(logLevel.WARN, "CORE", "Initiating shutdown...");
     await Object.keys(SCOPES).filter(sc => !coreScopes.includes(sc)).forEach(scope => {
         let { shutdown } = require("../../" + scope + "/actions");
         try {
+            eLog(logLevel.INFO, "CORE", `Shutting down ${scope}`);
             shutdown()
-            eLog(logLevel.WARN, "CORE", "Shutdown complete for " + scope);
+            eLog(logLevel.STATUS, "CORE", "Shutdown complete for " + scope);
         } catch(err){
             eLog(logLevel.ERROR, "CORE", "Shutdown failed for " + scope + ": " + err);
         };
     });
-    eLog(logLevel.WARN, "CORE", "Shutdown complete");
-    eLog(logLevel.ERROR, "CORE", "Goodbye!");
+    eLog(logLevel.ERROR, "CORE", "Shutdown complete");
+    eLog(logLevel.STATUS, "CORE", "Goodbye!");
     process.exit(0);
 }
