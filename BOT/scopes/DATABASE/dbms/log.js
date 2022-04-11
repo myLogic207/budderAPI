@@ -41,7 +41,7 @@ const LOG = logbank.define('Logs', {
 if(process.env.NODE_ENV === 'development' || config.eLog.level == 0) console.log("\x1b[34m[STATUS] [DATA] Logbank found/created\x1b[0m");
 
 module.exports = {
-    initLog: function(){
+    initLog: () => {
         if(process.env.NODE_ENV === 'development' || config.eLog.level == 0) console.log("\x1b[35m[DEBUG] [DATA] Attempting to initialize logging database\x1b[0m");
         LOG.sync().then(() => {
             console.log('\x1b[34m[STATUS] [DATA] Logging Database synced\x1b[0m');
@@ -59,13 +59,13 @@ module.exports = {
             return LOG;
         }).catch(console.error("\x1b[31m[ERROR] [DATA] Logging database initialization failed\x1b[0m"));
     },
-    createLog: function(msg){
+    createLog: (severity, scope, message) => {
         try {
             if(process.env.NODE_ENV === 'development' || config.eLog.level == 0) console.log("\x1b[35m[DEBUG] [DATA] Attempting to create new log entry\x1b[0m");
             LOG.create({
-                severity: msg[0].slice(1, -1),
-                scope: msg[1].slice(1, -1),
-                message: msg[2]
+                severity: severity,
+                scope: scope,
+                message: message
             });
         } catch (error) {
             console.log("\x1b[31m[ERROR] [DATA] Logging failed with error:\x1b[0m " + error);
