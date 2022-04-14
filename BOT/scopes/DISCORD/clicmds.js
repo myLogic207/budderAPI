@@ -1,7 +1,7 @@
-const utilPath = require("../../../config.json").eLog.utilPath;
+const utilPath = require("../../config.json").eLog.utilPath;
 const { eLog } = require(`${utilPath}\\actions`);
 const logLevel = require(`${utilPath}\\logLevels`);
-const { sendMessage } = require("../actions");
+const { sendMessage } = require("./actions");
 
 module.exports = {
     discordHandle : function(rawcmd) {

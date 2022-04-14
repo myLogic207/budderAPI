@@ -1,5 +1,5 @@
 const express = require("express");
-const { discordHandle } = require("./commands");
+const { discordHandle } = require("../clicmds");
 const router = express.Router();
 
 router.get('/command/discord', async (req, res) => {
