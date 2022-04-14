@@ -1,5 +1,4 @@
-const { newDB } = require("./dbms/data");
-const { initLog, createLog } = require("./dbms/log");
+"use strict";
 const utilPath = require("../../config.json").eLog.utilPath;
 const { eLog } = require(`${utilPath}\\actions`);
 const logLevel = require(`${utilPath}\\logLevels`);
@@ -10,14 +9,16 @@ module.exports = {
     init: () => {
         eLog(logLevel.STATUS, "DATA", "Initialized");
     },
-    useDB: function(name, tags){
+    useDB: (name, tags) => {
+        const { newDB } = require("./dbms/data");
         eLog(logLevel.INFO, "DATA", "Attempting to initialize new database");
         let DB = newDB(name, tags);
         dataBases.push(DB);
         return DB;
     },
-    useLog: function(){
+    initLogbank: () => {
         eLog(logLevel.DEBUG, "DATA", "Attempting to initialize logging database");
+        const { initLog } = require("./dbms/log");
         const logBase = initLog();
         dataBases.push(logBase);
         return logBase;

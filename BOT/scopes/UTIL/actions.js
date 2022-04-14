@@ -1,7 +1,9 @@
+"use strict";
 require("dotenv").config();
 const config = require("../../config.json")
 const fs = require('fs');
 const logLevel = require("./logLevels");
+const { createLog } = require("../DATABASE/dbms/log");
 const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
 const logFilePath = `${config.eLog.filePath}\\eLog-${time}.log`;
 
@@ -31,6 +33,9 @@ const STYLE = {
 }
 
 module.exports = {
+    eLog: (level, scope, rawmsg, forceConsole = false) => {
+        eLog2(level, scope, rawmsg, forceConsole);
+    },
     utilInit: () => {
         eLog2(logLevel.INFO, "UTIL", "Initializing!");
         if (ELOG) {
@@ -40,8 +45,10 @@ module.exports = {
             if (CLOG) eLog2(logLevel.STATUS, "UTIL", "Console logging is enabled");
             if (config.eLog.dLogEnabled) {
                 eLog2(logLevel.STATUS, "UTIL", "Database logging is enabled");
-                const { useLog } = require("../DATABASE/actions");
-                DLOG = useLog();
+                const { initLogbank } = require("../DATABASE/actions");
+                const LOGBANK = initLogbank();
+                eLog2(logLevel.STATUS, "UTIL", "Database connection is ready");
+                DLOG = true;
             }
             if (config.eLog.fLogEnabled) {
                 checkLogFile();
@@ -52,9 +59,6 @@ module.exports = {
         } else {
             eLog2(logLevel.STATUS, "UTIL", "Custom extending logging 'eLog2' is disabled");
         }
-    },
-    initLogFile: () => {
-        checkLogFile();
     },
     checkJson: (str) => {
         try {
@@ -72,9 +76,6 @@ module.exports = {
         eLog2(logLevel.WARN, "UTIL", "Disabling logging database");
         DBENABLED = false;
     },
-    eLog: (level, scope, rawmsg, forceConsole = false) => {
-        eLog2(level, scope, rawmsg, forceConsole);
-    },
     style: STYLE,
 }
 
@@ -85,12 +86,13 @@ function checkLogFile(){
             fs.writeFileSync(logFilePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
         }
     } catch (err) {
-        console.log(`${STYLE.RED}[ERROR] [UTIL] Error creating eLog file${STYLE.END}`);
+        eLog2(logLevel.ERROR, "UTIL", "Error creating eLog file");
+        console.log(err);
     }
 }
 
 function eLog2(level, scope, rawmsg, forceConsole = false) {
-    if (level.value < LOGLEVEL) return;
+    if (level.value < LOGLEVEL && process.env.NODE_ENV !== "development") return;
     let msg = getMSG(level, scope, rawmsg);
 
     if (ELOG) {
@@ -99,7 +101,7 @@ function eLog2(level, scope, rawmsg, forceConsole = false) {
             fs.appendFileSync(logFilePath, `${msg.slice(5, -4)}\n`, "utf8");
         }
         if (DLOG && DBENABLED) {
-            LOGBANK.createLog(level.def, scope, rawmsg);
+            createLog(level.def, scope, rawmsg);
         } else if (DLOG) {
             console.log(`${STYLE.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${STYLE.END}`);
             cLog = true;

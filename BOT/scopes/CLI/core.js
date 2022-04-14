@@ -3,7 +3,6 @@ const utilPath = require("../../config.json").eLog.utilPath;
 const { eLog } = require(`${utilPath}\\actions`);
 const logLevel = require(`${utilPath}\\logLevels`);
 const SCOPES = require("../../config.json").scopes;
-const eLog = require("../../config.json").eLog;
 
 module.exports = {
     coreHandle : async (cmd) => {

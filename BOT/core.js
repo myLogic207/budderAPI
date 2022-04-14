@@ -1,3 +1,4 @@
+"use strict";
 require("dotenv").config();
 const SCOPES = require("./config.json").scopes;
 const express = require("express");
@@ -58,6 +59,7 @@ function initScope(scope){
 
 const startTime = new Date();
 
+eLog(logLevel.INFO, "CORE", "Initializing Utils");
 utilInit();
 eLog(logLevel.DEBUG, "CORE", `budder started at ${startTime}`);
 eLog(logLevel.INFO, "CORE", "Initializing BOT...");
