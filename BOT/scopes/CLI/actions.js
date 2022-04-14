@@ -7,15 +7,14 @@ const logLevel = require(`${utilPath}\\logLevels`);
 module.exports = {
     init: function (scope, app) {
         eLog(logLevel.INFO, "CLI", "CLI initializing");
-        let changed = false
         Object.keys(SCOPES).filter(key => {SCOPES[key] && scope !== key}).forEach(key => {
             try {
-                app.use("/cli", require(`./scopes/CLI/scopes/${key}`));
-                changed = true
+                app.use("/cli", require(`./scopes/${key}/cli/routes`));
+                eLog(logLevel.STATUS, "CLI", `${key} commands loaded`);
             } catch (error) {
-                eLog(`[WARN] [CORE] ${scope} did find any extra commands for ${key}`);
+                eLog(logLevel.WARN, "CLI", `${key} commands not loaded (not found)`);
             }
         });
-        eLog(logLevel.STATUS, "CLI", changed ? "Further actions loaded" : "Did not require any actions");
+        eLog(logLevel.INFO, "CLI", "CLI fully initialized");
     }
 }
