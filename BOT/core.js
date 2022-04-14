@@ -56,6 +56,7 @@ function initScope(scope){
 // -------------------------------------------------------------------------------------------------------------------
 // Begin core
 
+const startTime = new Date();
 eLog(logLevel.INFO, "CORE", "Initializing BOT...");
 printLogo();
 eLog(logLevel.INFO, "CORE", "Initializing UTILS...");
@@ -104,6 +105,8 @@ for (const scope in SCOPES) {
         eLog(logLevel.WARN, "CORE", `${scope} either not enabled or not found`);
     }
 }
+
 eLog(logLevel.STATUS, "CORE", "All Modules loaded");
 eLog(logLevel.INFO, "CORE", "Budder Completely loaded! Starting...");
-
+const startUpTime = new Date().getTime() - startTime.getTime();
+eLog(logLevel.INFO, "CORE", `BOT started in ${startUpTime}ms`);
