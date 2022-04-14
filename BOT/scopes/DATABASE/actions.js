@@ -8,13 +8,13 @@ let dataBases = [];
 
 module.exports = {
     init: () => {
-        eLog(logLevel.INFO, "DATA", "Initializing!");
+        eLog(logLevel.STATUS, "DATA", "Initialized");
     },
     useDB: function(name, tags){
         eLog(logLevel.INFO, "DATA", "Attempting to initialize new database");
-        let newDB = newDB(name, tags);
-        dataBases.push(newDB);
-        return newDB;
+        let DB = newDB(name, tags);
+        dataBases.push(DB);
+        return DB;
     },
     useLog: function(){
         eLog(logLevel.DEBUG, "DATA", "Attempting to initialize logging database");
@@ -22,11 +22,11 @@ module.exports = {
         dataBases.push(logBase);
         return logBase;
     },
-    logMessage : function (severity, scope, message) {
-        // NO ELOG, IT WOULD LOG ITSELF
-        createLog(severity, scope, message);
-        // console.log(`SEVERITY: ${msg[0]}, SCOPE: ${msg[1]}, MESSAGE: ${msg[2]}`);
-    },
+    // logMessage : function (severity, scope, message) {
+    //     // NO ELOG, IT WOULD LOG ITSELF
+    //     createLog(severity, scope, message);
+    //     // console.log(`SEVERITY: ${msg[0]}, SCOPE: ${msg[1]}, MESSAGE: ${msg[2]}`);
+    // },
     shutdown: () => {
         eLog(logLevel.WARN, "DATA", "Shutdown command received, attempting to shutdown...");
         

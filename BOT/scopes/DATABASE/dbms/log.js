@@ -45,19 +45,11 @@ module.exports = {
         if(process.env.NODE_ENV === 'development' || config.eLog.level == 0) console.log("\x1b[35m[DEBUG] [DATA] Attempting to initialize logging database\x1b[0m");
         LOG.sync().then(() => {
             console.log('\x1b[34m[STATUS] [DATA] Logging Database synced\x1b[0m');
-            LOG.create({
-                logID: 0,
-                severity: 'SEVERITY',
-                scope: 'SCOPE',
-                message: 'log message'
-            }.catch((error) => {
-                if (error.name === 'SequelizeUniqueConstraintError') {
-                    console.log('[INFO] [DATA] Using existing logging database.');
-                }
-                throw "\x1b[31m[ERROR] [DATA] Logging database initialization failed\x1b[0m";
-            }));
             return LOG;
-        }).catch(console.error("\x1b[31m[ERROR] [DATA] Logging database initialization failed\x1b[0m"));
+        }).catch((error) => {
+            console.error("\x1b[31m[ERROR] [DATA] Logging database initialization failed\x1b[0m");
+            console.log(error);
+        });
     },
     createLog: (severity, scope, message) => {
         try {

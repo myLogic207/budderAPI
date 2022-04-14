@@ -20,7 +20,7 @@ function printLogo() {
 |_.__/ \\__,_|\\__,_|\\__,_|\\___|_|/_/   \\_\\_|  |___|
                                                       
 `
-    eLog(logLevel.INFO, "CORE", `Printing Logo...${style.BOLD}${LOGO}${style.END}`, true);
+    eLog("budder", "CORE", `Printing Logo...${style.BOLD}${LOGO}${style.END}`, true);
 }
 
 // Custom Routes function
@@ -57,10 +57,12 @@ function initScope(scope){
 // Begin core
 
 const startTime = new Date();
+
+utilInit();
+eLog(logLevel.DEBUG, "CORE", `budder started at ${startTime}`);
 eLog(logLevel.INFO, "CORE", "Initializing BOT...");
 printLogo();
 eLog(logLevel.INFO, "CORE", "Initializing UTILS...");
-utilInit();
 
 // Init Adress
 eLog(logLevel.INFO, "CORE", "Initializing Adress");
@@ -97,8 +99,9 @@ for (const scope in SCOPES) {
         eLog(logLevel.INFO, "CORE", `Custom scope ${scope} found`);
         try {
             initScope(scope)
-        } catch {
+        } catch (error){
             eLog(logLevel.ERROR, "CORE", `Loading of custom scope ${scope} failed`);
+            console.log(error);
         }
     } else {
         eLog(logLevel.WARN, "CORE", `${scope} not loaded`);
