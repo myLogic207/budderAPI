@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const path = require('path');
-const { coreHandle } = require("./scopes/core");
+const { coreHandle } = require("./core");
 
 router.use(express.static(path.join(__dirname, "frontend")));
 

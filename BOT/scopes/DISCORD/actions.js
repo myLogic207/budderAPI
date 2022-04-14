@@ -54,9 +54,9 @@ module.exports = {
         // .filter(member => !member.user.bot).size
     },
 
-    shutdown : async () => {
+    shutdown : () => {
         eLog(logLevel.INFO, "DISCORD", "Shutdown initiated");
-        await budderDISCORD.destroy();
+        budderDISCORD.destroy();
         eLog(logLevel.INFO, "DISCORD", "Shutdown complete");
     }
 }

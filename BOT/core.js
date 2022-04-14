@@ -30,12 +30,12 @@ function initCroutes(scope) {
     Object.keys(SCOPES).filter(key => SCOPES[key] && scope !== key).forEach(key => {
         try {
             fs.readdirSync(`./scopes/${scope}/croutes`).filter(file => file.startsWith(key)).forEach(file => {
-                eLog(logLevel.WARN, "CORE", `${scope} found extra croutes for ${key}`);
+                eLog(logLevel.INFO, "CORE", `${scope} found extra croutes for ${key}`);
                 app.use(`/${scope.toLowerCase()}/${key.toLowerCase}`, require(`./scopes/${scope}/croutes/${file}`));
                 changed = true
             })
         } catch (error) {
-            eLog(logLevel.INFO, "CORE", `${scope} did not need extra routes for ${key}`);
+            eLog(logLevel.INFO, "CORE", `${scope} did not find extra routes for ${key}`);
         }
     });
     eLog(logLevel.INFO, "CORE", changed ? `${scope} croutes initialized` : `${scope} did not need any croutes`);
@@ -44,14 +44,12 @@ function initCroutes(scope) {
 // Init Scope
 function initScope(scope){
     eLog(logLevel.INFO, "CORE", `${scope} found`)
-    let routes = require(`./scopes/${scope}/routes`);
-    app.use(`/${scope.toLowerCase()}`, routes);
+    app.use(`/${scope.toLowerCase()}`, require(`./scopes/${scope}/routes`));
     eLog(logLevel.INFO, "CORE", `${scope} Routes found and loaded`);
     let { init } = require(`./scopes/${scope}/actions`);
     init(scope, app);
     eLog(logLevel.DEBUG, "CORE", `${scope} initialized`);
     initCroutes(scope);
-    eLog(logLevel.DEBUG, "CORE", `${scope} custom routes loaded`);
     eLog(logLevel.STATUS, "CORE", `${scope} Fully loaded!`);
 }
 

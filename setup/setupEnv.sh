@@ -1,3 +1,4 @@
+#!/bin/sh
 printf "============================================================\n"
 printf "Starting setup .env variables...\n"
 printf "In the following you will be asked for mandatory (ond optional) information\n"
