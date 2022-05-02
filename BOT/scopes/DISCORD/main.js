@@ -32,7 +32,7 @@ BOT.on('interactionCreate', async interaction => {
 	eLog(logLevel.INFO, "DISCORD", `${interaction.user.tag} created an interaction in ${interaction.channel.name}`);
 	eLog(logLevel.DEBUG, "DISCORD", `Interaction is: ${interaction}`);
 	if (!interaction.isCommand()) return;
-	const command = BOT.commands.get(interaction.commandName);
+	const command = await BOT.commands.get(interaction.commandName);
 	eLog(logLevel.DEBUG, "DISCORD", `Command is: ${JSON.stringify(command).replace("\n", "")}`);
 	if (!command) return;
 	try {
