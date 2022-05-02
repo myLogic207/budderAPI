@@ -11,7 +11,7 @@ switch (platform) {
     config.pathSep = "/";
     break;
     default:
-    config.pathSep = "/";
+    config.pathSep;
 }
 
 
