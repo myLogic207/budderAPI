@@ -29,14 +29,16 @@ BOT.once('ready', () => {
 });
 
 BOT.on('interactionCreate', async interaction => {
+	eLog(logLevel.INFO, "DISCORD", `${interaction.author.tag} created an interaction`);
+	eLog(logLevel.DEBUG, "DISCORD", `Interaction is: ${interaction}`);
 	if (!interaction.isCommand()) return;
-
 	const command = BOT.commands.get(interaction.commandName);
-
+	eLog(logLevel.DEBUG, "DISCORD", `Command is: ${JSON.stringify(command).replace("\n", "")}`);
 	if (!command) return;
-
 	try {
+		eLog(logLevel.INFO, "DISCORD", `${interaction.author.tag} ran command: ${command.data.name}`);
 		await command.execute(interaction);
+		eLog(logLevel.FINE, "DISCORD", "Finished Command");
 	} catch (error) {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
