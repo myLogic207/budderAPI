@@ -1,11 +1,24 @@
 "use strict";
 require("dotenv").config();
-const SCOPES = require("./config.json").scopes;
+const { platform } = require("process");
+const config = require("./config.json");
+console.log(`[init] This platform is ${platform}`);
+switch (platform) {
+    case "win32":
+    config.pathSep = "\\";
+    break;
+    case "linux":
+    config.pathSep = "/";
+    break;
+    default:
+    config.pathSep = "/";
+}
+
+
 const express = require("express");
 const app = express();
-const utilPath = require("./config.json").eLog.utilPath;
-const { eLog, style, utilInit } = require(`${utilPath}\\actions`);
-const logLevel = require(`${utilPath}\\logLevels`);
+const { eLog, style, utilInit } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
+const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
 const fs = require('fs');
 const frontend = require("./frontend/client");
 
@@ -28,7 +41,7 @@ function printLogo() {
 function initCroutes(scope) {
     eLog(logLevel.INFO, "CORE", `${scope} initializing croutes`)
     let changed = false
-    Object.keys(SCOPES).filter(key => SCOPES[key] && scope !== key).forEach(key => {
+    Object.keys(config.scopes).filter(key => config.scopes[key] && scope !== key).forEach(key => {
         try {
             fs.readdirSync(`./scopes/${scope}/croutes`).filter(file => file.startsWith(key)).forEach(file => {
                 eLog(logLevel.INFO, "CORE", `${scope} found extra croutes for ${key}`);
@@ -93,11 +106,11 @@ module.exports = {
 
 // Init Scopes
 // foreach scope, app.use the scope's router
-for (const scope in SCOPES) {
+for (const scope in config.scopes) {
     eLog(logLevel.INFO, "CORE", `${scope} initializing`)
-    if (process.env[scope.toUpperCase() + "_ENABLED"] && SCOPES[scope]) {
+    if (process.env[scope.toUpperCase() + "_ENABLED"] && config.scopes[scope]) {
         initScope(scope)
-    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && SCOPES[scope]) {
+    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && config.scopes[scope]) {
         eLog(logLevel.INFO, "CORE", `Custom scope ${scope} found`);
         try {
             initScope(scope)

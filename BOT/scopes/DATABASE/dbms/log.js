@@ -4,9 +4,9 @@ require("dotenv").config();
 let LOG;
 
 function connectDB() {
-    const utilPath = require("../../../config.json").eLog.utilPath;
-    const { eLog } = require(`${utilPath}\\actions`);
-    const logLevel = require(`${utilPath}\\logLevels`);
+    const config = require("../../../config.json");
+    const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
+    const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
     const { Sequelize } = require("sequelize");
     const path = require('path');
     
@@ -51,9 +51,9 @@ function connectDB() {
 
 module.exports = {
     initLog: () => {
-        const utilPath = require("../../../config.json").eLog.utilPath;
-        const { eLog } = require(`${utilPath}\\actions`);
-        const logLevel = require(`${utilPath}\\logLevels`);
+        const config = require("../../../config.json");
+        const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
+        const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
         eLog(logLevel.DEBUG, "DATA", "Attempting to connect to logging database");
         LOG = connectDB();
         eLog(logLevel.INFO, "DATA", "Successfully connect to logging database");

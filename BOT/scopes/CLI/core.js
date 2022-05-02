@@ -1,8 +1,7 @@
 const { serverShutdown } = require("../../core");
-const utilPath = require("../../config.json").eLog.utilPath;
-const { eLog } = require(`${utilPath}\\actions`);
-const logLevel = require(`${utilPath}\\logLevels`);
-const SCOPES = require("../../config.json").scopes;
+const config = require("../../config.json");
+const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
+const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
 
 module.exports = {
     coreHandle : async (cmd) => {
@@ -11,7 +10,7 @@ module.exports = {
         switch (cmds[0]) {
             case "scopes":
                 eLog(logLevel.INFO, "CLI", "Listing Scopes");
-                return "Scopes: " + Object.keys(SCOPES).filter(sc => SCOPES[sc]);
+                return "Scopes: " + Object.keys(config.scopes).filter(sc => config.scopes[sc]);
             case "info":
                 eLog(logLevel.INFO, "CLI", "Showing CLI Info");
                 return "devBudderCOREv0.1.6/MilkFat";
@@ -93,7 +92,7 @@ async function gracefulShutdown(){
     await serverShutdown();
     // Core Scopes without a shutdown function, this is intended
     const coreScopes = ["CORE", "CLI", "UTIL", "DATABASE", "TEST"];
-    await Object.keys(SCOPES).filter(sc => !coreScopes.includes(sc)).forEach(scope => {
+    await Object.keys(config.scopes).filter(sc => !coreScopes.includes(sc)).forEach(scope => {
         let { shutdown } = require("../" + scope + "/actions");
         try {
             eLog(logLevel.INFO, "CORE", `Shutting down ${scope}`);

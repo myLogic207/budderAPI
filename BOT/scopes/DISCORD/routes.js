@@ -3,9 +3,9 @@ const bodyParser = require('body-parser');
 const router = express.Router();
 const botAction = require("./actions");
 
-const utilPath = require("../../config.json").eLog.utilPath;
-const { eLog } = require(`${utilPath}\\actions`);
-const logLevel = require(`${utilPath}\\logLevels`);
+const config = require("../../config.json");
+const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
+const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
 
 
 router.use(bodyParser.json());
