@@ -57,6 +57,35 @@ module.exports = {
                 .addChoice('Date and time (3 May 2022 01:45)', 'f')
                 .addChoice('Full Info (Tuesday, 3 May 2022 01:45)', 'F')
                 .addChoice('Remaining', 'R')
+        ).addStringOption(option =>
+            option.setName('offset')
+                .setDescription('Set the offset from UTC')
+                .setRequired(false)
+                .addChoice('UTC / GMT', '0')
+                .addChoice('UTC+1 / CET', '1')
+                .addChoice('UTC+2 / CEST', '2')
+                .addChoice('UTC+3 / MSK', '3')
+                .addChoice('UTC+4 / GST', '4')
+                .addChoice('UTC+5', '5')
+                .addChoice('UTC+6 / IST', '6')
+                .addChoice('UTC+7 / KRAT', '7')
+                .addChoice('UTC+8 / AWST', '8')
+                .addChoice('UTC+9 / JST', '9')
+                .addChoice('UTC+10 / AEST', '10')
+                .addChoice('UTC+11 / SRET', '11')
+                .addChoice('UTC+12 / NZST', '12')
+                .addChoice('UTC-1', '-1')
+                .addChoice('UTC-2 / WGST', '-2')
+                .addChoice('UTC-3 / BRT', '-3')
+                .addChoice('UTC-4 / EDT', '-4')
+                .addChoice('UTC-5 / CDT', '-5')
+                .addChoice('UTC-6 / MDT', '-6')
+                .addChoice('UTC-7 / PDT', '-7')
+                .addChoice('UTC-8 / AKDT', '-8')
+                .addChoice('UTC-9', '-9')
+                .addChoice('UTC-10', '-10')
+                .addChoice('UTC-11', '-11')
+                .addChoice('UTC-12', '-12')
         ),
 	async execute(interaction) {
         let timestamp = 0;
@@ -66,6 +95,8 @@ module.exports = {
         timestamp += interaction.options.getInteger('hour') * 3600;
         timestamp += interaction.options.getInteger('minute') * 60;
         timestamp += interaction.options.getInteger('second');
+        await interaction.reply("Chosen offset is:" + Int.getInteger(interaction.options.getString('offset')) + "h");
+        timestamp -= Int.getInteger(interaction.options.getString('offset')) * 3600;
         if(timestamp === 0) {
             timestamp = Date.now();
         }
