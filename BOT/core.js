@@ -9,7 +9,6 @@ const app = require("express")();
 const { eLog, style, utilInit } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
 const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 const fs = require('fs');
-const frontend = require("./frontend/client");
 
 // -------------------------------------------------------------------------------------------------------------------
 // Begin function segments
@@ -77,7 +76,7 @@ eLog(logLevel.FINE, "CORE", `Registed Host: ${botHost}`);
 
 // Init "Frontend"
 eLog(logLevel.INFO, "CORE", "Initializing Frontend");
-app.use(frontend)
+app.use(require("./frontend/client"))
 eLog(logLevel.STATUS, "CORE", "Frontend loaded");
 
 // Start Server
