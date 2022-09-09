@@ -3,8 +3,8 @@ const fs = require('node:fs');
 const { Client, Collection, Intents } = require('discord.js');
 // Require the necessary util.js functions
 const config = require("../../config.json");
-const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
-const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
+const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
+const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 // var args = process.argv.slice(2);
 
 // Create a new client instance

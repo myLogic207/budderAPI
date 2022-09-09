@@ -3,22 +3,11 @@ require("dotenv").config();
 const { platform } = require("process");
 const config = require("./config.json");
 console.log(`[init] This platform is ${platform}`);
-switch (platform) {
-    case "win32":
-    config.pathSep = "\\";
-    break;
-    case "linux":
-    config.pathSep = "/";
-    break;
-    default:
-    config.pathSep;
-}
+process.env.pathSep = platform === "win32" ? "\\" : "/";
 
-
-const express = require("express");
-const app = express();
-const { eLog, style, utilInit } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
-const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
+const app = require("express")();
+const { eLog, style, utilInit } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
+const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 const fs = require('fs');
 const frontend = require("./frontend/client");
 

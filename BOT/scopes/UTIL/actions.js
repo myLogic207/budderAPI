@@ -5,7 +5,7 @@ const fs = require('fs');
 const logLevel = require("./logLevels");
 const { createLog } = require("../DATABASE/dbms/log");
 const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
-const logFilePath = `${config.eLog.filePath}${config.pathSep}eLog-${time}.log`;
+const logFilePath = `${config.eLog.filePath}${process.env.pathSep}eLog-${time}.log`;
 
 let LOGLEVEL = config.eLog.level;
 let CLOG = config.eLog.cLogEnabled;

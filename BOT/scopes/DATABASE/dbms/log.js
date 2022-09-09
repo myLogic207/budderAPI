@@ -5,8 +5,8 @@ let LOG;
 
 function connectDB() {
     const config = require("../../../config.json");
-    const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
-    const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
+    const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
+    const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
     const { Sequelize } = require("sequelize");
     const path = require('path');
     
@@ -52,8 +52,8 @@ function connectDB() {
 module.exports = {
     initLog: () => {
         const config = require("../../../config.json");
-        const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
-        const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
+        const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
+        const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
         eLog(logLevel.DEBUG, "DATA", "Attempting to connect to logging database");
         LOG = connectDB();
         eLog(logLevel.INFO, "DATA", "Successfully connect to logging database");

@@ -1,7 +1,7 @@
 "use strict";
 const config = require("../../config.json");
-const { eLog } = require(`${config.eLog.utilPath}${config.pathSep}actions`);
-const logLevel = require(`${config.eLog.utilPath}${config.pathSep}logLevels`);
+const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
+const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 
 let dataBases = [];
 
