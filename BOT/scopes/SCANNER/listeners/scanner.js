@@ -14,7 +14,6 @@ class Scanner{
         }
         this.dir = scannerdir;
         this.name = scannername ?? "Default";
-        this.files = new Map();
         this.scannerID = getRandomUUID();
         this.interval = scannerinterval ?? process.env.STD_SLEEP;
         register(this);
@@ -55,11 +54,8 @@ class Scanner{
     }
 
     handleFile(file){
-        if(!this.files.get(file)){
-            eLog(logLevel.INFO, `SCANNER-${this.name}`, `Found new file ${file}`);
-            this.files.set(file, new Date().toISOString().replace(/T/g, ' ').slice(0, -1));
-        }
-    };
+        eLog(logLevel.INFO, `SCANNER-${this.name}`, `Found new file ${file}`);
+    }
 }
 
 module.exports = Scanner;
