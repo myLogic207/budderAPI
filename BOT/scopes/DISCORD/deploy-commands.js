@@ -1,7 +1,7 @@
-require ("dotenv").config();
+"use strict";
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const fs = require('node:fs');
+const fs = require('fs');
 
 console.warn("Deploying Commands is not Logged extended!")
 console.log('Starting Register for application:');

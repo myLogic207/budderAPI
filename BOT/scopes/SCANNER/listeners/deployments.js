@@ -1,8 +1,6 @@
-
 "use strict";
-require("dotenv").config();
 const fs = require("fs");
-const { eLog } = require("../../UTIL/actions");
+const { eLog } = require(process.env.UTILS);
 const { setState, getState, State } = require("../main");
 
 class DeploymentScanner extends Scanner {

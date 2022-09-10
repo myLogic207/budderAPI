@@ -1,8 +1,8 @@
+"use strict";
 const { Sequelize } = require("sequelize");
 const path = require('path');
-const config = require("../../../../workdir/config/config.json");
-const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
-const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
+const config = require(process.env.CONFIG);
+const { eLog, logLevel } = require(process.env.UTILS);
 
 module.exports = {
     newDB : function(name, Tags) {

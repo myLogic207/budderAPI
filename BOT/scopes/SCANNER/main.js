@@ -1,7 +1,5 @@
 "use strict";
-
-const { eLog } = require("../UTIL/actions");
-const logLevel = require("../UTIL/logLevels");
+const { logLevel, eLog } = require(process.env.UTILS);
 
 const Scanner = new Map();
 const States = new Map();

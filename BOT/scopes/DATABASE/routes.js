@@ -1,9 +1,9 @@
+"use strict";
 const express = require("express");
 const router = express.Router();
 const path = require('path');
-const config = require("../../../workdir/config/config.json");
-const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
-const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
+const config = require(process.env.CONFIG);
+const { eLog, logLevel } = require(process.env.UTILS);
 
 router.use(express.static(path.join(__dirname, 'frontend')));
 
@@ -40,3 +40,4 @@ router.all("/data", function (req, res, next) {
 });
 
 module.exports = router;
+

@@ -1,8 +1,6 @@
 "use strict";
-require("dotenv").config();
 const fs = require("fs");
-const { eLog, getRandomUUID } = require("../../UTIL/actions");
-const logLevel = require("../../UTIL/logLevels");
+const { eLog, getRandomUUID, logLevel } = require(process.env.UTILS);;
 const { register } = require("../actions");
 
 

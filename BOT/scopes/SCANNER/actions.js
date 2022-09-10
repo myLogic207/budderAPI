@@ -1,3 +1,4 @@
+"use strict";
 const { start, getScannerByUUID, getScannerByName, register } = require("./main");
 const Scanner = require("./scanner");
 

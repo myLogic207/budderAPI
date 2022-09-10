@@ -1,10 +1,9 @@
-// Require the necessary discord.js classes
-const fs = require('node:fs');
+"use strict";
+const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 // Require the necessary util.js functions
-const config = require("../../../workdir/config/config.json");
-const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
-const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
+const config = require(process.env.CONFIG);
+const { eLog, logLevel } = require(process.env.UTILS);
 // var args = process.argv.slice(2);
 
 // Create a new client instance

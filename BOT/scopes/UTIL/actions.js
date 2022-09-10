@@ -1,5 +1,4 @@
 "use strict";
-require("dotenv").config();
 const crypto = require('crypto')
 const fs = require('fs');
 const yauzl = require("yauzl");
@@ -7,7 +6,7 @@ const yauzl = require("yauzl");
 const STYLE = require("./style");
 const logLevel = require("./logLevels");
 const { createLog } = require("../DATABASE/dbms/log");
-const config = require("../../../workdir/config/config.json")
+const config = require(process.env.CONFIG);
 
 const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
 const logFiledest = `${config.eLog.filedest}${process.env.destSep}eLog-${time}.log`;
@@ -22,6 +21,8 @@ let DEVENV = process.env.NODE_ENV === 'development';
 
 
 module.exports = {
+    style: STYLE,
+    logLevel: logLevel,
     getRandomUUID: () => {
         try {
             return crypto.randomUUID();

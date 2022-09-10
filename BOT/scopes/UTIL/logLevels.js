@@ -1,3 +1,4 @@
+"use strict";
 class logLevel {
     static DEBUG = new logLevel("DEBUG", 0);
     static FINE = new logLevel("FINE", 100);
