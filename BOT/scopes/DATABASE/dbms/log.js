@@ -4,7 +4,7 @@ require("dotenv").config();
 let LOG;
 
 function connectDB() {
-    const config = require("../../../config.json");
+    const config = require("../../../../workdir/config/config.json");
     const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
     const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
     const { Sequelize } = require("sequelize");
@@ -51,7 +51,7 @@ function connectDB() {
 
 module.exports = {
     initLog: () => {
-        const config = require("../../../config.json");
+        const config = require("../../../../workdir/config/config.json");
         const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
         const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
         eLog(logLevel.DEBUG, "DATA", "Attempting to connect to logging database");
@@ -66,7 +66,7 @@ module.exports = {
         });
     },
     createLog: (severity, scope, message) => {
-        const eLogLevel = require("../../../config.json").eLog.level;
+        const eLogLevel = require("../../../../workdir/config/config.json").eLog.level;
         // DONT ELOG, IT WOULD LOG ITSELF
         try {
             if(process.env.NODE_ENV === 'development' || eLogLevel == 0) console.log("\x1b[35m[DEBUG] [DATA] Attempting to create new log entry\x1b[0m");

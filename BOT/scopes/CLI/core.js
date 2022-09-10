@@ -1,5 +1,5 @@
-const { serverShutdown } = require("../../core");
-const config = require("../../config.json");
+const { serverShutdown } = require("../CORE/core");
+const config = require("../../../workdir/config/config.json");
 const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
 const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 

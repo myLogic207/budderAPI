@@ -3,7 +3,7 @@ const bodyParser = require('body-parser');
 const router = express.Router();
 const botAction = require("./actions");
 
-const config = require("../../config.json");
+const config = require("../../../workdir/config/config.json");
 const { eLog } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
 const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 
