@@ -29,7 +29,7 @@ module.exports = {
             return crypto.randomBytes(16).toString("hex");
         }
     },
-    getSHA1ofJSON: (input) => {
+    getSHA1ofInput: (input) => {
         return crypto.createHash('sha1').update(input).digest('hex');
     },
     eLog: (level, scope, rawmsg, forceConsole = false) => {
