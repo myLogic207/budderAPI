@@ -5,6 +5,7 @@ class logLevel {
     static STATUS = new logLevel("STATUS", 300);
     static WARN = new logLevel("WARN", 400);
     static ERROR = new logLevel("ERROR", 500);
+    static SEVERE = new logLevel("SEVERE", 600);
 
     constructor(def, value) {
         this.def = def;
