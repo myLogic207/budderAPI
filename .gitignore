@@ -103,3 +103,6 @@ config.json
 
 # Output/build folder for the application
 out
+
+# Budder Working Directory (Deployments, Config)
+workdir
