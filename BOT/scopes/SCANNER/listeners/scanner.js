@@ -1,9 +1,9 @@
 "use strict";
 require("dotenv").config();
 const fs = require("fs");
-const { eLog, getRandomUUID } = require("../UTIL/actions");
-const logLevel = require("../UTIL/logLevels");
-const { register } = require("./actions");
+const { eLog, getRandomUUID } = require("../../UTIL/actions");
+const logLevel = require("../../UTIL/logLevels");
+const { register } = require("../actions");
 
 
 class Scanner{
@@ -22,18 +22,18 @@ class Scanner{
 
     async start(){
         return new Promise((resolve, reject) => {
-            fileScanner.working = true;
-            while(fileScanner.working) {
+            this.working = true;
+            while(this.working) {
                 this.scan()
                 .then(() => {
                     eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Scanning Cycle complete - Sleeping");
                     setTimeout(() => {
                         eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Scanning Cycle complete - Waking");
-                    }, scannerinterval);
+                    }, this.scannerinterval);
                 })
                 .catch(err => {
                     eLog(logLevel.ERROR, `SCANNER-${this.name}`, "Scanning Cycle failed");
-                    fileScanner.working = false;
+                    this.working = false;
                     reject(err);
                 });
             }
@@ -60,7 +60,6 @@ class Scanner{
             this.files.set(file, new Date().toISOString().replace(/T/g, ' ').slice(0, -1));
         }
     };
-    
 }
 
 module.exports = Scanner;
