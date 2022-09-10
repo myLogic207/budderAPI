@@ -32,7 +32,8 @@
     "esbuild": "^0.14.27",
     "express": "^4.17.3",
     "sequelize": "^6.17.0",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.2",
+    "yauzl": "^2.10.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.19",
