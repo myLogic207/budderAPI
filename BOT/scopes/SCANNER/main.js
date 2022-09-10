@@ -4,6 +4,15 @@ const { eLog } = require("../UTIL/actions");
 const logLevel = require("../UTIL/logLevels");
 
 const Scanner = new Map();
+const States = new Map();
+
+const State = {
+    TODO: 'dodeploy',
+    INPROG: 'isdeploying',
+    DONE: 'deployed',
+    SKIP: 'skipdeploy',
+    ERROR: 'error',
+}
 
 module.exports = {
     start: () => {
@@ -27,7 +36,12 @@ module.exports = {
     getScannerByUUID: (scanneruuid) => {
         return Scanners.get(scanneruuid);
     },
-    getStates: () => {
-        return this.getScannerByName("DeploymentScanner").files;
+    State: State,
+    getState: (file = null) => {
+        if(file) return States.has(file) ? States.get(file) : null;
+        else return States;
+    },
+    setState: (file, state) => {
+        States.set(file, state);
     }
 }
