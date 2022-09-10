@@ -3,19 +3,21 @@ require("dotenv").config();
 const fs = require("fs");
 const { eLog, getRandomUUID } = require("../UTIL/actions");
 const logLevel = require("../UTIL/logLevels");
+const { register } = require("./actions");
 
 
-class FileScanner{
+class Scanner{
     constructor(scannername, scannerdir, scannerinterval){
         if (!scannerdir){
             eLog(logLevel.ERROR, `SCANNER-${this.name}`, "Scanner directory not provided");
             throw new Error(`Failed Constructing "SCANNER-${this.name}": Scanner directory is required`);
         }
         this.dir = scannerdir;
-        this.name = scannername ?? "FileScanner";
+        this.name = scannername ?? "Default";
         this.files = new Map();
         this.scannerID = getRandomUUID();
         this.interval = scannerinterval ?? process.env.STD_SLEEP;
+        register(this);
     }
 
     async start(){
@@ -60,3 +62,5 @@ class FileScanner{
     };
     
 }
+
+module.exports = Scanner;

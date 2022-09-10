@@ -18,7 +18,7 @@ class DeploymentScanner extends Scanner {
     }
 
     resolveState(string){
-        return Object.keys(this.states).find(key => this.states[key] === string);
+        return this.states.keys(this.states).find(key => this.states[key] === string);
     }
     
     handleFile(file){
@@ -107,3 +107,5 @@ class DeploymentScanner extends Scanner {
         return checks;
     }
 }
+
+module.exports = DeploymentScanner;
