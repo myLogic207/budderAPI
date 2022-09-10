@@ -90,6 +90,10 @@ module.exports = {
         eLog(logLevel.WARN, "CORE", "Shutting down Server");
         server.close();
         eLog(logLevel.STATUS, "CORE", "Server Connection Closed");
+    },
+    registerRoute: (route, router) => {
+        eLog(logLevel.INFO, "CORE", `Registering Routes`);
+        app.use(`/${route}`,router);
     }
 }
 
