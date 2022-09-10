@@ -1,14 +1,15 @@
 "use strict";
 require("dotenv").config();
 const { platform } = require("process");
-const config = require("./config.json");
+const config = require("../../config.json");
 console.log(`[init] This platform is ${platform}`);
 process.env.pathSep = platform === "win32" ? "\\" : "/";
 
 const app = require("express")();
-const { eLog, style, utilInit } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
+const { eLog, utilInit } = require(`${config.eLog.utilPath}${process.env.pathSep}actions`);
 const logLevel = require(`${config.eLog.utilPath}${process.env.pathSep}logLevels`);
 const fs = require('fs');
+const { style } = require("../UTIL/actions");
 
 // -------------------------------------------------------------------------------------------------------------------
 // Begin function segments
