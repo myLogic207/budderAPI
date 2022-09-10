@@ -1,9 +1,11 @@
 "use strict";
 require("dotenv").config();
-const config = require("../../config.json")
+const crypto = require('crypto')
+const config = require("../../../workdir/config/config.json")
 const fs = require('fs');
 const logLevel = require("./logLevels");
 const { createLog } = require("../DATABASE/dbms/log");
+const STYLE = require("./style");
 const time = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
 const logFilePath = `${config.eLog.filePath}${process.env.pathSep}eLog-${time}.log`;
 
@@ -15,24 +17,18 @@ let FLOG = false;
 let DBENABLED = config.scopes.DATABASE;
 let DEVENV = process.env.NODE_ENV === 'development';
 
-const STYLE = {
-    // Colors
-    RED: "\x1b[31m",
-    GREEN: "\x1b[32m",
-    YELLOW: "\x1b[33m",
-    BLUE: "\x1b[34m",
-    PURPLE: "\x1b[35m",
-    CYAN: "\x1b[36m",
-    WHITE: "\x1b[37m",
-    // Fonts
-    BOLD: "\x1b[1m",
-    UNDERLINE: "\x1b[4m",
-    REVERSED: "\x1b[7m",
-    // END
-    END: "\x1b[0m",
-}
 
 module.exports = {
+    getRandomUUID: () => {
+        try {
+            return crypto.randomUUID();
+        } catch (error) {
+            return crypto.randomBytes(16).toString("hex");
+        }
+    },
+    getSHA1ofJSON: (input) => {
+        return crypto.createHash('sha1').update(input).digest('hex');
+    },
     eLog: (level, scope, rawmsg, forceConsole = false) => {
         eLog2(level, scope, rawmsg, forceConsole);
     },
@@ -76,7 +72,6 @@ module.exports = {
         eLog2(logLevel.WARN, "UTIL", "Disabling logging database");
         DBENABLED = false;
     },
-    style: STYLE,
 }
 
 function checkLogFile(){
