@@ -100,7 +100,15 @@ module.exports = {
                 reject(archive, dest);
             }
         });
-    }
+    },
+    removeFolder: (path) => {
+        if (fs.existsSync(path)) {
+            fs.rmSync(path, { recursive: true, force: true });
+            eLog2(logLevel.DEBUG, "UTIL", "Folder Removed: " + path);
+        } else {
+            eLog2(logLevel.WARN, "UTIL", "Folder not found: " + path);
+        }
+    },
 }
 
 function decompress(src, dest, force = false) {
