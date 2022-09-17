@@ -5,12 +5,24 @@ const Scanner = new Map();
 const States = new Map();
 
 const State = {
-    TODO: 'dodeploy',
-    INPROG: 'isdeploying',
-    DONE: 'deployed',
-    SKIP: 'skipdeploy',
-    ERROR: 'error',
+    TODO,
+    TODEL,
+    INPROG,
+    DONE,
+    SKIP,
+    ERROR,
+    OFF
 }
+
+const Marker = [
+    'dodeploy',
+    'isdeploying',
+    'deployed',
+    'undeploying',
+    'undeployed',
+    'skipdeploy',
+    'error'
+];
 
 module.exports = {
     start: () => {
@@ -35,11 +47,17 @@ module.exports = {
         return Scanners.get(scanneruuid);
     },
     State: State,
+    Marker: Marker,
     getState: (file = null) => {
         if(file) return States.has(file) ? States.get(file) : null;
         else return States;
     },
     setState: (file, state) => {
         States.set(file, state);
+    },
+    isMarkerFile(file){
+        // return file.includes('deploy');
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Checking if ${file} is a marker file`);
+        return Markers.includes(file.split('.').pop());
     }
 }
