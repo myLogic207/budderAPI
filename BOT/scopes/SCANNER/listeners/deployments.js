@@ -1,38 +1,68 @@
 "use strict";
-const fs = require("fs");
-const { eLog } = require(process.env.UTILS);
-const { setState, getState, State } = require("../main");
+const { eLog, logLevel } = require(process.env.UTILS);
+const { isMarkerFile, getState } = require("../main");
+const Scanner = require(`${__dirname}${process.env.SEP}scanner`);
 
 class DeploymentScanner extends Scanner {
     constructor(){
-        super('SCOPES', `${process.env.workdir}${process.env.pathSep}scopes`, 3000);
-    }
-
-    resolveState(string){
-        return Object.keys(State).find(key => State[key] === string);
+        super('SCOPES', `${process.env.workdir}${process.env.SEP}scopes`, 3000);
     }
     
-    handleFile(file){
-        if(file.isMarkerFile()) { this.updateState(file); }
-        setState(file, this.handleDeployment(file));
+    async handleFile(file){
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Handling file ${file.name}`);
+        const isMarker = isMarkerFile(file)
+        if(isMarker){
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `File ${file.name} is a marker`);
+            this.updateState(getState(this.removeMarker(file)), file.name.split('.').pop());
+        } else {
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `File ${file.name} is not a marker`);
+        }
     }
 
-    isMarkerFile(file){
-        return file.includes('deploy');
+    removeMarker(filename){
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Removing marker from ${filename}`);
+        const tmp = filename.split('.');
+        tmp.pop();
+        return tmp.join('.');
     }
 
-    updateState(file){
+    updateState(memoryState, markerState){
         // TODO: Implement logic
         // There needs to be rules defined here first to workout the logic
         // We will just let this sit here for now...
-        // If memory is null and marker is dodeploy set memory to todo 
-        // If memory is inprog and marker is dodeploy set marker to isdeploying
-        // If memory is error and marker is isdeploying set memory to skip and marker to error
-        // If memory is skip and marker is error set marker to skip
-        // If memory is done and marker is isdeploying set marker to deployed 
+        // If marker is 'error' set memory to ERROR
+        // If marker is 'skipdeploy' set memory to SKIP
+        //// if marker is null if ( memory is DONE ? memory = TODEL : marker = 'dodeploy' ) 
 
-        memoryState = getState(file);     
-        markerState = this.resolveState(file.split('.').slice(-1));
+        // If memory is null and marker is 'dodeploy' set memory to TODO
+        // If memory is null and marker is 'isdeploying' error/skip
+        // If memory is null and marker is 'deployed' set marker to 'dodeploy'
+        // If memory is null and marker is 'undeploying' set marker to 'undeployed' 
+        // If memory is null and marker is 'undeployed' set memory to OFF
+        // If memory is null and marker is null set marker to 'dodeploy'
+        
+        // If memory is TODO set marker to 'isdeploying'
+        
+        // If memory is TODEL set marker to 'undeploying'
+        
+        // If memory is INPROG and marker is 'dodeploy' set marker to 'isdeploying'
+        // If memory is INPROG and marker is 'deployed' set marker to 'isdeploying'
+        // If memory is INPROG and marker is 'undeployed' set marker to 'undeploying'
+        // If memory is INPROG default skip
+        
+        // If memory is DONE and marker is 'dodeploy' || 'isdeploying' set marker to 'deployed'
+        // If memory is DONE and marker is 'undeploying' set marker to 'undeployed'
+        // If memory is DONE and marker is 'deployed' skip
+        // If memory is DONE and marker is 'undeployed' set memory to OFF
+        // If memory is DONE and marker is null set memory to TODEL
+        
+        // If memory is ERROR and marker is 'skipdeploy' set memory to SKIP
+        // If memory is ERROR and marker is null set marker to 'doploy'
+        // If memory is ERROR default set marker to 'error'
+        
+        // If memory is SKIP and marker is 'dodeploy' set memory to TODO
+        // If memory is SKIP and marker is null set marker to 'dodeploy'
+        // If memory is SKIP default set marker to 'skipdeploy'
 
         switch (markerState) {
             case this.states.TODO:
@@ -42,69 +72,6 @@ class DeploymentScanner extends Scanner {
                 break;
             case this.states.INPROG:
         }
-    }
-
-    async handleDeployment(file) {
-        return new Promise((resolve, reject) => {
-            this.currentFile = file;
-            let curstate = State.INPROG;
-            if(this.files.get(file)){
-                curstate = this.checkState(file);
-            } else {
-                curstate = this.deployScope(file, this.files.get(file))
-            }
-            eLog(logLevel.INFO, `SCANNER-${this.name}`, `File ${file} is now in state ${curstate}`);
-            resolve(curstate);
-        });
-    }
-
-    checkState(file){
-        switch (this.files.get(file)) {
-            case 'dodeploy':
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Deployment scheduled for ${file}`);
-                return this.states.TODO;
-            case 'isdeploying':
-                eLog(logLevel.INFO, `SCANNER-${this.name}`, `${file} is now deploying`);
-                return this.states.INPROG;
-            case 'deployed':
-                // This would eventually spam the log, so I commented it out
-                // eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `${file} is deployed`);
-                return this.states.DONE;
-            case 'skipdeploy':
-                // This would eventually spam the log, so I commented it out
-                // eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Skipping deployment of ${file}`);
-                return this.states.SKIP;
-            case 'error':
-                // This would eventually spam the log, so I commented it out
-                // eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Error while deploying ${file}`);
-                return this.states.ERROR;
-            default:
-                eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Unknown state for ${file}`);
-                return this.states.ERROR;
-        }
-    }
-
-    // kinda copied that somewhere I think... haha...
-    deployScope(file){
-        if(this.fileCheck(file)) {
-            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Skipping deployment of ${file}`);
-            return this.states.SKIP;
-        }
-
-        fs.open(`${file}.dodeploy`, 'w', (err, file) => {
-            if (!err){
-                eLog(logLevel.INFO, `SCANNER-${this.name}`, `Scheduled deploying of ${file}`);
-                return this.states.TODO;
-            }
-            eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Error while deploying ${file}: ${err}`);
-            return this.states.ERROR;
-        });
-    }
-
-    fileCheck(file){
-        checks = true;
-        checks = fs.existsSync(`${this.dir}${process.env.pathSep}${file}.skipdeploy`);
-        return checks;
     }
 }
 
