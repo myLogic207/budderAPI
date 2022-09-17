@@ -1,7 +1,7 @@
 "use strict";
 require("dotenv").config();
 const { platform } = require("process");
-const config = require(process.env.CONFIG);
+let CONFIG = require(process.env.CONFIG);
 console.log(`[init] This platform is ${platform}`);
 process.env.pathSep = platform === "win32" ? "\\" : "/";
 
@@ -28,7 +28,7 @@ function printLogo() {
 function initCroutes(scope) {
     eLog(logLevel.INFO, "CORE", `${scope} initializing croutes`)
     let changed = false
-    Object.keys(config.scopes).filter(key => config.scopes[key] && scope !== key).forEach(key => {
+    Object.keys(CONFIG.scopes).filter(key => CONFIG.scopes[key] && scope !== key).forEach(key => {
         try {
             fs.readdirSync(`./scopes/${scope}/croutes`).filter(file => file.startsWith(key)).forEach(file => {
                 eLog(logLevel.INFO, "CORE", `${scope} found extra croutes for ${key}`);
@@ -67,11 +67,11 @@ printLogo();
 eLog(logLevel.INFO, "CORE", "Initializing UTILS...");
 
 // Init Adress
-eLog(logLevel.INFO, "CORE", "Initializing Adress");
+eLog(logLevel.INFO, "CORE", "Initializing Address");
 const botPort = process.env.APP_PORT || 2070;
 eLog(logLevel.FINE, "CORE", `Registered Port: ${botPort}`);
 const botHost = process.env.APP_HOST || "localhost";
-eLog(logLevel.FINE, "CORE", `Registed Host: ${botHost}`);
+eLog(logLevel.FINE, "CORE", `Registered Host: ${botHost}`);
 
 // Init "Frontend"
 eLog(logLevel.INFO, "CORE", "Initializing Frontend");
@@ -84,24 +84,94 @@ const server = app.listen(botPort, botHost, () => {
 });
 
 module.exports = {
+    CONFIG,
     serverShutdown: () => {
         eLog(logLevel.WARN, "CORE", "Shutting down Server");
         server.close();
         eLog(logLevel.STATUS, "CORE", "Server Connection Closed");
     },
-    registerRoute: (route, router) => {
-        eLog(logLevel.INFO, "CORE", `Registering Routes`);
-        app.use(`/${route}`,router);
+    registerRoute: async (route, router) => {
+        return new Promise((resolve, reject) => {
+            try {
+                eLog(logLevel.INFO, "CORE", `Registering Routes`);
+                app.use(`/${route}`,router);
+                resolve();
+            } catch (error) {
+                eLog(logLevel.ERROR, "CORE", `Failed to register Routes`);
+                reject(error);
+            }
+        })
+    },
+    unregisterModule: async (scope) => {
+        return new Promise((resolve, reject) => {
+            try {
+                app._router.stack = app._router.stack.filter(r => r.name !== scope);
+                eLog(logLevel.INFO, "CORE", `Unregistered Module`);
+                resolve();
+            } catch (error) {
+                eLog(logLevel.ERROR, "CORE", `Failed to unregister Module`);
+                reject(error);
+            }
+        })
+    },
+    reloadConfig: async () => {
+        return new Promise((resolve, reject) => {
+            try {
+                eLog(logLevel.INFO, "CORE", `Reloading Config`);
+                delete require.cache[require.resolve(process.env.CONFIG)];
+                CONFIG = require(process.env.CONFIG);
+                resolve();
+            } catch (error) {
+                eLog(logLevel.ERROR, "CORE", `Failed to reload Config`);
+                reject(error);
+            }
+        })
+    },
+    dumpConfig: async () => {
+        return new Promise((resolve, reject) => {
+            eLog(logLevel.INFO, "CORE", `Dumping Config`);            
+            fs.writeFile(process.env.CONFIG, JSON.stringify(CONFIG, null, 4), (err) => {
+                if (err){
+                    eLog(logLevel.ERROR, "CORE", `Failed to dump Config`);
+                    reject(err);
+                };
+                eLog(logLevel.INFO, "CORE", `Config dumped`);
+            }).then(() => {
+                resolve();
+            })
+        });
+    },
+    /*
+    updateConfig: async (newConfig) => {
+        return new Promise((resolve, reject) => {
+            eLog(logLevel.INFO, "CORE", `Updating Config`);            
+            fs.writeFile(process.env.CONFIG, JSON.stringify(newConfig, null, 4), (err) => {
+                if (err){
+                    eLog(logLevel.ERROR, "CORE", `Failed to update Config`);
+                    reject(err);
+                };
+                eLog(logLevel.INFO, "CORE", `Config updated`);
+            }).then(() => {
+                this.reloadConfig().then(() => {
+                    eLog(logLevel.INFO, "CORE", `Config reloaded`);
+                    resolve();
+                }).catch((error) => {
+                    eLog(logLevel.ERROR, "CORE", `Failed to update Config`);
+                    reject(error);
+                })
+            })
+        });
     }
+    */
 }
 
 // Init Scopes
 // foreach scope, app.use the scope's router
-for (const scope in config.scopes) {
+for (const scope in CONFIG.scopes) {
     eLog(logLevel.INFO, "CORE", `${scope} initializing`)
-    if (process.env[scope.toUpperCase() + "_ENABLED"] && config.scopes[scope]) {
+    if (process.env[scope.toUpperCase() + "_ENABLED"] && CONFIG.scopes[scope]) {
         initScope(scope)
-    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && config.scopes[scope]) {
+    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && CONFIG.scopes[scope]) {
         eLog(logLevel.INFO, "CORE", `Custom scope ${scope} found`);
         try {
             initScope(scope)
