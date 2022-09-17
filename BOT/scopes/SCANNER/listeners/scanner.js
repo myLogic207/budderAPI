@@ -1,8 +1,8 @@
 "use strict";
 const fs = require("fs");
-const { eLog, getRandomUUID, logLevel } = require(process.env.UTILS);;
-const { register } = require("../actions");
-
+const { setInterval, clearInterval } = require("timers");
+const { register } = require("../main");
+const { eLog, getRandomUUID, logLevel } = require(`${process.env.UTILS}`);
 
 class Scanner {
     constructor(scannername, scannerdir, scannerinterval) {
@@ -14,61 +14,62 @@ class Scanner {
         this.name = scannername ?? "Default";
         this.scannerID = getRandomUUID();
         this.interval = scannerinterval ?? process.env.STD_SLEEP;
-        register(this);
+        eLog(logLevel.INFO, `SCANNER-${this.name}`, `Constructed new scanner`);
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Scanner Dir: ${this.dir}`);
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Scanner ID: ${this.scannerID}`);
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Scanner Interval: ${this.interval}`);
+        register(this)
     }
 
-    async start() {
-        return new Promise((resolve, reject) => {
-            this.working = true;
-            while (this.working) {
-                this.scan()
-                    .then(() => {
-                        return new Promise((resolve, reject) => {
-                            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Scanning Cycle complete - Sleeping");
-                            afterScan().then(out => resolve(out));
-                        });
-                    }).then(() => {
-                        setTimeout(() => {
-                            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Scanning Cycle complete - Waking");
-                        }, this.scannerinterval);
-                    }).catch(err => {
-                        eLog(logLevel.ERROR, `SCANNER-${this.name}`, "Scanning Cycle failed");
-                        this.working = false;
-                        reject(err);
-                    });
-            }
-            resolve(true);
-        });
+    start() {
+        eLog(logLevel.INFO, `SCANNER-${this.name}`, `Starting scanner`);
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `in directory ${this.dir}`);
+        this.working = true;
+        this.timer = setInterval(() => {
+            this.loop();
+        }, this.interval);
     }
 
+    stop() {
+        clearInterval(this.timer);
+    }
+
+    loop() {
+        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Waking");
+        try {
+            this.scan();
+        } catch (error) {
+            eLog(logLevel.WARN, `SCANNER-${this.name}`, "Scanning Cycle failed");
+            eLog(logLevel.ERROR, `SCANNER-${this.name}`, error);
+            this.working = false;
+        }
+    }
+    
     async scan() {
-        return new Promise((resolve, reject) => {
-            fs.readdir(this.dir, (err, files) => {
-                if (err) reject(err);
-                files.forEach(file => {
-                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found file ${file}`);
-                    this.handleFile(file);
-                });
-                resolve(true);
+        fs.readdir(this.dir, { withFileTypes: true }, (err, files) => {
+            if (err) throw err;
+            files.forEach(file => {
+                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found file ${file.name}`);
+                this.handleFile(file)
             });
-        });
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Scanning Cycle complete - Sleeping");
+        })
+        // .then(() => {
+        //     eLog(logLevel.DEBUG, `SCANNER-${this.name}`, "Scanning Cycle complete");
+        //     return true;
+        // }).catch(err => {
+        //     eLog(logLevel.WARN, `SCANNER-${this.name}`, "Failed Scanning Files");
+        //     this.working = false;
+        //     throw err;
+        // });
     }
 
     async handleFile(file) {
-        return new Promise((resolve, reject) => {
-            eLog(logLevel.INFO, `SCANNER-${this.name}`, `Found new file ${file}`);
-            setTimeout(() => {
-                resolve(true);
-            }, 1000);
-        });
-    }
-
-    async afterScan() {
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                resolve(true);
-            }, 1000);
-        });
+        eLog(logLevel.INFO, `SCANNER-${this.name}`, `Found new file ${file.name}`);
+        setTimeout(() => {
+            eLog(logLevel.INFO, `SCANNER-${this.name}`, `Processed file ${file.name}`);
+            return;
+        }, 1000);
     }
 }
 
