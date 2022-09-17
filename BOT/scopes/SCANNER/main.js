@@ -28,14 +28,15 @@ module.exports = {
     start: async () => {
         return new Promise((resolve, reject) => {
             eLog(logLevel.INFO, "SCANNER", "Starting Hotdeploy Scanners");
+            const MarkerScanner = require(`${__dirname}${process.env.SEP}listeners${process.env.SEP}markers`);
+            const ms = new MarkerScanner();
+            eLog(logLevel.DEBUG, "SCANNER", `Scanner ${ms.name} registered with ID ${ms.scannerID}`);
+            ms.start();
+            eLog(logLevel.STATUS, "SCANNER", "State scanner started");
             const DeploymentScanner = require(`${__dirname}${process.env.SEP}listeners${process.env.SEP}deployments`);
             const ds = new DeploymentScanner();
             eLog(logLevel.DEBUG, "SCANNER", `Scanner ${ds.name} registered with ID ${ds.scannerID}`);
-            //ds.start();
-            eLog(logLevel.STATUS, "SCANNER", "Deployment scanner started");
-            const Handler = require(`${__dirname}${process.env.SEP}listeners${process.env.SEP}handler`);
-            const ms = new Handler();
-            ms.start();
+            ds.start();
             eLog(logLevel.STATUS, "SCANNER", "Deployment handler started");
             resolve();
         });
