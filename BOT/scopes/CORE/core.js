@@ -1,9 +1,9 @@
 "use strict";
 require("dotenv").config();
 const { platform } = require("process");
-let CONFIG = require(process.env.CONFIG);
+let CONFIG = require(`${process.env.CONFIG}`);
 console.log(`[init] This platform is ${platform}`);
-process.env.pathSep = platform === "win32" ? "\\" : "/";
+process.env.SEP = platform === "win32" ? "\\" : "/";
 
 const app = require("express")();
 const fs = require('fs');
@@ -43,15 +43,22 @@ function initCroutes(scope) {
 }
 
 // Init Scope
-function initScope(scope){
-    eLog(logLevel.INFO, "CORE", `${scope} found`)
-    app.use(`/${scope.toLowerCase()}`, require(`./scopes/${scope}/routes`));
-    eLog(logLevel.INFO, "CORE", `${scope} Routes found and loaded`);
-    let { init } = require(`./scopes/${scope}/actions`);
-    init(scope, app);
-    eLog(logLevel.DEBUG, "CORE", `${scope} initialized`);
-    initCroutes(scope);
-    eLog(logLevel.STATUS, "CORE", `${scope} Fully loaded!`);
+async function initScope(scope){
+    return new Promise((resolve, reject) => {
+        eLog(logLevel.INFO, "CORE", `${scope} found`)
+        //app.use(`/${scope.toLowerCase()}`, require(`./scopes/${scope}/routes`));
+        //eLog(logLevel.INFO, "CORE", `${scope} Routes found and loaded`);
+        let init = require(`${process.env.WORKDIR}${process.env.SEP}${scope}${process.env.SEP}actions`).init(scope, app);
+        init.then(() => {
+            eLog(logLevel.DEBUG, "CORE", `${scope} initialized`);
+            initCroutes(scope);
+            eLog(logLevel.STATUS, "CORE", `${scope} Fully loaded!`);
+            resolve();
+        }).catch((error) => {
+            eLog(logLevel.ERROR, "CORE", `${scope} failed to initialize`);
+            reject(error);
+        });
+    });
 }
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -167,25 +174,28 @@ module.exports = {
 
 // Init Scopes
 // foreach scope, app.use the scope's router
+const modules = []
 for (const scope in CONFIG.scopes) {
     eLog(logLevel.INFO, "CORE", `${scope} initializing`)
     if (process.env[scope.toUpperCase() + "_ENABLED"] && CONFIG.scopes[scope]) {
-        initScope(scope)
+        modules.push(initScope(scope))
     } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && CONFIG.scopes[scope]) {
         eLog(logLevel.INFO, "CORE", `Custom scope ${scope} found`);
-        try {
-            initScope(scope)
-        } catch (error){
-            eLog(logLevel.ERROR, "CORE", `Loading of custom scope ${scope} failed`);
-            console.log(error);
-        }
+        modules.push(initScope(scope));
     } else {
         eLog(logLevel.WARN, "CORE", `${scope} not loaded`);
         eLog(logLevel.WARN, "CORE", `${scope} either not enabled or not found`);
     }
 }
 
-eLog(logLevel.STATUS, "CORE", "All Modules loaded");
-eLog(logLevel.INFO, "CORE", "Budder Completely loaded! Starting...");
-const startUpTime = new Date().getTime() - startTime.getTime();
-eLog(logLevel.INFO, "CORE", `BOT started in ${startUpTime}ms`);
+Promise.allSettled(modules).then((results) => {
+    results.forEach((result) => {
+        if (result.status == "rejected") {
+            eLog(logLevel.ERROR, "CORE", `Failed to load module ${result.reason}`);
+        }
+    });
+    eLog(logLevel.STATUS, "CORE", "All (other) Modules loaded");
+    eLog(logLevel.INFO, "CORE", "Budder Completely loaded! Starting...");
+    const startUpTime = new Date().getTime() - startTime.getTime();
+    eLog(logLevel.INFO, "CORE", `BOT started in ${startUpTime}ms`);
+});
