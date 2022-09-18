@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("fs");
-const { registerRoute, unregisterModule, CONFIG } = require("../../CORE/core");
+const { registerRoute, unregisterModule, CONFIG } = require(process.env.ROOT);
 const { eLog, unarchive, getSHA1ofInput, logLevel } = require(process.env.UTILS);
 const { State, setState, isMarkerFile, getState } = require("../main");
 const Scanner = require("./scanner");

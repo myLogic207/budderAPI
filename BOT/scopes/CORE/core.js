@@ -42,13 +42,13 @@ function initCroutes(scope) {
     eLog(logLevel.INFO, "CORE", changed ? `${scope} croutes initialized` : `${scope} did not need any croutes`);
 }
 
-// Init Scope
+// Init Modules (instant Scopes ig)
 async function initScope(scope){
     return new Promise((resolve, reject) => {
         eLog(logLevel.INFO, "CORE", `${scope} found`)
         //app.use(`/${scope.toLowerCase()}`, require(`./scopes/${scope}/routes`));
         //eLog(logLevel.INFO, "CORE", `${scope} Routes found and loaded`);
-        let init = require(`${process.env.WORKDIR}${process.env.SEP}${scope}${process.env.SEP}actions`).init(scope, app);
+        let init = require(`${process.cwd()}${process.env.SEP}scopes${process.env.SEP}${scope}${process.env.SEP}actions`).init(scope, app);
         init.then(() => {
             eLog(logLevel.DEBUG, "CORE", `${scope} initialized`);
             initCroutes(scope);
