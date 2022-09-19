@@ -1,8 +1,8 @@
 "use strict";
 const fs = require("fs");
-const { registerRoute, unregisterModule, CONFIG } = require(process.env.ROOT);
+const { isMarkerFile, setState, getState, State } = require("../controller");
+const { registerRoute, unregisterModule, dumpConfig, CONFIG } = require(process.env.ROOT);
 const { eLog, unarchive, getSHA1ofInput, logLevel } = require(process.env.UTILS);
-const { State, setState, isMarkerFile, getState } = require("../main");
 const Scanner = require("./scanner");
 
 class DeploymentScanner extends Scanner {
@@ -35,13 +35,16 @@ class DeploymentScanner extends Scanner {
         }
         setState(file, State.INPROG);
         action.then(addconfig => {
-            configupdate = config; // TODO: Fix this
             CONFIG.scopes[addconfig.config.name] = addconfig;
             eLog(logLevel.STATUS, `SCANNER-${this.name}`, `${file} ${msg}`);
             setState(file, state);
         }).catch(error => {
             eLog(logLevel.ERROR, `SCANNER-${this.name}`, `${file} failed with error: ${error}`);
             setState(State.ERROR);
+        }).finally(() => {
+            dumpConfig();
+            eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Operation finished`);
+            // fs.unlinkSync(file);
         });
     }
 
@@ -82,7 +85,7 @@ class DeploymentScanner extends Scanner {
             }
         });
     }
-
+    /*
     async updateConfig(addconf) {
         return new Promise((resolve, reject) => {
             // const curconfig = require(process.env.CONFIG);
@@ -96,7 +99,7 @@ class DeploymentScanner extends Scanner {
                 resolve();
             });
         });
-    }
+    }*/
 
     // Init Scope
     initScope(scope) {

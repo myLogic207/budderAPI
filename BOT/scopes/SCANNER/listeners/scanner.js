@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("fs");
 const { setInterval, clearInterval } = require("timers");
-const { register } = require("../main");
+const { register } = require("../controller");
 const { eLog, getRandomUUID, logLevel } = require(`${process.env.UTILS}`);
 
 class Scanner {
@@ -18,7 +18,7 @@ class Scanner {
         eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Scanner Dir: ${this.dir}`);
         eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Scanner ID: ${this.scannerID}`);
         eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Scanner Interval: ${this.interval}`);
-        register(this)
+        register(this);
     }
 
     start() {

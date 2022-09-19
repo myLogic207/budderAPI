@@ -1,8 +1,8 @@
 "use strict";
 const { eLog, logLevel } = require(process.env.UTILS);
-const { start, end, getScannerByUUID, getScannerByName, register } = require(`${__dirname}${process.env.SEP}main`);
-const Scanner = require(`${__dirname}${process.env.SEP}listeners${process.env.SEP}scanner`);
-
+eLog(logLevel.DEBUG, `SCANNER`, `Loaded file`);
+const { register, end, start, getScannerByUUID, getScannerByName } = require("./controller");
+const Scanner = require(`./listeners/scanner`);
 
 module.exports = {
     init: async () => {
@@ -43,4 +43,8 @@ module.exports = {
         eLog(logLevel.WARN, "SCANNER", "Requested info for scanner: " + scanneruuid);
         return getScannerByUUID(scanneruuid);
     },
+    registerScanner: (scanner) => {
+        eLog(logLevel.WARN, "SCANNER", "Registering new scanner: " + scanner.name);
+        register(scanner);
+    }
 }
