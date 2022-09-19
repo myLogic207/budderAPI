@@ -55,7 +55,7 @@ async function initScope(scope){
             eLog(logLevel.STATUS, "CORE", `${scope} Fully loaded!`);
             resolve();
         }).catch((error) => {
-            eLog(logLevel.ERROR, "CORE", `${scope} failed to initialize`);
+            eLog(logLevel.WARN, "CORE", `${scope} failed to initialize`);
             reject(error);
         });
     });
@@ -191,7 +191,9 @@ for (const scope in CONFIG.scopes) {
 Promise.allSettled(modules).then((results) => {
     results.forEach((result) => {
         if (result.status == "rejected") {
-            eLog(logLevel.ERROR, "CORE", `Failed to load module ${result.reason}`);
+            eLog(logLevel.WARN, "CORE", `Failed to load module with reason:`);
+            eLog(logLevel.ERROR, "CORE", result.reason);
+            console.log(result.reason);
         }
     });
     eLog(logLevel.STATUS, "CORE", "All (other) Modules loaded");
