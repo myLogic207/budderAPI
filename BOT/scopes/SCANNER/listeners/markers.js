@@ -1,78 +1,161 @@
 "use strict";
+const fs = require("fs");
 const { eLog, logLevel } = require(process.env.UTILS);
-const { isMarkerFile, getState, State } = require("../main");
+const { isMarkerFile, getState, State, setState, getMarkerState, getFileFromMarker } = require("../controller");
 const Scanner = require("./scanner");
 
 class MarkerScanner extends Scanner {
-    constructor(){
+    constructor() {
         super('SCOPES', `${process.env.workdir}${process.env.SEP}scopes`, 3000);
     }
-    
-    async handleFile(file){
+
+    async handleFile(file) {
         eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Handling file ${file.name}`);
-        const isMarker = isMarkerFile(file)
-        if(isMarker){
+        if (isMarkerFile(file)) {
             eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `File ${file.name} is a marker`);
-            this.updateState(getState(this.removeMarker(file.name)), file.name.split('.').pop());
+            this.updateState(getState(getFileFromMarker(file)), getMarkerState(file), getFileFromMarker(file));
         } else {
             eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `File ${file.name} is not a marker`);
         }
     }
 
-    removeMarker(filename){
-        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Removing marker from ${filename}`);
-        const tmp = filename.split('.');
-        tmp.pop();
-        return tmp.join('.');
-    }
+    updateState(memoryState, markerState, file) {
+        // Lookuptable approach
+        const stateTable = new Map();
+        stateTable.set(State.TODO, new Map());
+        stateTable.get(State.TODO).set(State.INPROG);
 
-    updateState(memoryState, markerState){
-        // TODO: Implement logic
-        // There needs to be rules defined here first to workout the logic
-        // We will just let this sit here for now...
-        // If marker is 'error' set memory to ERROR
-        // If marker is 'skipdeploy' set memory to SKIP
-        //// if marker is null if ( memory is DONE ? memory = TODEL : marker = 'dodeploy' ) 
 
-        // If memory is null and marker is 'dodeploy' set memory to TODO
-        // If memory is null and marker is 'isdeploying' error/skip
-        // If memory is null and marker is 'deployed' set marker to 'dodeploy'
-        // If memory is null and marker is 'undeploying' set marker to 'undeployed' 
-        // If memory is null and marker is 'undeployed' set memory to OFF
-        // If memory is null and marker is null set marker to 'dodeploy'
+        // If marker is ERROR set memory to ERROR
+        if (markerState === State.ERROR) {
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${file.name} to ERROR`);
+            setState(file, State.ERROR);
+            return;
+        }
         
-        // If memory is TODO set marker to 'isdeploying'
-        
-        // If memory is TODEL set marker to 'undeploying'
-        
-        // If memory is INPROG and marker is 'dodeploy' set marker to 'isdeploying'
-        // If memory is INPROG and marker is 'deployed' set marker to 'isdeploying'
-        // If memory is INPROG and marker is 'undeployed' set marker to 'undeploying'
-        // If memory is INPROG default skip
-        
-        // If memory is DONE and marker is 'dodeploy' || 'isdeploying' set marker to 'deployed'
-        // If memory is DONE and marker is 'undeploying' set marker to 'undeployed'
-        // If memory is DONE and marker is 'deployed' skip
-        // If memory is DONE and marker is 'undeployed' set memory to OFF
-        // If memory is DONE and marker is null set memory to TODEL
-        
-        // If memory is ERROR and marker is 'skipdeploy' set memory to SKIP
-        // If memory is ERROR and marker is null set marker to 'doploy'
-        // If memory is ERROR default set marker to 'error'
-        
-        // If memory is SKIP and marker is 'dodeploy' set memory to TODO
-        // If memory is SKIP and marker is null set marker to 'dodeploy'
-        // If memory is SKIP default set marker to 'skipdeploy'
+        // If marker is SKIP set memory to SKIP
+        if (markerState === State.SKIP) {
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${file.name} to SKIP`);
+            setState(file, State.SKIP);
+            return;
+        }
 
-        switch (markerState) {
+        switch (memoryState) {
+            case State.TODO:
+                // If memory is TODO set marker to INPROG
+                setMarkerState(file, State.INPROG);
+                break;
             case State.TODEL:
-                if(memoryState === this.states.DONE || memoryState === this.states.DONE){
-                    this.files.set(file, this.states.TODO);
+                // If memory is TODEL set marker to TODEL
+                setMarkerState(file, State.TODEL);
+                break;
+            case null:
+                switch (markerState) {
+                    case null:
+                    case State.DONE:
+                    case State.INPROG:
+                        // If memory is null and marker is null || DONE || INPROG set marker to TODO
+                        setMarkerState(State.TODO);
+                        break;
+                    case State.TODO:
+                        // If memory is null and marker is TODO set memory to TODO
+                        setState(file, State.TODO);
+                        break;
+                    case State.TODEL:
+                        // If memory is null and marker is TODEL set marker to OFF 
+                        setMarkerState(file, State.OFF);
+                        break;
+                    case State.OFF:
+                        // If memory is null and marker is OFF set memory to OFF
+                        setState(file, State.OFF);
+                        break;
                 }
                 break;
             case State.INPROG:
+                switch (markerState) {
+                    case State.TODO:
+                    // If memory is INPROG and marker is TODO || DONE set marker to INPROG
+                    case State.DONE:
+                        setMarkerState(file, State.INPROG);
+                        break;
+                    case State.OFF:
+                        // If memory is INPROG and marker is OFF set marker to TODEL
+                        setMarkerState(file, State.TODEL);
+                        break;
+                    default:
+                        // If memory is INPROG default skip
+                        return;
+                }
+                break;
+            case State.DONE:
+                switch (markerState) {
+                    case State.TODO:
+                    case State.INPROG:
+                        // If memory is DONE and marker is TODO || INPROG set marker to DONE
+                        setMarkerState(file, State.DONE);
+                        break;
+                    case State.OFF:
+                        // If memory is DONE and marker is OFF set memory to OFF
+                        setState(file, State.OFF);
+                        break;
+                    case State.TODEL:
+                        // If memory is DONE and marker is TODEL set marker to OFF
+                        setMarkerState(file, State.OFF);
+                        break;
+                    case State.DONE:
+                        // If memory is DONE and marker is DONE skip
+                        return;
+                    case null:
+                        // If memory is DONE and marker is null set memory to TODEL
+                        setState(file, State.TODEL);
+                        break;
+                }
+                break;
+            case State.ERROR:
+                // If memory is ERROR and marker is null set marker to TODO | default set marker to ERROR
+                // If memory is ERROR default set marker to 'error'
+                setMarkerState(file, markerState ? State.ERROR : State.TODO);
+                break;
+            case State.SKIP:
+                // If memory is SKIP and marker is TODO set memory to TODO
+                if (markerState === State.TODO) {
+                    setState(file, State.TODO);
+                } else {
+                    // If memory is SKIP and marker is null set marker to TODO
+                    // If memory is SKIP default set marker to SKIP
+                    setMarkerState(file, markerState ? State.SKIP : State.TODO);
+                }
+                break;
+           case State.OFF:
+                // If memory is OFF and marker is null set marker to TODO
+                // If memory is OFF default set marker to OFF
+                setMarkerState(file, markerState ? State.OFF : State.TODO);
                 break;
         }
+    }
+
+    async setMarkerState(file, state) {
+        return new Promise((resolve, reject) => {
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting marker ${file.name} to ${state}`);
+            fs.readdir(`${this.dir}${process.env.SEP}${file.name}`, (err, files) => {
+                if (err) {
+                    eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Error reading directory ${this.dir}${process.env.SEP}${file.name}`);
+                    reject(err);
+                }
+                files.forEach((f) => {
+                    if (f.name.startsWith(file.name) && f.name !== file.name ) {
+                        fs.rmSync(`${this.dir}${process.env.SEP}${file.name}${process.env.SEP}${f.name}`);
+                    }
+                });
+                fs.writeFile(`${this.dir}${process.env.SEP}${file.name}${process.env.SEP}${file.name}.${state}`, '', (err) => {
+                    if (err) {
+                        eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Error writing marker ${file.name}.${state}`);
+                        reject(err);
+                    }
+                    resolve();
+                });
+            });
+        });
     }
 }
 
