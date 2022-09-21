@@ -29,13 +29,15 @@ module.exports = {
             }).then(
                 dm => {
                     dm.send(message);
-                }).catch(() => {
-                    eLog(logLevel.ERROR, "DISCORD", "User has DMs closed or has no mutual servers with the bot");
+                }).catch((err) => {
+                    eLog(logLevel.WARN, "DISCORD", "User has DMs closed or has no mutual servers with the bot");
+                    eLog(logLevel.WARN, "DISCORD", err);
                     const result = 'User has DMs closed or has no mutual servers with the bot';
                 });
             result = 'Message sent to user id ' + id
         } catch (error) {
-            eLog(logLevel.ERROR, "DISCORD", "Error while sending message: " + error);
+            eLog(logLevel.WARN, "DISCORD", "Error while sending message:");
+            eLog(logLevel.ERROR, "DISCORD", error);
             result = 'Message not sent, check JSON format, error was:\n' + error;
         } finally {
             eLog(logLevel.INFO, "DISCORD", "End DM transmission");

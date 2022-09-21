@@ -7,6 +7,7 @@ process.env.SEP = platform === "win32" ? "\\" : "/";
 
 const app = require("express")();
 const fs = require('fs');
+const { removeFolder } = require("../UTIL/actions");
 const { eLog, utilInit, logLevel, style } = require(process.env.UTILS);
 
 // -------------------------------------------------------------------------------------------------------------------
@@ -61,6 +62,11 @@ async function initScope(scope){
     });
 }
 
+function clearWorkdir() {
+    eLog(logLevel.INFO, "CORE", "Clearing tmp workdir");
+    removeFolder(`${process.env.WORKDIR}${process.env.SEP}tmp`);
+}
+
 // -------------------------------------------------------------------------------------------------------------------
 // Begin core
 
@@ -104,7 +110,7 @@ module.exports = {
                 app.use(`/${route}`,router);
                 resolve();
             } catch (error) {
-                eLog(logLevel.ERROR, "CORE", `Failed to register Routes`);
+                eLog(logLevel.WARN, "CORE", `Failed to register Routes`);
                 reject(error);
             }
         })
@@ -116,7 +122,7 @@ module.exports = {
                 eLog(logLevel.INFO, "CORE", `Unregistered Module`);
                 resolve();
             } catch (error) {
-                eLog(logLevel.ERROR, "CORE", `Failed to unregister Module`);
+                eLog(logLevel.WARN, "CORE", `Failed to unregister Module`);
                 reject(error);
             }
         })
@@ -129,7 +135,7 @@ module.exports = {
                 CONFIG = require(process.env.CONFIG);
                 resolve();
             } catch (error) {
-                eLog(logLevel.ERROR, "CORE", `Failed to reload Config`);
+                eLog(logLevel.WARN, "CORE", `Failed to reload Config`);
                 reject(error);
             }
         })
@@ -139,13 +145,12 @@ module.exports = {
             eLog(logLevel.INFO, "CORE", `Dumping Config`);            
             fs.writeFile(process.env.CONFIG, JSON.stringify(CONFIG, null, 4), (err) => {
                 if (err){
-                    eLog(logLevel.ERROR, "CORE", `Failed to dump Config`);
+                    eLog(logLevel.WARN, "CORE", `Failed to dump Config`);
                     reject(err);
                 };
-                eLog(logLevel.INFO, "CORE", `Config dumped`);
-            }).then(() => {
+                eLog(logLevel.STATUS, "CORE", `Config dumped`);
                 resolve();
-            })
+            });
         });
     },
     /*
@@ -172,6 +177,9 @@ module.exports = {
     */
 }
 
+eLog(logLevel.INFO, "CORE", "Clearing working directory");
+clearWorkdir();
+
 // Init Scopes
 // foreach scope, app.use the scope's router
 const modules = []
@@ -193,7 +201,6 @@ Promise.allSettled(modules).then((results) => {
         if (result.status == "rejected") {
             eLog(logLevel.WARN, "CORE", `Failed to load module with reason:`);
             eLog(logLevel.ERROR, "CORE", result.reason);
-            console.log(result.reason);
         }
     });
     eLog(logLevel.STATUS, "CORE", "All (other) Modules loaded");

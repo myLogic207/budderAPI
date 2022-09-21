@@ -46,5 +46,5 @@ module.exports = {
     registerScanner: (scanner) => {
         eLog(logLevel.WARN, "SCANNER", "Registering new scanner: " + scanner.name);
         register(scanner);
-    }
+    },
 }

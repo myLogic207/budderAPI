@@ -99,10 +99,11 @@ async function gracefulShutdown(){
             shutdown()
             eLog(logLevel.STATUS, "CORE", "Shutdown complete for " + scope);
         } catch(err){
-            eLog(logLevel.ERROR, "CORE", "Shutdown failed for " + scope + ": " + err);
+            eLog(logLevel.WARN, "CORE", "Shutdown failed for " + scope + ": " + err);
+            eLog(logLevel.ERROR, "CORE", err);
         };
     });
     eLog(logLevel.STATUS, "CORE", "Shutdown complete");
-    eLog(logLevel.ERROR, "CORE", "Goodbye!");
+    eLog(logLevel.WARN, "CORE", "Goodbye!");
     process.exit(0);
 }

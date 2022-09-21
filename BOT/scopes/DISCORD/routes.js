@@ -18,7 +18,8 @@ router.post('/msg', async (req, res) => {
         res.send(await botAction.sendMessage(req.body.message, req.body.id));
         res.status(200)
     } catch (error) {
-        eLog(logLevel.ERROR, "DISCORD", "Error while sending message: " + error);
+        eLog(logLevel.WARN, "DISCORD", "Error while sending message: " + error);
+        eLog(logLevel.ERROR, "DISCORD", error);
         res.send('Message not sent, check JSON format, error was:\n' + error);
         res.status(400)
     }    

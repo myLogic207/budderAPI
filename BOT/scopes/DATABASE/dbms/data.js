@@ -32,15 +32,21 @@ module.exports = {
                 eLog(logLevel.FINE, "DATA", "Custom Database Authenticated");
                 return cdb;
             }).catch(err => {
-                eLog(logLevel.ERROR, "DATA", "Custom Database authentication failed with error: " + err);
+                eLog(logLevel.WARN, "DATA", "Custom Database authentication failed");
+                eLog(logLevel.ERROR, "DATA", err);
             });
-        }).catch(() => {
-            eLog(logLevel.ERROR, "DATA", "Custom Database sync failed.");    
+        }).catch((err) => {
+            eLog(logLevel.WARN, "DATA", "Custom Database sync failed.");
+            eLog(logLevel.ERROR, "DATA", err);
+            throw err;
         });
     },  // end newDB
     createEntry: function(table, data) {
         eLog(logLevel.DEBUG, "DATA", "Attempting to create new entry");
-        table.create(data).catch(console.error);
+        table.create(data).catch(err => {
+            eLog(logLevel.WARN, "DATA", "Failed to create new entry");
+            eLog(logLevel.ERROR, "DATA", err);
+        });
         table.sync();
     },
     readEntry: function(base, id) {
@@ -50,7 +56,10 @@ module.exports = {
                 where: {
                     id: id
                 }
-            }).catch(console.error);
+            }).catch(err => {
+                eLog(logLevel.WARN, "DATA", "Failed to read entry");
+                eLog(logLevel.ERROR, "DATA", err);
+            });
         } else {
             eLog(logLevel.WARN, "DATA", "No ID provided - returning all");
             return base.findAll().catch(console.error);

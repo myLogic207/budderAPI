@@ -57,8 +57,8 @@ module.exports = {
             eLog(logLevel.STATUS, "DATA", "Synced logging database finished");
             return LOG;
         }).catch(err => {
-            eLog(logLevel.ERROR, "DATA", "Logging database initialization failed");
-            console.error(err);
+            eLog(logLevel.WARN, "DATA", "Logging database initialization failed");
+            eLog(logLevel.ERROR, "DATA", err);
         });
     },
     createLog: (severity, scope, message) => {
