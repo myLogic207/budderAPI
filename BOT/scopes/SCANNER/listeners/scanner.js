@@ -10,6 +10,7 @@ class Scanner {
             eLog(logLevel.ERROR, `SCANNER-${this.name}`, "Scanner directory not provided");
             throw new Error(`Failed Constructing "SCANNER-${this.name}": Scanner directory is required`);
         }
+        this.files = [];
         this.dir = scannerdir;
         this.name = scannername ?? "Default";
         this.scannerID = getRandomUUID();
@@ -66,6 +67,7 @@ class Scanner {
 
     async handleFile(file) {
         eLog(logLevel.INFO, `SCANNER-${this.name}`, `Found new file ${file.name}`);
+        this.files.push(file);
         setTimeout(() => {
             eLog(logLevel.INFO, `SCANNER-${this.name}`, `Processed file ${file.name}`);
             return;
