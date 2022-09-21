@@ -76,7 +76,7 @@ module.exports = {
         eLog2(logLevel.WARN, "UTIL", "Disabling logging database");
         DBENABLED = false;
     },
-    unarchive: (archive, dest = null, force = false) => {
+    unarchive: async (archive, dest = null, force = false) => {
         if (!dest) {
             eLog2(logLevel.DEBUG, "UTIL", "No destination specified, using archive path");
             dest = archive.slice(0, -4);
@@ -89,17 +89,7 @@ module.exports = {
         }
 
         eLog2(logLevel.INFO, "UTIL", "Attempting to unarchive " + archive);
-        return new Promise((resolve, reject) => {
-            try {
-                decompress(archive, dest, force);
-                eLog2(logLevel.STATUS, "UTIL", "Unarchiving Finished: " + archive);
-                resolve(archive, dest);
-            } catch (error) {
-                eLog2(logLevel.WARN, "UTIL", "Unarchiving Failed: " + archive + " - " + dest);
-                eLog2(logLevel.ERROR, "UTIL", error);
-                reject(archive, dest);
-            }
-        });
+        return decompress(archive, dest, force);
     },
     removeFolder: (path) => {
         if (fs.existsSync(path)) {
@@ -111,55 +101,60 @@ module.exports = {
     },
 }
 
-function decompress(src, dest, force = false) {
-    yauzl.open(src, { lazyEntries: true }, function (err, zipfile) {
-        if (err) {
-            eLog2(logLevel.ERROR, "UTIL-DEZIP", "Error opening archive: " + src);
-            eLog2(logLevel.ERROR, "UTIL-DEZIP", err);
-            return err;
-        }
-        eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
-        zipfile.readEntry();
-        zipfile.on("entry", function (entry) {
-            if (/\/$/.test(entry.fileName)) {
-                // Directory file names end with '/'.
-                // Note that entires for directories themselves are optional.
-                // An entry's fileName implicitly requires its parent directories to exist.
-                eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Folder Found" + entry.fileName);
-                if (!fs.existsSync(dest + entry.fileName)) {
-                    fs.mkdirSync(dest + entry.fileName, {
-                        recursive: true
-                    });
-                    eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Folder created at destination: " + dest + entry.fileName);
-                }
-                dest = + entry.fileName;
-                zipfile.readEntry();
-            } else {
-                if (!fs.existsSync(dest)) {
-                    fs.mkdirSync(dest, {
-                        recursive: true
-                    });
-                    eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Ensured that the destination dir exists!");
-                }
-                var ws = fs.createWriteStream(dest + entry.fileName);
-                // file entry
-                zipfile.openReadStream(entry, function (err, readStream) {
-                    if (err) {
-                        eLog2(logLevel.WARN, "UTIL-DEZIP", "Error reading file" + entry + "; in archive: " + src);
-                        eLog2(logLevel.ERROR, "UTIL-DEZIP", err);
-                        if (!force) {
-                            eLog2(logLevel.WARN, "UTIL-DEZIP", "Force is disabled, aborting!");
-                            return false;
-                        }
-                        eLog2(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
-                    }
-                    readStream.on("end", function () {
-                        zipfile.readEntry();
-                    });
-                    readStream.pipe(ws);
-                    eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Unarchived file: " + entry.fileName);
-                });
+async function decompress(src, dest, force = false) {
+    return new Promise((resolve, reject) => {
+        yauzl.open(src, { lazyEntries: true }, function (err, zipfile) {
+            if (err) {
+                eLog2(logLevel.WARN, "UTIL-DEZIP", "Error opening archive: " + src);
+                reject(err);
             }
+            eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
+            zipfile.readEntry();
+            zipfile.on("entry", function (entry) {
+                if (/\/$/.test(entry.fileName)) {
+                    // Directory file names end with '/'.
+                    // Note that entires for directories themselves are optional.
+                    // An entry's fileName implicitly requires its parent directories to exist.
+                    eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Folder Found" + entry.fileName);
+                    if (!fs.existsSync(dest + entry.fileName)) {
+                        fs.mkdirSync(dest + entry.fileName, {
+                            recursive: true
+                        });
+                        eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Folder created at destination: " + dest + entry.fileName);
+                    }
+                    dest = + entry.fileName;
+                    zipfile.readEntry();
+                } else {
+                    if (!fs.existsSync(dest)) {
+                        fs.mkdirSync(dest, {
+                            recursive: true
+                        });
+                        eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Ensured that the destination dir exists!");
+                    }
+                    var ws = fs.createWriteStream(dest + process.env.SEP + entry.fileName);
+                    // file entry
+                    zipfile.openReadStream(entry, function (err, readStream) {
+                        if (err) {
+                            eLog2(logLevel.WARN, "UTIL-DEZIP", "Error reading file" + entry.fileName + "; in archive: " + src);
+                            if (!force) {
+                                eLog2(logLevel.WARN, "UTIL-DEZIP", "Force is disabled, aborting!");
+                                reject(err);
+                            }
+                            eLog2(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
+                        }
+                        readStream.on("end", function () {
+                            zipfile.readEntry();
+                        });
+                        readStream.pipe(ws);
+                        eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Unarchived file: " + entry.fileName);
+                        eLog2(logLevel.DEBUG, "UTIL-DEZIP", "to: " + dest + process.env.SEP + entry.fileName);
+                    });
+                }
+            });
+            zipfile.on("end", function () {
+                eLog2(logLevel.DEBUG, "UTIL-DEZIP", "Unarchiving finished: " + src);
+                resolve(src, dest);
+            });
         });
     });
 }
@@ -171,8 +166,8 @@ function checkLogFile() {
             fs.writeFileSync(logFiledest, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
         }
     } catch (err) {
-        eLog2(logLevel.ERROR, "UTIL", "Error creating eLog file");
-        console.log(err);
+        eLog2(logLevel.WARN, "UTIL", "Error creating eLog file");
+        eLog2(logLevel.WARN, "UTIL", err);
     }
 }
 
@@ -203,7 +198,7 @@ function getMSG(level, scope, rawmsg) {
     let logTime = new Date().toISOString().replace(/T/g, ' ').slice(0, -1);
     switch (level) {
         case logLevel.ERROR:
-            return `${STYLE.RED}${logTime} [${level.def}] [${scope}] ${rawmsg}${STYLE.END}`;
+            return `${STYLE.RED}${logTime} [${level.def}] [${scope}] ${rawmsg.stack ?? rawmsg}${STYLE.END}`;
         case logLevel.WARN:
             return `${STYLE.YELLOW}${logTime} [${level.def}] [${scope}] ${rawmsg}${STYLE.END}`;
         case logLevel.STATUS:
