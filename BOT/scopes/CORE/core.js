@@ -1,7 +1,6 @@
 "use strict";
 require("dotenv").config();
 const { platform } = require("process");
-let CONFIG = require(`${process.env.CONFIG}`);
 console.log(`[init] This platform is ${platform}`);
 process.env.SEP = platform === "win32" ? "\\" : "/";
 
@@ -44,7 +43,7 @@ function initCroutes(scope) {
 }
 
 // Init Modules (instant Scopes ig)
-async function initScope(scope){
+async function initScope(scope) {
     return new Promise((resolve, reject) => {
         eLog(logLevel.INFO, "CORE", `${scope} found`)
         //app.use(`/${scope.toLowerCase()}`, require(`./scopes/${scope}/routes`));
@@ -67,6 +66,20 @@ function clearWorkdir() {
     removeFolder(`${process.env.WORKDIR}${process.env.SEP}tmp`);
 }
 
+async function dumpConfig() {
+    return new Promise((resolve, reject) => {
+        eLog(logLevel.INFO, "CORE", `Dumping Config`);
+        fs.writeFile(process.env.CONFIG, JSON.stringify(CONFIG, null, 4), (err) => {
+            if (err) {
+                eLog(logLevel.WARN, "CORE", `Failed to dump Config`);
+                reject(err);
+            };
+            eLog(logLevel.STATUS, "CORE", `Config dumped`);
+            resolve();
+        });
+    });
+}
+
 // -------------------------------------------------------------------------------------------------------------------
 // Begin core
 
@@ -77,6 +90,13 @@ utilInit();
 eLog(logLevel.DEBUG, "CORE", `budder started at ${startTime}`);
 eLog(logLevel.INFO, "CORE", "Initializing BOT...");
 printLogo();
+
+eLog(logLevel.INFO, "CORE", "Loading Config");
+const CONFIG = require(`${process.env.CONFIG}`);
+eLog(logLevel.DEBUG, "CORE", "Clearing deployments");
+CONFIG.scopes = [];
+dumpConfig();
+
 eLog(logLevel.INFO, "CORE", "Initializing UTILS...");
 
 // Init Adress
@@ -96,6 +116,40 @@ const server = app.listen(botPort, botHost, () => {
     eLog(logLevel.STATUS, "CORE", `Server running at http://${botHost}:${botPort}/`);
 });
 
+eLog(logLevel.INFO, "CORE", "Clearing working directory");
+clearWorkdir();
+
+// Init Scopes
+// foreach scope, app.use the scope's router
+const modules = []
+for (const scope in CONFIG.modules) {
+    eLog(logLevel.INFO, "CORE", `${scope} initializing`)
+    if (process.env[scope.toUpperCase() + "_ENABLED"] && CONFIG.modules[scope]) {
+        modules.push(initScope(scope))
+    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && CONFIG.modules[scope]) {
+        eLog(logLevel.INFO, "CORE", `Custom scope ${scope} found`);
+        modules.push(initScope(scope));
+    } else {
+        eLog(logLevel.WARN, "CORE", `${scope} not loaded`);
+        eLog(logLevel.WARN, "CORE", `${scope} either not enabled or not found`);
+    }
+}
+
+Promise.allSettled(modules).then((results) => {
+    results.forEach((result) => {
+        if (result.status == "rejected") {
+            eLog(logLevel.WARN, "CORE", `Failed to load module with reason:`);
+            eLog(logLevel.ERROR, "CORE", result.reason);
+        }
+    });
+    eLog(logLevel.STATUS, "CORE", "All (other) Modules loaded");
+    eLog(logLevel.INFO, "CORE", "Budder Completely loaded! Starting...");
+    const startUpTime = new Date().getTime() - startTime.getTime();
+    eLog(logLevel.INFO, "CORE", `BOT started in ${startUpTime}ms`);
+});
+
+// -------------------------------------------------------------------------------------------------------------------
+
 module.exports = {
     CONFIG,
     serverShutdown: () => {
@@ -107,7 +161,7 @@ module.exports = {
         return new Promise((resolve, reject) => {
             try {
                 eLog(logLevel.INFO, "CORE", `Registering Routes`);
-                app.use(`/${route}`,router);
+                app.use(`/${route}`, router);
                 resolve();
             } catch (error) {
                 eLog(logLevel.WARN, "CORE", `Failed to register Routes`);
@@ -140,19 +194,7 @@ module.exports = {
             }
         })
     },
-    dumpConfig: async () => {
-        return new Promise((resolve, reject) => {
-            eLog(logLevel.INFO, "CORE", `Dumping Config`);            
-            fs.writeFile(process.env.CONFIG, JSON.stringify(CONFIG, null, 4), (err) => {
-                if (err){
-                    eLog(logLevel.WARN, "CORE", `Failed to dump Config`);
-                    reject(err);
-                };
-                eLog(logLevel.STATUS, "CORE", `Config dumped`);
-                resolve();
-            });
-        });
-    },
+    dumpConfig: dumpConfig,
     /*
     updateConfig: async (newConfig) => {
         return new Promise((resolve, reject) => {
@@ -176,35 +218,3 @@ module.exports = {
     }
     */
 }
-
-eLog(logLevel.INFO, "CORE", "Clearing working directory");
-clearWorkdir();
-
-// Init Scopes
-// foreach scope, app.use the scope's router
-const modules = []
-for (const scope in CONFIG.scopes) {
-    eLog(logLevel.INFO, "CORE", `${scope} initializing`)
-    if (process.env[scope.toUpperCase() + "_ENABLED"] && CONFIG.scopes[scope]) {
-        modules.push(initScope(scope))
-    } else if (process.env[scope.toUpperCase() + "_ENABLED"] == null && CONFIG.scopes[scope]) {
-        eLog(logLevel.INFO, "CORE", `Custom scope ${scope} found`);
-        modules.push(initScope(scope));
-    } else {
-        eLog(logLevel.WARN, "CORE", `${scope} not loaded`);
-        eLog(logLevel.WARN, "CORE", `${scope} either not enabled or not found`);
-    }
-}
-
-Promise.allSettled(modules).then((results) => {
-    results.forEach((result) => {
-        if (result.status == "rejected") {
-            eLog(logLevel.WARN, "CORE", `Failed to load module with reason:`);
-            eLog(logLevel.ERROR, "CORE", result.reason);
-        }
-    });
-    eLog(logLevel.STATUS, "CORE", "All (other) Modules loaded");
-    eLog(logLevel.INFO, "CORE", "Budder Completely loaded! Starting...");
-    const startUpTime = new Date().getTime() - startTime.getTime();
-    eLog(logLevel.INFO, "CORE", `BOT started in ${startUpTime}ms`);
-});
