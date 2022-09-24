@@ -2,50 +2,52 @@
 const fs = require("fs");
 const { isMarkerFile, setState, getState, State } = require("../controller");
 const { registerRoute, unregisterModule, dumpConfig, CONFIG } = require(process.env.ROOT);
-const { eLog, unarchive, getSHA1ofInput, logLevel } = require(process.env.UTILS);
+const { removeFolder, eLog, unarchive, getSHA1ofInput, logLevel } = require(process.env.UTILS);
 const Scanner = require("./scanner");
 
 class DeploymentScanner extends Scanner {
     constructor(path) {
-        super('DEPLOYMENTS', path, 5000);
+        super('DEPLOYMENTS', path, 7000);
         this.workdir = process.env.workdir + process.env.SEP + "tmp" + process.env.SEP + "deployments";
     }
 
     async handleFile(file) {
-        if (isMarkerFile(file)) return;
-        let action;
-        let state;
-        let msg;
-        switch (getState(file.name)) {
-            case State.TODO:
-                eLog(logLevel.INFO, `SCANNER-${this.name}`, `${file.name} is now deploying`);
-                state = State.DONE
-                action = this.deployScope(file);
-                msg = "deployed";
-                break;
-            case State.TODEL:
-                eLog(logLevel.INFO, `SCANNER-${this.name}`, `${file.name} is now undeploying`);
-                msg = "undeployed";
-                state = State.OFF;
-                action = this.undeployScope(file);
-                break;
-            default:
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `${file.name} is in state ${getState(file.name)}`);
-                return;
-        }
-        setState(file.name, State.INPROG);
-        action.then(addconfig => {
-            CONFIG.scopes[addconfig.config.name] = addconfig;
-            eLog(logLevel.STATUS, `SCANNER-${this.name}`, `${file.name} ${msg}`);
-            setState(file.name, state);
-        }).catch(error => {
-            eLog(logLevel.WARN, `SCANNER-${this.name}`, `${file.name} failed with error:`);
-            eLog(logLevel.ERROR, `SCANNER-${this.name}`, error);
-            setState(file.name, State.ERROR);
-        }).finally(() => {
-            dumpConfig();
-            eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Operation finished`);
-            // fs.unlinkSync(file);
+        if (isMarkerFile(file.name)) return;
+        return new Promise((resolve, reject) => {
+            let action;
+            let state;
+            let msg;
+            switch (getState(file.name)) {
+                case State.TODO:
+                    eLog(logLevel.INFO, `SCANNER-${this.name}`, `${file.name} is now deploying`);
+                    setState(file.name, State.INPROG);
+                    state = State.DONE
+                    action = this.deployScope(file);
+                    msg = "deployed";
+                    break;
+                case State.TODEL:
+                    eLog(logLevel.INFO, `SCANNER-${this.name}`, `${file.name} is now undeploying`);
+                    msg = "undeployed";
+                    state = State.OFF;
+                    action = this.fileundeployScope(file.name);
+                    break;
+                default:
+                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `${file.name} is in state ${getState(file.name)}`);
+                    resolve();
+            }
+            action.then(() => {
+                eLog(logLevel.STATUS, `SCANNER-${this.name}`, `${file.name} ${msg}`);
+                setState(file.name, state);
+            }).catch(error => {
+                eLog(logLevel.WARN, `SCANNER-${this.name}`, `Failed to (un)deploy ${file.name}`);
+                setState(file.name, State.ERROR);
+                reject(error);
+            }).finally(() => {
+                dumpConfig();
+                eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Operation finished`);
+                resolve();
+                // fs.unlinkSync(file);
+            });
         });
     }
 
@@ -59,10 +61,10 @@ class DeploymentScanner extends Scanner {
                 addconf["active"] = false;
 
                 // Break if already deployed
-                if (process.env[hash]) {
+                if (process.env[hash] === "enabled") {
                     eLog(logLevel.WARN, `SCANNER-${this.name}`, `Scope ${hash} is already active`);
                     setState(file.name, State.DONE);
-                    reject("Scope already active");
+                    reject(new Error("Scope already active"));
                 }
 
                 // Unpack
@@ -73,10 +75,13 @@ class DeploymentScanner extends Scanner {
                     this.initScope(hash).then(scopeconfig => {
                         eLog(logLevel.INFO, `SCANNER-${this.name}`, `Finished initializing ${file.name}`);
                         addconf["config"] = scopeconfig;
+                        addconf["name"] = scopeconfig.name;
                         addconf["active"] = true;
-                        process.env[hash] = true;
+                        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${scopeconfig.hash} to active`);
+                        process.env[hash] = "enabled";
                         eLog(logLevel.INFO, `SCANNER-${this.name}`, `Finalizing config for ${file.name}`);
-                        resolve(addconf);
+                        CONFIG.scopes.push(addconf);
+                        resolve();
                     }).catch(error => {
                         eLog(logLevel.WARN, `SCANNER-${this.name}`, `Failed to init ${file.name}`);
                         eLog(logLevel.ERROR, `SCANNER-${this.name}`, error);
@@ -93,25 +98,11 @@ class DeploymentScanner extends Scanner {
                 process.env[hash] = false;
                 eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error deploying ${file.name}`);
                 eLog(logLevel.ERROR, `SCANNER-${this.name}`, error);
-                resolve(addconf);
+                CONFIG.scopes.push(addconf);
+                reject(error);
             }
         });
     }
-    /*
-    async updateConfig(addconf) {
-        return new Promise((resolve, reject) => {
-            // const curconfig = require(process.env.CONFIG);
-            const config = JSON.parse(fs.readFileSync(process.env.config, "utf8"));
-            config["scopes"].push(addconf);
-            fs.writeFile(process.env.CONFIG, JSON.stringify(config, null, 4), (err) => {
-                if (err) {
-                    reject(err);
-                    eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Error dumping config`);
-                }
-                resolve();
-            });
-        });
-    }*/
 
     // Init Scope
     async initScope(scope) {
@@ -119,11 +110,17 @@ class DeploymentScanner extends Scanner {
             const scopeconfig = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}config.json`);
             eLog(logLevel.INFO, `SCANNER-${this.name}`, `${scopeconfig.name} config loaded`);
             const { init } = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}actions`);
-            scopeconfig["init"] = init();
-            eLog(logLevel.INFO, `SCANNER-${this.name}`, `Intern ${scope} initialized`);
-            scopeconfig["routes"] = this.initScopeRoutes(scopeconfig.name, scopeconfig.basroute);
-            eLog(logLevel.STATUS, `SCANNER-${this.name}`, `${scopeconfig.name} Fully loaded!`);
-            resolve(scopeconfig);
+            init().then((init) => {
+                scopeconfig["init"] = init;
+                eLog(logLevel.INFO, `SCANNER-${this.name}`, `Scope ${scope} initialized`);
+                scopeconfig["routes"] = this.initScopeRoutes(scopeconfig.name, scopeconfig.basroute);
+                eLog(logLevel.STATUS, `SCANNER-${this.name}`, `${scopeconfig.name} Fully loaded!`);
+                resolve(scopeconfig);
+            }).catch(error => {
+                eLog(logLevel.ERROR, `SCANNER-${this.name}`, `Error initializing ${scopeconfig.name}`);
+                eLog(logLevel.ERROR, `SCANNER-${this.name}`, error);
+                reject(error);
+            });
         });
     }
 
@@ -155,28 +152,50 @@ class DeploymentScanner extends Scanner {
         return routes;
     }
 
+    async fileundeployScope(filename) {
+        eLog(logLevel.WARN, `SCANNER-${this.name}`, `Undeploying file deployment ${filename}`);
+        return new Promise((resolve, reject) => {
+            let error = new Error("Scope not found");
+            CONFIG.scopes.forEach(scope => {
+                try {
+                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Checking ${scope.file} for ${filename}`);
+                    if (scope.file === filename) {
+                        eLog(logLevel.INFO, `SCANNER-${this.name}`, `Resolved ${filename} to ${scope.name}`);
+                        resolve(this.undeployScope(scope.name));
+                    }
+                } catch (err) {
+                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error occured while checking ${scope}`);
+                    error = err;
+                }
+            });
+            reject(error);
+        });
+    }
+
     async undeployScope(scopename) {
         // call uninit
         // unregister routes if possible/override router with 404 message
         // remove folder
         // update config
         return new Promise((resolve, reject) => {
-            const workfig = CONFIG;
-            eLog(logLevel.INFO, `SCANNER-${this.name}`, `Undeploying ${file}`);
-            const scopeconfig = workfig.scopes[scopename]
-            const updatedconfig = removeFromConfig(workfig, scopename);
+            eLog(logLevel.INFO, `SCANNER-${this.name}`, `Undeploying ${scopename}`);
+            const scopeconfig = CONFIG.scopes.find(scope => scope.name === scopename);
+            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${scopeconfig.hash} to inactive`);
+            process.env[scopeconfig.hash] = "disabled";
             const unregister = unregisterModule(scopename);
             const shutdown = require(`${this.workdir}${process.env.SEP}${scopeconfig.hash}${process.env.SEP}actions`).shutdown();
             const remove = removeFolder(`${this.workdir}${process.env.SEP}${scopeconfig.hash}`);
+            const updateconfig = this.removeFromConfig(scopeconfig.name);
 
-            Promise.allSettled([unregister, shutdown, updatedconfig, remove]).
+            Promise.allSettled([unregister, shutdown, updateconfig, remove]).
                 then(() => {
-                    eLog(logLevel.INFO, `SCANNER-${this.name}`, `Finished undeploying ${file}`);
-                    dumpConfig();
-                    resolve();
+                    eLog(logLevel.INFO, `SCANNER-${this.name}`, `Finished undeploying ${scopename}`);
+                    resolve(updateconfig);
                 }).catch((error) => {
-                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error undeploying ${file}`);
+                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error undeploying ${scopename}`);
                     eLog(logLevel.ERROR, `SCANNER-${this.name}`, error);
+                    CONFIG.scopes[scopename].active = false;
+                    CONFIG.scopes[scopename].error = "Error Undeploying";
                     reject();
                 });
         });
@@ -184,11 +203,20 @@ class DeploymentScanner extends Scanner {
 
     async removeFromConfig(scopename) {
         return new Promise((resolve, reject) => {
-            // let workfig = CONFIG.scopes;
-            // workfig = workfig.filter(scope => scope.name !== scopename);
-            // CONFIG.scopes = workfig;
-            CONFIG.scopes = CONFIG.scopes.filter(scope => scope.name !== scopename);
-            resolve()
+            try {
+                let newscopes = [];
+                eLog(logLevel.INFO, `SCANNER-${this.name}`, `Removing ${scopename} from work-config`);
+                CONFIG.scopes.forEach(scope => {
+                    if (scope.name !== scopename) {
+                        newscopes.push(scope);
+                    }
+                });
+                CONFIG.scopes = newscopes;
+                resolve();
+            } catch (error) {
+                eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error removing ${scopename} from work-config`);
+                reject(error);
+            }
         });
     }
 }
