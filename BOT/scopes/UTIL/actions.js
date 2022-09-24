@@ -197,6 +197,8 @@ function eLog2(level, scope, rawmsg, forceConsole = false) {
 function getMSG(level, scope, rawmsg) {
     let logTime = new Date().toISOString().replace(/T/g, ' ').slice(0, -1);
     switch (level) {
+        case logLevel.SEVERE:
+            return `${STYLE.RED}${STYLE.BOLD}[${logTime}] [${scope}] ${rawmsg}${STYLE.END}`;
         case logLevel.ERROR:
             return `${STYLE.RED}${logTime} [${level.def}] [${scope}] ${rawmsg.stack ?? rawmsg}${STYLE.END}`;
         case logLevel.WARN:
