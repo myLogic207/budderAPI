@@ -35,7 +35,7 @@ module.exports = new class DeployController {
                 const DeploymentScanner = require(`${__dirname}${process.env.SEP}listeners${process.env.SEP}deployments`);
                 const ds = new DeploymentScanner(workdir);
                 eLog(logLevel.DEBUG, "SCANNER", `Scanner ${ds.name} registered with ID ${ds.scannerID}`);
-                // ds.start();
+                ds.start();
                 eLog(logLevel.STATUS, "SCANNER", "Deployment handler started");
                 resolve();
             }).catch(err => {
@@ -91,10 +91,10 @@ module.exports = new class DeployController {
         return DeployController.Scanners.get(scanneruuid);
     }
     
-    getState(file){
-        eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting state for ${file}`);
-        if(file) return DeployController.States.has(file) ? DeployController.States.get(file) : null;
-        else return States;
+    getState(filename){
+        eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting state for ${filename}`);
+        if(filename) return DeployController.States.has(filename) ? DeployController.States.get(filename) : null;
+        else return DeployController.States;
     }
 
     setState(filename, state) {
@@ -102,40 +102,38 @@ module.exports = new class DeployController {
         eLog(logLevel.STATUS, "SCANNER", `Set state of ${filename} to ${state}`);
     }
 
-    static #isMarkerFile(file){
+    static #isMarkerFile(filename){
         // return file.includes('deploy');
-        const filename = file.name ?? file;
         eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Checking if ${filename} is a marker file`);
         return Object.values(DeployController.State).includes(DeployController.#getMarkerFromFile(filename));
     }
 
-    isMarkerFile(file){
-        return DeployController.#isMarkerFile(file);
+    isMarkerFile(filename){
+        return DeployController.#isMarkerFile(filename);
     }
 
-    getMarkerState(file){
-        eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting marker state for ${file.name}`);
-        const mark = DeployController.#getMarkerFromFile(file);
+    getMarkerState(filename){
+        eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting marker state for ${filename}`);
+        const mark = DeployController.#getMarkerFromFile(filename);
         const state = Object.keys(DeployController.State).find(key => DeployController.State[key] === mark);
-        return DeployController.State[state];
+        return DeployController.State[state] || null;
     }
 
-    static #getMarkerFromFile(file){
-        const filename = file.name ?? file;
+    static #getMarkerFromFile(filename){
         eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting marker for ${filename}`);
         return filename.split('.').pop();
     }
 
-    getMarkerFromFile(file){
-        return DeployController.#getMarkerFromFile(file);
+    getMarkerFromFile(filename){
+        return DeployController.#getMarkerFromFile(filename);
     }
 
-    static #getFilenameFromMarker(file){
-        eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting file from marker ${file.name}`);
-        return file.name.split('.').slice(0, -1).join('.');
+    static #getFilenameFromMarker(filename){
+        eLog(logLevel.DEBUG, `SCANNER-MAIN`, `Getting file from marker ${filename}`);
+        return filename.split('.').slice(0, -1).join('.');
     }
 
-    getFilenameFromMarker(file){
-        return DeployController.#getFilenameFromMarker(file);
+    getFilenameFromMarker(filename){
+        return DeployController.#getFilenameFromMarker(filename);
     }
 }()
