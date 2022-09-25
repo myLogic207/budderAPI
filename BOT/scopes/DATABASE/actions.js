@@ -1,6 +1,6 @@
 "use strict";
 const config = require(process.env.CONFIG);
-const { eLog, logLevel } = require(process.env.UTILS);
+const { log, logLevel } = require(process.env.UTILS);
 
 let dataBases = [];
 
@@ -22,11 +22,6 @@ module.exports = {
         dataBases.push(logBase);
         return logBase;
     },
-    // logMessage : function (severity, scope, message) {
-    //     // NO ELOG, IT WOULD LOG ITSELF
-    //     creatlog(severity, scope, message);
-    //     // console.log(`SEVERITY: ${msg[0]}, SCOPE: ${msg[1]}, MESSAGE: ${msg[2]}`);
-    // },
     shutdown: () => {
         log(logLevel.WARN, "DATA", "Shutdown command received, attempting to shutdown...");
         

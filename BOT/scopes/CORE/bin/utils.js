@@ -2,7 +2,7 @@
 const crypto = require('crypto')
 const yauzl = require("yauzl");
 const fs = require("fs");
-const { eLog, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG);
 
 module.exports = {
     getRandomUUID: () => {
@@ -86,12 +86,12 @@ async function decompress(src, dest, force = false) {
                     // file entry
                     zipfile.openReadStream(entry, function (err, readStream) {
                         if (err) {
-                            eLog2(logLevel.WARN, "UTIL-DEZIP", "Error reading file" + entry.fileName + "; in archive: " + src);
+                            log(logLevel.WARN, "UTIL-DEZIP", "Error reading file" + entry.fileName + "; in archive: " + src);
                             if (!force) {
                                 log(logLevel.WARN, "UTIL-DEZIP", "Force is disabled, aborting!");
                                 reject(err);
                             }
-                            eLog2(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
+                            log(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
                         }
                         readStream.on("end", function () {
                             zipfile.readEntry();
