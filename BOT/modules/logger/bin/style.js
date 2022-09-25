@@ -1,5 +1,5 @@
 "use strict";
-class STYLE {
+module.exports = class STYLE {
 // Colors
 static RED = "\x1b[31m";
 static GREEN = "\x1b[32m";
@@ -15,5 +15,3 @@ static REVERSED = "\x1b[7m";
 // END
 static END  = "\x1b[0m";
 }
-
-module.exports = STYLE;

@@ -1,8 +1,8 @@
 "use strict";
 const fs = require("fs");
 const { eLog, logLevel } = require(process.env.UTILS);
-const { isMarkerFile, getState, State, setState, getFilenameFromMarker, getMarkerState } = require("../controller");
-const Scanner = require("./scanner");
+const Scanner = require(process.env.SCANNER);
+const { isMarkerFile, getState, State, setState, getFilenameFromMarker, getMarkerState } = require("./controller");
 
 class MarkerScanner extends Scanner {
     constructor(path) {

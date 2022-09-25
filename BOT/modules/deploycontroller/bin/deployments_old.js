@@ -1,9 +1,10 @@
 "use strict";
 const fs = require("fs");
-const { isMarkerFile, setState, getState, State } = require("../controller");
-const { registerRoute, unregisterModule, dumpConfig, CONFIG } = require(process.env.ROOT);
-const { removeFolder, eLog, unarchive, getSHA1ofInput, logLevel } = require(process.env.UTILS);
-const Scanner = require("./scanner");
+const { isMarkerFile, setState, getState, State } = require("./controller");
+const { removeRouter, addRouter } = require("./webserver");
+const { eLog, logLevel } = require(process.env.ELOG);
+const { removeFolder, unarchive, getSHA1ofInput} = require(process.env.UTILS);
+const Scanner = require(process.env.SCANNER);
 
 class DeploymentScanner extends Scanner {
     constructor(path) {
@@ -135,7 +136,7 @@ class DeploymentScanner extends Scanner {
                     const router = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}routes${process.env.SEP}${file.name}`);
                     const route = file.name === 'routes.js' ? baseroute : `${baseroute}/${file.name.slice(0, -3)}`;
                     try {
-                        registerRoute(route, router);
+                        addRouter(route, router);
                         routes.push(route);
                     } catch (error) {
                         eLog(logLevel.WARN, `SCANNER-${this.name}`, `${scope} failed to register route ${route}`);
@@ -182,7 +183,7 @@ class DeploymentScanner extends Scanner {
             const scopeconfig = CONFIG.scopes.find(scope => scope.name === scopename);
             eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${scopeconfig.hash} to inactive`);
             process.env[scopeconfig.hash] = "disabled";
-            const unregister = unregisterModule(scopename);
+            const unregister = removeRouter(scopename);
             const shutdown = require(`${this.workdir}${process.env.SEP}${scopeconfig.hash}${process.env.SEP}actions`).shutdown();
             const remove = removeFolder(`${this.workdir}${process.env.SEP}${scopeconfig.hash}`);
             const updateconfig = this.removeFromConfig(scopeconfig.name);

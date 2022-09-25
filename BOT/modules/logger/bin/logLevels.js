@@ -1,5 +1,5 @@
 "use strict";
-class logLevel {
+module.exports = class logLevel {
     static DEBUG = new logLevel("DEBUG", 0);
     static FINE = new logLevel("FINE", 100);
     static INFO = new logLevel("INFO", 200);
@@ -22,5 +22,3 @@ class logLevel {
         }
     }
 }
-
-module.exports = logLevel;
