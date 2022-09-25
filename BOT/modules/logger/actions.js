@@ -9,19 +9,19 @@ let logger;
 module.exports = {
     init: async () => {
         return new Promise((resolve, reject) => {
-            console.log("[LOGGER] Initializing eLog2 Util");
+            const { eLog, logLevel } = require(process.env.LOG);
+            log(logLevel.INFO, "LOGGER", `Initializing Logger`);
             const Logger = require("./bin/logger");
-            console.log("[LOGGER] Reading config");
+            log(logLevel.DEBUG, "LOGGER", `Reading config`);
             const fileconfig = require("./config.json");
             logger = new Logger(fileconfig.config);
-            // logger.eLog(logLevel.INFO, "LOGGER", `Initializing Logger`);
-            console.log("[LOGGER] Logger Initialized");
+            logger.eLog("STARTUP", "LOGGER", "Logger Started");
             resolve([fileconfig, __filename]);
         });
     },
     style: STYLE,
     logLevel: logLevel,
-    eLog: (level, scope, rawmsg, forceConsole = false) => {    
+    log: (level, scope, rawmsg, forceConsole = false) => {    
         logger.eLog(level, scope, rawmsg, forceConsole);
     },
     // disableLogBase: () => {

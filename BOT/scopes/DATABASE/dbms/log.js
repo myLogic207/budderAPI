@@ -7,7 +7,7 @@ function connectDB() {
     const { Sequelize } = require("sequelize");
     const path = require('path');
     
-    eLog(logLevel.DEBUG, "DATA", "Attempting to connect to UTIL database");
+    log(logLevel.DEBUG, "DATA", "Attempting to connect to UTIL database");
     const logbank = new Sequelize({
         host: 'localhost',
         dialect: 'sqlite',
@@ -15,8 +15,8 @@ function connectDB() {
         // SQLite only
         storage: path.join(__dirname, 'data/UTIL.db')
     });
-    eLog(logLevel.WARN, "DATA", "Logging database found/created");
-    eLog(logLevel.DEBUG, "DATA", "Attempting to find Logbank");
+    log(logLevel.WARN, "DATA", "Logging database found/created");
+    log(logLevel.DEBUG, "DATA", "Attempting to find Logbank");
     const LOG = logbank.define('Logs', {
         logID: {
             type: Sequelize.INTEGER,
@@ -42,7 +42,7 @@ function connectDB() {
             }
         },
     });
-    eLog(logLevel.DEBUG, "DATA", "Logbank found/created");
+    log(logLevel.DEBUG, "DATA", "Logbank found/created");
     return LOG;
 }
 
@@ -50,15 +50,15 @@ module.exports = {
     initLog: () => {
         const config = require(process.env.CONFIG);
         const { eLog, logLevel } = require(process.env.UTILS);
-        eLog(logLevel.DEBUG, "DATA", "Attempting to connect to logging database");
+        log(logLevel.DEBUG, "DATA", "Attempting to connect to logging database");
         LOG = connectDB();
-        eLog(logLevel.INFO, "DATA", "Successfully connect to logging database");
+        log(logLevel.INFO, "DATA", "Successfully connect to logging database");
         LOG.sync().then(() => {
-            eLog(logLevel.STATUS, "DATA", "Synced logging database finished");
+            log(logLevel.STATUS, "DATA", "Synced logging database finished");
             return LOG;
         }).catch(err => {
-            eLog(logLevel.WARN, "DATA", "Logging database initialization failed");
-            eLog(logLevel.ERROR, "DATA", err);
+            log(logLevel.WARN, "DATA", "Logging database initialization failed");
+            log(logLevel.ERROR, "DATA", err);
         });
     },
     createLog: (severity, scope, message) => {
@@ -78,7 +78,7 @@ module.exports = {
         LOG.sync();
     },
     readLog: function(logID){
-        eLog(logLevel.INFO, "DATA", `Attempting to read log entry ${logID}`);
+        log(logLevel.INFO, "DATA", `Attempting to read log entry ${logID}`);
         if(logID){
             return LOG.findOne({
                 where: {
@@ -86,7 +86,7 @@ module.exports = {
                 }
             }).catch(console.error);
         } else {
-            eLog(logLevel.WARN, "DATA", "No log ID provided - reading all logs");
+            log(logLevel.WARN, "DATA", "No log ID provided - reading all logs");
             return LOG.findAll().catch(console.error);
         }
     }

@@ -265,10 +265,10 @@ Feel free to suggest useful budderUTIL functions at anytime.
 #### Extended logging - introducing eLog
 
 To solve the problem of unified logging, budderBOT introduces *eLog*, a format for unified verbose logging that not has to be JSON or setup before anything works.
-*eLog* stands for *extended Logging* and any *eLog* has to be in following format:
+*eLog* stands for *extended Logging* and any *eLog* has to be in following format (it can simply called via log):
 
 ```js
-eLog(logLevel.SEVERITY, "SCOPE", "MESSAGE")
+log(logLevel.SEVERITY, "SCOPE", "MESSAGE")
 ```
 
 which will be printed like this:

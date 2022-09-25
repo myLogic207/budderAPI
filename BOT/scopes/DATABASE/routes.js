@@ -14,26 +14,26 @@ router.get('/', (req, res) => {
 router.all("/data", function (req, res, next) {
     if (req.query) next();
 }, (req, res, next) => {
-    eLog(logLevel.STATUS, "DATA", "DATABASE usage detected");
+    log(logLevel.STATUS, "DATA", "DATABASE usage detected");
     switch (req.query.action) {
         case "get":
-            eLog(logLevel.INFO, "DATA", "Database request");
+            log(logLevel.INFO, "DATA", "Database request");
             res.send("Requested: " + req.query);
             break;
         case "post":
-            eLog(logLevel.INFO, "DATA", "New data received");
+            log(logLevel.INFO, "DATA", "New data received");
             res.send("Requested: " + req.query);
             break;
         case "put":
-            eLog(logLevel.INFO, "DATA", "Data updated");
+            log(logLevel.INFO, "DATA", "Data updated");
             res.send("Requested: " + req.query);
             break;
         case "delete":
-            eLog(logLevel.WARN, "DATA", "Data deleted");
+            log(logLevel.WARN, "DATA", "Data deleted");
             res.send("Requested: " + req.query);
             break;
         default:
-            eLog(logLevel.ERROR, "DATA", "Unknown DATABASE request");
+            log(logLevel.ERROR, "DATA", "Unknown DATABASE request");
             res.send("Requested: " + req.query);
             break;
     }

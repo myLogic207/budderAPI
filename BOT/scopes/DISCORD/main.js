@@ -24,20 +24,20 @@ BOT.once('ready', () => {
     url: "https://www.twitch.tv/monstercat"
     // url: "https://cfvr.tech/"
   });
-  eLog(logLevel.STATUS, "DISCORD", BOT.user.tag.concat(' finished Loading'));
+  log(logLevel.STATUS, "DISCORD", BOT.user.tag.concat(' finished Loading'));
 });
 
 BOT.on('interactionCreate', async interaction => {
-	eLog(logLevel.INFO, "DISCORD", `${interaction.user.tag} created an interaction in ${interaction.channel.name}`);
-	eLog(logLevel.DEBUG, "DISCORD", `Interaction is: ${interaction}`);
+	log(logLevel.INFO, "DISCORD", `${interaction.user.tag} created an interaction in ${interaction.channel.name}`);
+	log(logLevel.DEBUG, "DISCORD", `Interaction is: ${interaction}`);
 	if (!interaction.isCommand()) return;
 	const command = await BOT.commands.get(interaction.commandName);
-	eLog(logLevel.DEBUG, "DISCORD", `Command is: ${JSON.stringify(command).replace("\n", "")}`);
+	log(logLevel.DEBUG, "DISCORD", `Command is: ${JSON.stringify(command).replace("\n", "")}`);
 	if (!command) return;
 	try {
-		eLog(logLevel.INFO, "DISCORD", `${interaction.user.tag} ran command: ${command.data.name} in ${interaction.channel.name}`);
+		log(logLevel.INFO, "DISCORD", `${interaction.user.tag} ran command: ${command.data.name} in ${interaction.channel.name}`);
 		await command.execute(interaction);
-		eLog(logLevel.FINE, "DISCORD", "Finished Command");
+		log(logLevel.FINE, "DISCORD", "Finished Command");
 	} catch (error) {
 		console.error(error);
 		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });

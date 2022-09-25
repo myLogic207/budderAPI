@@ -17,39 +17,38 @@ function Logo(){
 
 async function main(){
     const startTime = new Date();
-    process.env.LOG = `${__dirname}${process.env.SEP}bin${process.env.SEP}utils`;
-    console.log("Loading Config");
+    process.env.LOG = `${__dirname}${process.env.SEP}bin${process.env.SEP}logger`;
+    log(logLevel.STATUS, "CORE", "Loading Config");
     const { CONFIG } = require("./bin/config");
 
     // init eLog - Is ugly, will be cleaned with requirements
     const logInit = await require(`${process.cwd()}${process.env.SEP}modules${process.env.SEP}logger${process.env.SEP}actions`).init();
-    process.env[logInit[0].name] = logInit[1];
-    const { eLog, logLevel } = require(process.env.LOG);
+    CONFIG().modules.push(logInit[0])
+    process.env.LOG = logInit[1];
     delete require.cache[process.env.LOG];
+    const { eLog, logLevel } = require(process.env.LOG);
     
-    eLog(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
+    log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     
-    eLog(logLevel.FINE, "CORE", `Initializing Utils`);
+    log(logLevel.FINE, "CORE", `Initializing Utils`);
     require("./bin/utils");
     process.env.UTILS = `${__dirname}${process.env.SEP}bin${process.env.SEP}utils`;
     
-    CONFIG().modules.push(logInit[0])
-    
     // Load Modules
-    eLog(logLevel.FINE, "CORE", `Loading Modules`);
+    log(logLevel.FINE, "CORE", `Loading Modules`);
     await require("./bin/loader").initModules();
 
     // Starting budder
-    eLog(logLevel.FINE, "CORE", "Starting budder");
+    log(logLevel.FINE, "CORE", "Starting budder");
     process.env.ROOT = __filename;
-    eLog("budder", "CORE", `Printing Logo...${Logo()}`);
-    eLog(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
+    log("budder", "CORE", `Printing Logo...${Logo()}`);
+    log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
     require("./bin/utils").removeFolder(`${process.env.WORKDIR}${process.env.SEP}tmp`);
       
     await require("./bin/loader").start();
 
     const startUpTime = new Date().getTime() - startTime.getTime();
-    eLog(logLevel.STATUS, "CORE", `BOT started in ${startUpTime}ms`);
+    log(logLevel.STATUS, "CORE", `BOT started in ${startUpTime}ms`);
 }
 
 main()

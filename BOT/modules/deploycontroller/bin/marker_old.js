@@ -11,34 +11,34 @@ class MarkerScanner extends Scanner {
     }
 
     async handleFile(file) {
-        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Handling file ${file.name}`);
+        log(logLevel.DEBUG, `SCANNER-${this.name}`, `Handling file ${file.name}`);
 
         return new Promise((resolve, reject) => {
             if (this.files.includes(file.name)) {
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found known deployment ${file.name}`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Found known deployment ${file.name}`);
                 resolve();
             } else if (isMarkerFile(file.name)) {
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found marker ${file.name}`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Found marker ${file.name}`);
                 const scopename = getFilenameFromMarker(file.name)
                 this.files.push(scopename);
                 this.updateState(getState(scopename), getMarkerState(file.name), scopename).then(() => {
-                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `File ${file.name} handled`);
+                    log(logLevel.DEBUG, `SCANNER-${this.name}`, `File ${file.name} handled`);
                     resolve();
                 }).catch((err) => {
-                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error updating state for file ${file.name}`);
+                    log(logLevel.WARN, `SCANNER-${this.name}`, `Error updating state for file ${file.name}`);
                     reject(err);
                 });
             } else if (!getState(file.name)) {
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found new deployment ${file.name}`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Found new deployment ${file.name}`);
                 this.updateState(getState(file.name), null, file.name).then(() => {
                     resolve();
                 }).catch((err) => {
-                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error setting marker for ${file.name}`);
+                    log(logLevel.WARN, `SCANNER-${this.name}`, `Error setting marker for ${file.name}`);
                     reject(err);
                 });
             } else if (getState(file.name) === State.DONE || getState(file.name) === State.OFF) {
                 // So we need to check if we want to undeploy
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found deployment ${file.name}`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Found deployment ${file.name}`);
                 this.deployments.push(file.name);
                 resolve();
             }
@@ -47,13 +47,13 @@ class MarkerScanner extends Scanner {
 
     afterScan() {
         this.deployments.forEach((d) => {
-            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Checking deployment ${d}`);
+            log(logLevel.DEBUG, `SCANNER-${this.name}`, `Checking deployment ${d}`);
             if (!this.files.includes(d)) {
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Deployment ${d} is not in files`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Deployment ${d} is not in files`);
                 this.updateState(getState(d), null, d).then(() => {
-                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Deployment ${d} marked for undeploy`);
+                    log(logLevel.DEBUG, `SCANNER-${this.name}`, `Deployment ${d} marked for undeploy`);
                 }).catch((err) => {
-                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error setting marker for ${d}`);
+                    log(logLevel.WARN, `SCANNER-${this.name}`, `Error setting marker for ${d}`);
                 });
             }
         });
@@ -62,20 +62,20 @@ class MarkerScanner extends Scanner {
 
     async updateState(memoryState, markerState, filename) {
         return new Promise((resolve, reject) => {
-            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Updating state for ${filename}`);
-            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Memory: ${memoryState}; Marker: ${markerState}`);
+            log(logLevel.DEBUG, `SCANNER-${this.name}`, `Updating state for ${filename}`);
+            log(logLevel.DEBUG, `SCANNER-${this.name}`, `Memory: ${memoryState}; Marker: ${markerState}`);
 
             if (memoryState === markerState) resolve();
             // If marker is ERROR set memory to ERROR
             if (memoryState && markerState === State.ERROR) {
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${filename} to ERROR`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${filename} to ERROR`);
                 setState(filename, State.ERROR);
                 resolve();
             }
 
             // If marker is SKIP set memory to SKIP
             if (markerState === State.SKIP) {
-                eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${filename} to SKIP`);
+                log(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting ${filename} to SKIP`);
                 setState(filename, State.SKIP);
                 resolve();
             }
@@ -85,17 +85,17 @@ class MarkerScanner extends Scanner {
 
             switch (memoryState) {
                 case State.TODO:
-                    eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Scheduling deployment of ${filename}`);
+                    log(logLevel.STATUS, `SCANNER-${this.name}`, `Scheduling deployment of ${filename}`);
                     // If memory is TODO set marker to INPROG
                     newMarker = State.INPROG;
                     break;
                 case State.TODEL:
-                    eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Scheduling deletion of ${filename}`);
+                    log(logLevel.STATUS, `SCANNER-${this.name}`, `Scheduling deletion of ${filename}`);
                     // If memory is TODEL set marker to TODEL
                     newMarker = State.TODEL;
                     break;
                 case null:
-                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `No memory state for ${filename}`);
+                    log(logLevel.DEBUG, `SCANNER-${this.name}`, `No memory state for ${filename}`);
                     switch (markerState) {
                         case State.TODEL:
                             // If memory is null and marker is TODEL set marker to OFF 
@@ -177,14 +177,14 @@ class MarkerScanner extends Scanner {
 
             if (newMemory !== memoryState) {
                 setState(filename, newMemory);
-                eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Adjusted memory for ${filename} to ${newMemory}`);
+                log(logLevel.STATUS, `SCANNER-${this.name}`, `Adjusted memory for ${filename} to ${newMemory}`);
             }
             if (newMarker !== markerState) {
                 this.setMarkerState(filename, newMarker).then(() => {
-                    eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Set ${filename} marker to ${newMarker}`);
+                    log(logLevel.DEBUG, `SCANNER-${this.name}`, `Set ${filename} marker to ${newMarker}`);
                     resolve();
                 }).catch((err) => {
-                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error setting marker for ${filename} to ${newMarker}`);
+                    log(logLevel.WARN, `SCANNER-${this.name}`, `Error setting marker for ${filename} to ${newMarker}`);
                     reject(err);
                 });
             }
@@ -193,30 +193,30 @@ class MarkerScanner extends Scanner {
 
     async setMarkerState(filename, state) {
         return new Promise((resolve, reject) => {
-            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting marker ${filename} to ${state}`);
+            log(logLevel.DEBUG, `SCANNER-${this.name}`, `Setting marker ${filename} to ${state}`);
             fs.writeFile(`${this.dir}${process.env.SEP}${filename}.${state}`, `${new Date()}`, (err) => {
                 if (err) {
-                    eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error writing marker ${filename}.${state}`);
+                    log(logLevel.WARN, `SCANNER-${this.name}`, `Error writing marker ${filename}.${state}`);
                     reject(err);
                 }
-                eLog(logLevel.STATUS, `SCANNER-${this.name}`, `Set marker ${filename}.${state}`);
+                log(logLevel.STATUS, `SCANNER-${this.name}`, `Set marker ${filename}.${state}`);
                 resolve();
             });
             const files = fs.readdirSync(`${this.dir}`);
             // if (err) {
-            //     eLog(logLevel.WARN, `SCANNER-${this.name}`, `Error reading directory ${this.dir}${process.env.SEP}${filename}`);
+            //     log(logLevel.WARN, `SCANNER-${this.name}`, `Error reading directory ${this.dir}${process.env.SEP}${filename}`);
             //     reject(err);
             // }
-            // eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found ${files.length} files in ${this.dir}`);
+            // log(logLevel.DEBUG, `SCANNER-${this.name}`, `Found ${files.length} files in ${this.dir}`);
             files.forEach((f) => {
                 if (f.startsWith(filename) && (f !== filename)) {
                     if (!(f === `${filename}.${state}`)) {
-                        eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Found marker ${f}; Deleting`);
+                        log(logLevel.DEBUG, `SCANNER-${this.name}`, `Found marker ${f}; Deleting`);
                         try {
                             fs.rmSync(`${this.dir}${process.env.SEP}${f}`);
-                            eLog(logLevel.DEBUG, `SCANNER-${this.name}`, `Deleted marker ${f}`);
+                            log(logLevel.DEBUG, `SCANNER-${this.name}`, `Deleted marker ${f}`);
                         } catch (error) {
-                            eLog(logLevel.WARN, `SCANNER-${this.name}`, `Could not Deleted marker ${f}; Most likely already deleted`);
+                            log(logLevel.WARN, `SCANNER-${this.name}`, `Could not Deleted marker ${f}; Most likely already deleted`);
                             // no, failing deleting a marker wont be thrown
                             // for now.
                         }
