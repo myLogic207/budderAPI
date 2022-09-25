@@ -2,7 +2,7 @@
 
 const logLevel = require("./bin/logLevels");
 const STYLE = require("./bin/style");
-// const { eLog } = require(process.env.ELOG);
+// const { eLog } = require(process.env.LOG);
 
 let logger;
 

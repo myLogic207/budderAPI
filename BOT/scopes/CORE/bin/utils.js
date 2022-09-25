@@ -2,7 +2,7 @@
 const crypto = require('crypto')
 const yauzl = require("yauzl");
 const fs = require("fs");
-const { eLog, logLevel } = require(process.env.ELOG);
+const { eLog, logLevel } = require(process.env.LOG);
 
 module.exports = {
     eLog: (level, scope, rawmsg, forceConsole = false) => {

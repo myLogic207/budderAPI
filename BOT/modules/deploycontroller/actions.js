@@ -5,7 +5,7 @@ const { createDeployScanner } = require("./bin/deployments");
 const { createMarkerScanner } = require("./bin/marker");
 const { init, addRouter, shutdown } = require("./bin/webserver");
 
-const { eLog, logLevel } = require(process.env.ELOG);
+const { eLog, logLevel } = require(process.env.LOG);
 
 let config;
 

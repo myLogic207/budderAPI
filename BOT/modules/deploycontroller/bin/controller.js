@@ -1,6 +1,6 @@
 "use strict";
 
-const { logLevel, eLog } = require(process.env.ELOG);
+const { logLevel, eLog } = require(process.env.LOG);
 
 module.exports = new class DeployController {
     static States = new Map();

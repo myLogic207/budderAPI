@@ -1,7 +1,7 @@
 "use strict";
 
 const fs = require("fs");
-const { eLog, logLevel } = require(process.env.ELOG);
+const { eLog, logLevel } = require(process.env.LOG);
 let CONFIG;
 
 function checkConfig() {

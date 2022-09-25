@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("fs");
-const { eLog, logLevel } = require(process.env.ELOG);
+const { eLog, logLevel } = require(process.env.LOG);
 const { isMarkerFile, getState, State, setState, getFilenameFromMarker, getMarkerState } = require("./controller");
 
 module.exports = {
