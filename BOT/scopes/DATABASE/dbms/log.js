@@ -3,7 +3,7 @@ let LOG;
 
 function connectDB() {
     const config = require(process.env.CONFIG);
-    const { eLog, logLevel } = require(process.env.UTILS);
+    const { log, logLevel } = require(process.env.UTILS);
     const { Sequelize } = require("sequelize");
     const path = require('path');
     
@@ -49,7 +49,7 @@ function connectDB() {
 module.exports = {
     initLog: () => {
         const config = require(process.env.CONFIG);
-        const { eLog, logLevel } = require(process.env.UTILS);
+        const { log, logLevel } = require(process.env.UTILS);
         log(logLevel.DEBUG, "DATA", "Attempting to connect to logging database");
         LOG = connectDB();
         log(logLevel.INFO, "DATA", "Successfully connect to logging database");
@@ -61,11 +61,11 @@ module.exports = {
             log(logLevel.ERROR, "DATA", err);
         });
     },
-    createLog: (severity, scope, message) => {
+    creatlog: (severity, scope, message) => {
         const config = require(process.env.CONFIG);
         // DONT ELOG, IT WOULD LOG ITSELF
         try {
-            if(process.env.NODE_ENV === 'development' || eLogLevel == 0) console.log("\x1b[35m[DEBUG] [DATA] Attempting to create new log entry\x1b[0m");
+            if(process.env.NODE_ENV === 'development' || logLevel == 0) console.log("\x1b[35m[DEBUG] [DATA] Attempting to create new log entry\x1b[0m");
             LOG.create({
                 severity: severity,
                 scope: scope,
@@ -74,7 +74,7 @@ module.exports = {
         } catch (error) {
             console.log("\x1b[31m[ERROR] [DATA] Logging failed with error:\x1b[0m " + error);
         }
-        if(process.env.NODE_ENV === 'development' || eLogLevel == 0) console.log("\x1b[35m[DEBUG] [DATA] Logging complete - resync again\x1b[0m");
+        if(process.env.NODE_ENV === 'development' || logLevel == 0) console.log("\x1b[35m[DEBUG] [DATA] Logging complete - resync again\x1b[0m");
         LOG.sync();
     },
     readLog: function(logID){

@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const path = require('path');
 const config = require(process.env.CONFIG);
-const { eLog, logLevel } = require(process.env.UTILS);
+const { log, logLevel } = require(process.env.UTILS);
 
 router.use(express.static(path.join(__dirname, 'frontend')));
 

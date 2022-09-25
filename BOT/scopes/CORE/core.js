@@ -26,7 +26,7 @@ async function main(){
     CONFIG().modules.push(logInit[0])
     process.env.LOG = logInit[1];
     delete require.cache[process.env.LOG];
-    const { eLog, logLevel } = require(process.env.LOG);
+    const { log, logLevel } = require(process.env.LOG);
     
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     

@@ -1,7 +1,7 @@
 "use strict";
 const { budderDISCORD } = require("./main");
 const config = require(process.env.CONFIG);
-const { eLog, logLevel } = require(process.env.UTILS);
+const { log, logLevel } = require(process.env.UTILS);
 
 module.exports = {
     init: () => {

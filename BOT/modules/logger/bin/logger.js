@@ -5,12 +5,14 @@ const logLevel = require("./logLevels");
 const STYLE = require('./style');
 
 module.exports = class Logger {    
+    #logFiledest;
+
     constructor(config) {        
         CONFIG().logging = config;
         if (config.file_active) CONFIG().logging.file_active = this.#createLogFile(config.filePath);
         else CONFIG().logging.file_active = false;
         const inittime = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
-        this.#logFiledest = `${this.#config.filePath}${process.env.SEP}eLog-${inittime}.log`;
+        this.#logFiledest = `${config.filePath}${process.env.SEP}eLog-${inittime}.log`;
     }
 
 
@@ -32,12 +34,12 @@ module.exports = class Logger {
         if (level.value < CONFIG().logging.logLevel && process.env.NODE_ENV !== "development") return;
         let msg = this.#getMSG(level, scope, rawmsg);
 
-        if (this.#config.eLogEnabled) {
+        if (CONFIG().logging.eLogEnabled) {
             if (CONFIG().logging.file_active) {
                 fs.appendFileSync(this.#logFiledest, `${msg.slice(5, -4)}\n`, "utf8");
             }
             // if (DLOG && DBENABLED) {
-            //     createLog(level.def, scope, rawmsg);
+            //     creatlog(level.def, scope, rawmsg);
             // } else if (DLOG) {
             //     console.log(`${STYLE.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${STYLE.END}`);
             //     cLog = true;
@@ -68,7 +70,7 @@ module.exports = class Logger {
             case logLevel.DEBUG:
                 return `${STYLE.PURPLE}${logTime} [${level.def}] [${scope}] ${rawmsg}${STYLE.END}`;
             default:
-                return `${STYLE.CYAN}${logTime} [${level.def}] [${scope}] ${rawmsg} (UNSUPPORTED LEVEL)${STYLE.END}`;
+                return `${STYLE.CYAN}${logTime} [UNSUPPORTED LEVEL: ${level}] [${scope}] ${rawmsg}${STYLE.END}`;
         }
     }
 };

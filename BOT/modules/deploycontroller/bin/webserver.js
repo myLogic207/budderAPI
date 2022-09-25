@@ -1,6 +1,6 @@
 "use strict";
 
-const { eLog, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG);
 
 const app = require("express")();
 

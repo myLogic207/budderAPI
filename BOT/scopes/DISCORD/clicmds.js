@@ -1,6 +1,6 @@
 "use strict";
 // const config = require(process.env.CONFIG);
-const { eLog, logLevel } = require(process.env.UTILS);
+const { log, logLevel } = require(process.env.UTILS);
 const { sendMessage } = require("./actions");
 
 module.exports = {

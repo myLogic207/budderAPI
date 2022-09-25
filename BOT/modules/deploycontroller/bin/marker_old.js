@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("fs");
-const { eLog, logLevel } = require(process.env.UTILS);
+const { log, logLevel } = require(process.env.UTILS);
 const Scanner = require(process.env.SCANNER);
 const { isMarkerFile, getState, State, setState, getFilenameFromMarker, getMarkerState } = require("./controller");
 

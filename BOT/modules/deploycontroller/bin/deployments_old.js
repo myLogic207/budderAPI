@@ -2,7 +2,7 @@
 const fs = require("fs");
 const { isMarkerFile, setState, getState, State } = require("./controller");
 const { removeRouter, addRouter } = require("./webserver");
-const { eLog, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG);
 const { removeFolder, unarchive, getSHA1ofInput} = require(process.env.UTILS);
 const Scanner = require(process.env.SCANNER);
 

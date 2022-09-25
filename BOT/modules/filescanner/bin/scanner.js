@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("fs");
 const { getRandomUUID } = require(process.env.UTILS);
-const { eLog, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG);
 
 class Scanner {
     constructor(scannername, scannerdir, scannerinterval, baseconfig) {

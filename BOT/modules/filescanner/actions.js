@@ -2,7 +2,7 @@
 
 const Scanner = require("./bin/scanner");
 
-const { eLog, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG);
 
 const Scanners = new Map();
 let baseconfig;

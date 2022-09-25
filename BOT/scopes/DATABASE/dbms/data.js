@@ -2,7 +2,7 @@
 const { Sequelize } = require("sequelize");
 const path = require('path');
 const config = require(process.env.CONFIG);
-const { eLog, logLevel } = require(process.env.UTILS);
+const { log, logLevel } = require(process.env.UTILS);
 
 module.exports = {
     newDB : function(name, Tags) {

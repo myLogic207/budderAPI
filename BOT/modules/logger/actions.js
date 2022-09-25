@@ -2,14 +2,14 @@
 
 const logLevel = require("./bin/logLevels");
 const STYLE = require("./bin/style");
-// const { eLog } = require(process.env.LOG);
+// const { log } = require(process.env.LOG);
 
 let logger;
 
 module.exports = {
     init: async () => {
         return new Promise((resolve, reject) => {
-            const { eLog, logLevel } = require(process.env.LOG);
+            const { log, logLevel } = require(process.env.LOG);
             log(logLevel.INFO, "LOGGER", `Initializing Logger`);
             const Logger = require("./bin/logger");
             log(logLevel.DEBUG, "LOGGER", `Reading config`);

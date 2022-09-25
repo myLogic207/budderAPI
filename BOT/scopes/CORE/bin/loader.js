@@ -2,7 +2,7 @@
 
 const fs = require("fs");
 const { dumpConfig, CONFIG } = require(process.env.CONFIG);
-const { eLog, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG);
 
 module.exports = {
     // Init Modules
