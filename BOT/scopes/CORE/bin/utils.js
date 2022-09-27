@@ -3,8 +3,10 @@ const crypto = require('crypto')
 const yauzl = require("yauzl");
 const fs = require("fs");
 const { log, logLevel } = require(process.env.LOG);
+const Style = require("./style");
 
 module.exports = {
+    Style,
     getRandomUUID: () => {
         try {
             return crypto.randomUUID();
