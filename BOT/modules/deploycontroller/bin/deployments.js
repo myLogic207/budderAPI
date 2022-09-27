@@ -1,7 +1,7 @@
 "use strict";
 const fs = require("fs");
 const { isMarkerFile, setState, getState, State } = require("./controller");
-const { removeRouter, addRouter } = require("./webserver");
+const { removeRouter, addRouter } = require(process.env.WEB);
 const { log, logLevel } = require(process.env.LOG);
 const { removeFolder, unarchive, getSHA1ofInput} = require(process.env.UTILS);
 
