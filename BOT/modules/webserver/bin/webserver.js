@@ -2,35 +2,42 @@
 
 const { log, logLevel } = require(process.env.LOG);
 
-module.exports = new class Webserver {
+module.exports = class Webserver {
 
+    #server;
     #app = require("express")();
+    #router = new Map();
 
     constructor(config) {
-        return new Promise((resolve, reject) => {
-            log(logLevel.INFO, "DEPLOYCONTROL-WEB", "Initializing Address");
-            const botPort = config.port || 2070;
-            log(logLevel.FINE, "DEPLOYCONTROL-WEB", `Registered Port: ${botPort}`);
-            const botHost = config.host || "localhost";
-            log(logLevel.FINE, "DEPLOYCONTROL-WEB", `Registered Host: ${botHost}`);
+        log(logLevel.INFO, "WEBSERVER", "Initializing Address");
+        this.botPort = config.port || 2070;
+        log(logLevel.FINE, "WEBSERVER", `Registered Port: ${this.botPort}`);
+        this.botHost = config.host || "localhost";
+        log(logLevel.FINE, "DWEBSERVER", `Registered Host: ${this.botHost}`);
+    
+        this.#app.get('*', (req, res, next) => {
+            res.send('I am alive!');
+            next();
         });
+        log(logLevel.DEBUG, "WEBSERVER", "Set default route");
     }
 
     async startServer() {
-        const server = app.listen(botPort, botHost, () => {
-            log(logLevel.STATUS, "DEPLOYCONTROL-WEB", `Server running at http://${botHost}:${botPort}/`);
-            return server;
+        this.#server = this.#app.listen(this.botPort, this.botHost, () => {
+            log(logLevel.STATUS, "WEBSERVER", `Server running at http://${this.botHost}:${this.botPort}/`);
+            return this.#server;
         });
     }
 
     async addRouter(route, router) {
         return new Promise((resolve, reject) => {
             try {
-                log(logLevel.INFO, "DEPLOYCONTROL-WEB", `Registering Routes`);
-                app.use(`/${route}`, router);
+                log(logLevel.INFO, "WEBSERVER", `Registering Routes`);
+                this.#app.use(`/${route}`, router);
+                this.#router.set(route, router);
                 resolve();
             } catch (error) {
-                log(logLevel.WARN, "DEPLOYCONTROL-WEB", `Failed to register Routes`);
+                log(logLevel.WARN, "WEBSERVER", `Failed to register Routes`);
                 reject(error);
             }
         })
@@ -39,13 +46,14 @@ module.exports = new class Webserver {
     async removeRouter(router){
         return new Promise((resolve, reject) => {
             try {
-                app._router.stack = app._router.stack.filter(r => r.name !== router);
-                log(logLevel.INFO, "DEPLOYCONTROL", `Unregistered Module`);
+                this.#app._router.stack = this.#app._router.stack.filter(r => r.name !== router);
+                this.#router.delete(router);
+                log(logLevel.INFO, "WEBSERVER", `Unregistered Module`);
                 resolve();
             } catch (error) {
-                log(logLevel.WARN, "DEPLOYCONTROL", `Failed to unregister Module`);
+                log(logLevel.WARN, "WEBSERVER", `Failed to unregister Module`);
                 reject(error);
             }
         })
     }
-}();
+};

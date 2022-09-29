@@ -1,7 +1,6 @@
 "use strict";
 
 const { CONFIG } = require(process.env.CONFIG);
-const { startServer, addRouter } = require("./bin/webserver");
 
 const { log, logLevel } = require(process.env.LOG);
 
@@ -9,31 +8,30 @@ let server;
 
 module.exports = {
     init: async () => {
-        log(logLevel.INFO, "DEPLOYCONTROL-WEB", `Initializing Webserver`);
+        log(logLevel.INFO, "WEBSERVER", `Initializing Webserver`);
+        const Webserver = require("./bin/webserver");
         const fileconfig = require("./config.json");
-        server = await startServer(CONFIG().modules[fileconfig.name] || fileconfig.config);
-        log(logLevel.INFO, "DEPLOYCONTROL-WEB", `Webserver started`);
-        
-        app.get('*', (req, res, next) => {
-            res.send('I am alive!');
-            next();
-        });
-        log(logLevel.DEBUG, "DEPLOYCONTROL-WEB", "Set default route");
+        const app = new Webserver(CONFIG().modules[fileconfig.name] || fileconfig.config);
+        server = await app.startServer();
+        log(logLevel.STATUS, "WEBSERVER", `Webserver initialized`);
+        return [fileconfig, __filename];
     },
+    // so there is the option to start the webserver with an extra start instead
+    // but tbh I think you should not use an extra start bc I might deprecate it (don't like the two calls)
     shutdown: async () => {
         return new Promise((resolve, reject) => {
             server.close(() => {
-                log(logLevel.STATUS, "DEPLOYCONTROL", "Server closed");
+                log(logLevel.STATUS, "WEBSERVER", "Server closed");
                 resolve();
             });
         });
     },
     addRouter: async (route, router) => {
-        log(logLevel.INFO, "DEPLOYCONTROL-WEB", `Registering Routes`);
+        log(logLevel.INFO, "WEBSERVER", `Registering Routes`);
         return addRouter(route, router);
     },
     removeRouter: async (router) => {
-        log(logLevel.INFO, "DEPLOYCONTROL-WEB", `Unregistering Routes`);
+        log(logLevel.INFO, "WEBSERVER", `Unregistering Routes`);
         return removeRouter(router);
     }
 }

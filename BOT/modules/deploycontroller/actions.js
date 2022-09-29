@@ -3,7 +3,7 @@
 const { isMarkerFile, State } = require("./bin/controller");
 const { createDeployScanner } = require("./bin/deployments");
 const { createMarkerScanner } = require("./bin/marker");
-const { init, addRouter, shutdown } = require("./bin/webserver");
+const { CONFIG } = require(process.env.CONFIG);
 
 const { log, logLevel } = require(process.env.LOG);
 
@@ -30,17 +30,14 @@ async function clearMarkerDir(workdir){
 }
 
 module.exports = {
-    init: () => {
-        return new Promise((resolve, reject) => {
-            const fileconfig = require("./config.json");
-            config = fileconfig.config;
-            config.workdir = `${process.env.workdir}${process.env.SEP}scopes`;
-            resolve([fileconfig, __filename]);
-        });
+    init: async () => {
+        log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
+        config = CONFIG("modules")[fileconfig.name] || fileconfig.config;        
+        config.workdir = `${process.env.workdir}${process.env.SEP}scopes`;
+        log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
+        return [fileconfig, __filename];
     },
     start: async () => {
-        await init();
-
         if(!config.hotdeploy) return;
         try {
             log(logLevel.INFO, "DEPLOYCONTROL", "Preparing directories");
@@ -65,13 +62,4 @@ module.exports = {
             throw error;
         }
     },
-    shutdown: async () => {
-        return shutdown();
-    },
-    registerRoute: async (route, router) => {
-        return addRouter(route, router);
-    },
-    unregisterRouter: async (router) => {
-        return removeRouter(router);
-    }
 };
