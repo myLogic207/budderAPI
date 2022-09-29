@@ -7,30 +7,56 @@ const { log, logLevel } = require(process.env.LOG);
 module.exports = {
     // Init Modules
     initModules: async () => {
-        const modules = []
-        fs.readdirSync(`${process.cwd()}${process.env.SEP}modules`, { withFileTypes: true })
+        const modulesBase = process.env.MODULES || `${process.cwd()}${process.env.SEP}modules`
+        fs.readdirSync(`${modulesBase}`, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
-            .forEach(module => {
-                if(module === "logger") return;
-                log(logLevel.INFO, "CORE-Loader", `Loading Module ${module}`);
-                modules.push(require(`${process.cwd()}${process.env.SEP}modules${process.env.SEP}${module}${process.env.SEP}actions`).init());
-            });
-
-        await Promise.allSettled(modules).then((results) => {
-            results.forEach((result) => {
-                if (result.status == "rejected") {
-                    log(logLevel.WARN, "CORE-Loader", `Error loading module`);
-                    log(logLevel.ERROR, "CORE-Loader", result.reason);
-                } else {
-                    log(logLevel.INFO, "CORE-Loader", `Module ${result.value[0].name} loaded`);
-                    process.env[result.value[0].name] = result.value[1];
-                    CONFIG().modules.push(result.value[0]);
-                }
-            });
-            dumpConfig();
-            log(logLevel.STATUS, "CORE-Loader", "All modules loaded and config dumped");
+            .forEach((module) => {
+            // if(module === "logger") return;
+            log(logLevel.INFO, "CORE-LOADER", `Found Module: ${module}`);
+            const moduleconfig = require(`${modulesBase}${process.env.SEP}${module}${process.env.SEP}config.json`);
+            CONFIG().modules[moduleconfig.name] ??= moduleconfig.config;
+            const modFile = moduleconfig.file || "actions.js";
+            process.env[moduleconfig.name.toUpperCase()] = `${modulesBase}${process.env.SEP}${module}${process.env.SEP}${modFile}`;
         });
+        // dumpConfig();
+        /*   
+            .forEach(module => {
+                log(logLevel.INFO, "CORE-Loader", `Loading Module ${module}`);
+                const mod_path = `${process.env.SEP}modules${process.env.SEP}${module}${process.env.SEP}`;
+                const mod_conf = require(`${process.cwd()}${mod_path}config.json`);
+                // register module name and path to file HERE as process env best case :)
+                process.env[mod_conf.name] = `${process.cwd()}${mod_path}${mod_conf.file ?? 'actions'}`;
+                // Also, thinking here - replace process.env with a config access
+                // CONFIG().paths.modules = mod_path;
+                foundmodules.push(mod_conf.name);
+            });
+        */
+            
+        const loadedModules = [];
+        while(loadedModules.length !== foundmodules.length){
+            for (let i = 0; i < foundmodules.length; i++) {
+                const module = require(process.env[foundmodules[i]]);
+                if(loadedModules.includes(foundmodules[i])) continue;
+                try {
+                    const modInit = await module.init();
+                    // process.env[modInit[0].name] = modInit[1];
+                    CONFIG().modules.push({[modInit[0].name]: modInit[0]});
+                    loadedModules.push(foundmodules[i]);
+                    log(logLevel.INFO, "CORE-Loader", `Module ${modInit[0].name} loaded`);
+                } catch (error) {
+                    if(error.message.startsWith("Missing module")){
+                        log(logLevel.DEBUG, "CORE-Loader", `Module ${foundmodules[i]} error: ${error.message}`);
+                        continue;
+                    }
+                    log(logLevel.WARN, "CORE-Loader", `Failed to load Module ${foundmodules[i]}`);
+                    throw error;
+                }
+            }
+        }
+
+        dumpConfig();
+        log(logLevel.STATUS, "CORE-Loader", "All modules loaded and config dumped");
     },
     start: async () => {
         // Start Modules
