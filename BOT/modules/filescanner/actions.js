@@ -1,5 +1,6 @@
 "use strict";
 
+const { CONFIG } = require(process.env.CONFIG);
 const Scanner = require("./bin/scanner");
 
 const { log, logLevel } = require(process.env.LOG);
@@ -14,12 +15,11 @@ function register(scanner){
 
 module.exports = {
     init: async () => {
-        return new Promise((resolve, reject) => {
-            log(logLevel.INFO, "FILESCANNER", `Initializing File Scanner`);
-            const fileconfig = require("./config.json");
-            baseconfig = fileconfig.config;
-            resolve([fileconfig, __filename]);
-        });
+        log(logLevel.INFO, "FILESCANNER", `Initializing File Scanner`);
+        const fileconfig = require("./config.json");
+        baseconfig = CONFIG().modules[fileconfig.name] || fileconfig.config;
+        log(logLevel.STATUS, "FILESCANNER", `File Scanner initialized`);
+        return [fileconfig, __filename];
     },
     newScanner: (scannername, scannerdir, scannerinterval) => {
         log(logLevel.WARN, "FILESCANNER", "Initializing new custom scanner");

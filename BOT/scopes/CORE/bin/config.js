@@ -1,5 +1,4 @@
 "use strict";
-
 const fs = require("fs");
 const { log, logLevel } = require(process.env.LOG);
 let CONFIG;
@@ -29,28 +28,29 @@ function createNewConfig() {
     const config = {};
     try {
         fs.writeFileSync(process.env.CONFIG, JSON.stringify(config));
-        log(logLevel.FINE, "CORE-CONFIG", `New Config created`);
+        console.log(`New Config created`);
     } catch (error) {
-        log(logLevel.WARN, "CORE-CONFIG", "Failed to create config file");
+        console.error("Failed to create config file");
         throw error;   
     }
 }
 
-if(!fs.existsSync(process.env.CONFIGFILE)) createNewConfig();
-try {
-    CONFIG = JSON.parse(fs.readFileSync(process.env.CONFIGFILE));
-    checkConfig();
-    writeConfig();       
-} catch (error) {
-    log(logLevel.WARN, "CORE-CONFIG", "Failed to load config file");
-    throw error;
-}
-log(logLevel.INFO, "CORE-CONFIG", `Config handler loaded`);
-process.env.CONFIG = __filename;
-
 module.exports = {
-    CONFIG: () => {
-        return CONFIG;
+    initConfig: () => {
+        if(!fs.existsSync(process.env.CONFIGFILE)) createNewConfig();
+        try {
+            CONFIG = JSON.parse(fs.readFileSync(process.env.CONFIGFILE));
+            // checkConfig();
+            // writeConfig();       
+        } catch (error) {
+            console.error("Failed to load config file");
+            throw error;
+        }
+        process.env.CONFIG = __filename;
+        console.log(`Config handler loaded`);
+    },
+    CONFIG: (range) => {
+        return CONFIG[range] ?? CONFIG;
     },
     reloadConfig: async () => {
         return new Promise((resolve, reject) => {

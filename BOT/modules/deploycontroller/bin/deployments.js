@@ -1,5 +1,6 @@
 "use strict";
 const fs = require("fs");
+const { dumpConfig } = require(process.env.CONFIG);
 const { isMarkerFile, setState, getState, State } = require("./controller");
 const { removeRouter, addRouter } = require(process.env.WEB);
 const { log, logLevel } = require(process.env.LOG);
