@@ -1,6 +1,6 @@
 "use strict";
 const crypto = require('crypto')
-const yauzl = require("yauzl");
+const runzip = require("runzip");
 const fs = require("fs");
 const { log, logLevel } = require(process.env.LOG);
 const Style = require("./style");
@@ -56,6 +56,53 @@ module.exports = {
 
 async function decompress(src, dest, force = false) {
     return new Promise((resolve, reject) => {
+        runzip.open(src, { filter: isZip }, (err, zip) => {
+            if (err) {
+                log(logLevel.WARN, "UTIL-DEZIP", "Error opening archive: " + src);
+                reject(err);
+            }
+            log(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
+            zip.on("entry", (entry) => {
+                log(logLevel.DEBUG, "UTIL-DEZIP", "Reading entry: " + entry.fileName);
+                if (/\/$/.test(entry.fileName)) {
+                    // directory file names end with '/'
+                    log(logLevel.DEBUG, "UTIL-DEZIP", "Entry is a directory, skipping");
+                    return;
+                }
+                entry.openReadStream((err, readStream) => {
+                    if (err) {
+                        log(logLevel.WARN, "UTIL-DEZIP", `Error reading file ${entry.fileName} in archive: ${src}`);
+                        if (!force) {
+                            log(logLevel.WARN, "UTIL-DEZIP", "Force is disabled, aborting!");
+                            reject(err);
+                        }
+                        log(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
+                    }
+                    let outputDir = entry.nestedPath.join("/");
+                    if (!fs.existsSync(outputDir)) {
+                        fs.mkdirSync(outputDir, {
+                            recursive: true
+                        });
+                        log(logLevel.DEBUG, "UTIL-DEZIP", "Ensured that the destination dir exists!");
+                    }
+                    readStream.pipe(fs.createWriteStream(outputDir + "/" + entry.fileName));
+                    log(logLevel.DEBUG, "UTIL-DEZIP", `Extracted ${entry.fileName} to ${outputDir}`);
+                });
+            });
+            zip.on("end", () => {
+                log(logLevel.DEBUG, "UTIL-DEZIP", "Unarchiving finished: " + src);
+                resolve();
+            });
+        });
+    });
+}
+
+function isZip(entry) {
+    return /\.(zip|bud)$/.test(entry.fileName);
+}
+
+async function decompress_old(src, dest, force = false) {
+    return new Promise((resolve, reject) => {
         yauzl.open(src, { lazyEntries: true }, function (err, zipfile) {
             if (err) {
                 log(logLevel.WARN, "UTIL-DEZIP", "Error opening archive: " + src);
@@ -64,18 +111,22 @@ async function decompress(src, dest, force = false) {
             log(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
             zipfile.readEntry();
             zipfile.on("entry", function (entry) {
-                if (/\/$/.test(entry.fileName)) {
+                console.log(entry);
+                const fileName = entry.fileName.replace("/", process.env.SEP)
+                log(logLevel.DEBUG, "UTIL-DEZIP", "Reading entry: " + fileName);
+                if (fileName.includes(process.env.SEP)) {
                     // Directory file names end with '/'.
                     // Note that entires for directories themselves are optional.
                     // An entry's fileName implicitly requires its parent directories to exist.
-                    log(logLevel.DEBUG, "UTIL-DEZIP", "Folder Found" + entry.fileName);
-                    if (!fs.existsSync(dest + entry.fileName)) {
-                        fs.mkdirSync(dest + entry.fileName, {
+                    const folder = fileName.split(process.env.SEP).slice(0, -1);
+                    log(logLevel.DEBUG, "UTIL-DEZIP", "Folder Found" + fileName);
+                    if (!fs.existsSync(dest + fileName)) {
+                        fs.mkdirSync(dest + fileName, {
                             recursive: true
                         });
-                        log(logLevel.DEBUG, "UTIL-DEZIP", "Folder created at destination: " + dest + entry.fileName);
+                        log(logLevel.DEBUG, "UTIL-DEZIP", "Folder created at destination: " + dest + folder);
                     }
-                    dest = + entry.fileName;
+                    dest = + folder;
                     zipfile.readEntry();
                 } else {
                     if (!fs.existsSync(dest)) {
@@ -84,23 +135,23 @@ async function decompress(src, dest, force = false) {
                         });
                         log(logLevel.DEBUG, "UTIL-DEZIP", "Ensured that the destination dir exists!");
                     }
-                    var ws = fs.createWriteStream(dest + process.env.SEP + entry.fileName);
+                    var ws = fs.createWriteStream(dest + process.env.SEP + fileName);
                     // file entry
-                    zipfile.openReadStream(entry, function (err, readStream) {
+                    zipfile.openReadStream(entry, (err, readStream) => {
                         if (err) {
-                            log(logLevel.WARN, "UTIL-DEZIP", "Error reading file" + entry.fileName + "; in archive: " + src);
+                            log(logLevel.WARN, "UTIL-DEZIP", `Error reading file ${fileName} in archive: ${src}`);
                             if (!force) {
                                 log(logLevel.WARN, "UTIL-DEZIP", "Force is disabled, aborting!");
                                 reject(err);
                             }
                             log(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
                         }
-                        readStream.on("end", function () {
+                        readStream.on("end", () => {
                             zipfile.readEntry();
                         });
                         readStream.pipe(ws);
-                        log(logLevel.DEBUG, "UTIL-DEZIP", "Unarchived file: " + entry.fileName);
-                        log(logLevel.DEBUG, "UTIL-DEZIP", "to: " + dest + process.env.SEP + entry.fileName);
+                        log(logLevel.DEBUG, "UTIL-DEZIP", `Unarchived file: ${fileName}`);
+                        log(logLevel.DEBUG, "UTIL-DEZIP", `to: ${dest}${process.env.SEP}${fileName}`);
                     });
                 }
             });
