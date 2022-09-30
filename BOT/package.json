@@ -31,6 +31,7 @@
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.27",
     "express": "^4.17.3",
+    "runzip": "^0.0.4",
     "sequelize": "^6.17.0",
     "sqlite3": "^5.0.2",
     "yauzl": "^2.10.0"
