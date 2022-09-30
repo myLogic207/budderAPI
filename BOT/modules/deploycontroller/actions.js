@@ -3,7 +3,6 @@
 const { isMarkerFile, State } = require("./bin/controller");
 const { createDeployScanner } = require("./bin/deployments");
 const { createMarkerScanner } = require("./bin/marker");
-const { CONFIG } = require(process.env.CONFIG);
 
 const { log, logLevel } = require(process.env.LOG);
 
@@ -30,12 +29,12 @@ async function clearMarkerDir(workdir){
 }
 
 module.exports = {
-    init: async () => {
+    init: async (name) => {
         log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
-        config = CONFIG("modules")[fileconfig.name] || fileconfig.config;        
-        config.workdir = `${process.env.workdir}${process.env.SEP}scopes`;
+        const { CONFIG } = require(process.env.CONFIG);
+        CONFIG("modules")[name].workdir ??= `${process.env.workdir}${process.env.SEP}scopes`;
+        config = CONFIG("modules")[name];
         log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
-        return [fileconfig, __filename];
     },
     start: async () => {
         if(!config.hotdeploy) return;

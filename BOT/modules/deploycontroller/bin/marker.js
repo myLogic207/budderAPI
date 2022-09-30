@@ -9,6 +9,8 @@ module.exports = {
         markerScanner.deployments = [];
         markerScanner.handleFile = handleFile;
         markerScanner.afterScan = afterScan;
+        markerScanner.updateState = updateState;
+        markerScanner.setMarkerState = setMarkerState;
         return markerScanner;
     },
 }

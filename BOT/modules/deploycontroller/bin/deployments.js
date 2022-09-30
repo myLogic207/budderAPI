@@ -1,6 +1,6 @@
 "use strict";
 const fs = require("fs");
-const { dumpConfig } = require(process.env.CONFIG);
+const { CONFIG, dumpConfig } = require(process.env.CONFIG);
 const { isMarkerFile, setState, getState, State } = require("./controller");
 const { removeRouter, addRouter } = require(process.env.WEB);
 const { log, logLevel } = require(process.env.LOG);
@@ -11,6 +11,12 @@ module.exports = {
         const deployscanner = require(process.env.SCANNER).newScanner(config.name, dir, config.interval);
         deployscanner.workdir = process.env.workdir + process.env.SEP + "tmp" + process.env.SEP + "deployments";
         deployscanner.handleFile = handleFile;
+        deployscanner.handleFile = deployScope;
+        deployscanner.initScope = initScope;
+        deployscanner.fileundeployScope = fileundeployScope;
+        deployscanner.undeployScope = undeployScope;
+        deployscanner.removeFromConfig = removeFromConfig;
+
         return deployscanner;
     },
 }
@@ -84,7 +90,7 @@ async function deployScope(file) {
                     log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeconfig.hash} to active`);
                     process.env[hash] = "enabled";
                     log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finalizing config for ${file.name}`);
-                    CONFIG.scopes.push(addconf);
+                    CONFIG("scopes").push(addconf);
                     resolve();
                 }).catch(error => {
                     log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Failed to init ${file.name}`);
@@ -100,7 +106,7 @@ async function deployScope(file) {
             process.env[hash] = false;
             log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error deploying ${file.name}`);
             log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
-            CONFIG.scopes.push(addconf);
+            CONFIG("scopes").push(addconf);
             reject(error);
         }
     });
