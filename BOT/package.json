@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node scopes/CORE/core.js",
+    "start": "node budder/scopes/CORE/core.js",
     "preinstall": "cd $(pwd)"
   },
   "pkg": {
