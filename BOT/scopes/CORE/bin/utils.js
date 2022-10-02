@@ -1,7 +1,7 @@
 "use strict";
 const crypto = require('crypto')
-const runzip = require("runzip");
 const fs = require("fs");
+const { pipeline } = require('stream');
 const { log, logLevel } = require(process.env.LOG);
 const Style = require("./style");
 
@@ -55,6 +55,24 @@ module.exports = {
 }
 
 async function decompress(src, dest, force = false) {
+    const extract = require('extract-zip')
+    log(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
+    try {
+        log(logLevel.DEBUG, "UTIL-DEZIP", `Extracting ${src} to ${dest}`);
+        await extract(src, { dir: dest });
+        log(logLevel.DEBUG, "UTIL-DEZIP", "Unarchiving finished: " + src);
+        return dest;
+    } catch (error) {
+        log(logLevel.WARN, "UTIL-DEZIP", `Error extracting ${src} to ${dest}`);
+        if (!force) {
+            throw error;
+        }
+        log(logLevel.ERROR, "UTIL-DEZIP", error);
+        log(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
+    }
+}
+
+async function decompress_old(src, dest, force = false) {
     return new Promise((resolve, reject) => {
         runzip.open(src, { filter: isZip }, (err, zip) => {
             if (err) {
@@ -63,30 +81,31 @@ async function decompress(src, dest, force = false) {
             }
             log(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
             zip.on("entry", (entry) => {
-                log(logLevel.DEBUG, "UTIL-DEZIP", "Reading entry: " + entry.fileName);
-                if (/\/$/.test(entry.fileName)) {
+                const fileName = entry.fileName.replace("/", process.env.SEP)
+                log(logLevel.DEBUG, "UTIL-DEZIP", "Reading entry: " + fileName);
+                if (fileName.endsWith(process.env.SEP)) {
                     // directory file names end with '/'
                     log(logLevel.DEBUG, "UTIL-DEZIP", "Entry is a directory, skipping");
                     return;
                 }
                 entry.openReadStream((err, readStream) => {
                     if (err) {
-                        log(logLevel.WARN, "UTIL-DEZIP", `Error reading file ${entry.fileName} in archive: ${src}`);
+                        log(logLevel.WARN, "UTIL-DEZIP", `Error reading file ${fileName} in archive: ${src}`);
                         if (!force) {
                             log(logLevel.WARN, "UTIL-DEZIP", "Force is disabled, aborting!");
                             reject(err);
                         }
                         log(logLevel.WARN, "UTIL-DEZIP", "Force is enabled, skipping file!");
                     }
-                    let outputDir = entry.nestedPath.join("/");
+                    let outputDir = dest + process.env.SEP + fileName.split(process.env.SEP).slice(0, -1).join(process.env.SEP);
                     if (!fs.existsSync(outputDir)) {
                         fs.mkdirSync(outputDir, {
                             recursive: true
-                        });
-                        log(logLevel.DEBUG, "UTIL-DEZIP", "Ensured that the destination dir exists!");
+                        }, err => {});
+                        log(logLevel.DEBUG, "UTIL-DEZIP", `Ensured that the destination ${outputDir} exists!`);
                     }
-                    readStream.pipe(fs.createWriteStream(outputDir + "/" + entry.fileName));
-                    log(logLevel.DEBUG, "UTIL-DEZIP", `Extracted ${entry.fileName} to ${outputDir}`);
+                    readStream.pipe(fs.createWriteStream(dest + process.env.SEP + fileName));
+                    log(logLevel.DEBUG, "UTIL-DEZIP", `Extracted ${fileName} to ${dest + process.env.SEP + fileName}`);
                 });
             });
             zip.on("end", () => {
