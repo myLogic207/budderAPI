@@ -41,7 +41,8 @@ module.exports = {
         try {
             CONFIG = JSON.parse(fs.readFileSync(process.env.CONFIGFILE));
             // checkConfig();
-            // writeConfig();       
+            // writeConfig();
+            CONFIG.scopes = [];
         } catch (error) {
             console.error("Failed to load config file");
             throw error;
