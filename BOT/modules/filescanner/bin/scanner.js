@@ -71,7 +71,7 @@ class Scanner {
     }
 
     afterScan() {
-        // log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found ${this.files.length} files`);
+        return; // log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found ${this.files.length} files`);
     }
 
     async handleFile(file) {

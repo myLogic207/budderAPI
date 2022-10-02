@@ -25,7 +25,7 @@ async function handleFile(file) {
             log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Found marker ${file.name}`);
             const scopename = getFilenameFromMarker(file.name)
             this.files.push(scopename);
-            updateState(getState(scopename), getMarkerState(file.name), scopename).then(() => {
+            this.updateState(getState(scopename), getMarkerState(file.name), scopename).then(() => {
                 log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `File ${file.name} handled`);
                 resolve();
             }).catch((err) => {
@@ -34,7 +34,7 @@ async function handleFile(file) {
             });
         } else if (!getState(file.name)) {
             log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Found new deployment ${file.name}`);
-            updateState(getState(file.name), null, file.name).then(() => {
+            this.updateState(getState(file.name), null, file.name).then(() => {
                 resolve();
             }).catch((err) => {
                 log(logLevel.WARN, "DEPLOYCONTROL-MARKERSCANNER", `Error setting marker for ${file.name}`);
@@ -54,10 +54,11 @@ function afterScan() {
         log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Checking deployment ${d}`);
         if (!this.files.includes(d)) {
             log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Deployment ${d} is not in files`);
-            updateState(getState(d), null, d).then(() => {
+            this.updateState(getState(d), null, d).then(() => {
                 log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Deployment ${d} marked for undeploy`);
             }).catch((err) => {
                 log(logLevel.WARN, "DEPLOYCONTROL-MARKERSCANNER", `Error setting marker for ${d}`);
+                log(logLevel.ERROR, "DEPLOYCONTROL-MARKERSCANNER", err);
             });
         }
     });
@@ -184,7 +185,7 @@ async function updateState(memoryState, markerState, filename) {
             log(logLevel.STATUS, "DEPLOYCONTROL-MARKERSCANNER", `Adjusted memory for ${filename} to ${newMemory}`);
         }
         if (newMarker !== markerState) {
-            setMarkerState(filename, newMarker).then(() => {
+            this.setMarkerState(filename, newMarker).then(() => {
                 log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Set ${filename} marker to ${newMarker}`);
                 resolve();
             }).catch((err) => {
