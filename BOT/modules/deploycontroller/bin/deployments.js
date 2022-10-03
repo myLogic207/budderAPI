@@ -146,6 +146,9 @@ async function initScopeRoutes(baseRoute, routes, scope) {
     routes.map(route => {
         route["path"] = `${this.workdir}${process.env.SEP}${scope}${process.env.SEP}${route.path}`;
         route["route"] = "/" + route.route;
+        if (route.type !== "static") {
+            route.callback = require(route.path);
+        }
         return route;
     });
     await addRouter(baseRoute, routes, scope);
