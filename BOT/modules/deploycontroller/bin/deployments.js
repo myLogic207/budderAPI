@@ -7,22 +7,22 @@ const { removeFolder, unarchive, getSHA1ofInput} = require(process.env.UTILS);
 
 module.exports = {
     createDeployScanner: (config, dir) => {
-        const deployscanner = require(process.env.SCANNER).newScanner(config.name, dir, config.interval);
+        const deployScanner = require(process.env.SCANNER).newScanner(config.name, dir, config.interval);
         const workdir = process.env.workdir + process.env.SEP + "tmp" + process.env.SEP + "deployments";
         const fs = require("fs");
         if (!fs.existsSync(workdir)) {
             fs.mkdirSync(workdir, { recursive: true });
         }
-        deployscanner.workdir = workdir;
-        deployscanner.handleFile = handleFile;
-        deployscanner.deployScope = deployScope;
-        deployscanner.initScope = initScope;
-        deployscanner.initScopeRoutes = initScopeRoutes;
-        deployscanner.fileundeployScope = fileundeployScope;
-        deployscanner.undeployScope = undeployScope;
-        deployscanner.removeFromConfig = removeFromConfig;
+        deployScanner.workdir = workdir;
+        deployScanner.handleFile = handleFile;
+        deployScanner.deployScope = deployScope;
+        deployScanner.initScope = initScope;
+        deployScanner.initScopeRoutes = initScopeRoutes;
+        deployScanner.fileUndeployScope = fileUndeployScope;
+        deployScanner.undeployScope = undeployScope;
+        deployScanner.removeFromConfig = removeFromConfig;
 
-        return deployscanner;
+        return deployScanner;
     },
 }
 
@@ -44,7 +44,7 @@ async function handleFile(file) {
                 log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now undeploying`);
                 msg = "undeployed";
                 state = State.OFF;
-                action = this.fileundeployScope(file.name);
+                action = this.fileUndeployScope(file.name);
                 break;
             default:
                 log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is in state ${getState(file.name)}`);
@@ -71,9 +71,9 @@ async function deployScope(file) {
         log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYMENTS", `Deploying ${file.name}`);
         const hash = getSHA1ofInput(file.name)
         log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Hashed as ${hash}`);
-        const addconf = { "file": file.name, "hash": hash };
+        const addConf = { "file": file.name, "hash": hash };
         try {
-            addconf["active"] = false;
+            addConf["active"] = false;
 
             // Break if already deployed
             if (process.env[hash] === "enabled") {
@@ -87,15 +87,15 @@ async function deployScope(file) {
                 log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished unpacking ${file.name}`);
                 // Init Scope
                 log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Initializing ${file.name}`);
-                this.initScope(hash).then(scopeconfig => {
+                this.initScope(hash).then(scopeConfig => {
                     log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished initializing ${file.name}`);
-                    addconf["config"] = scopeconfig;
-                    addconf["name"] = scopeconfig.name;
-                    addconf["active"] = true;
-                    log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeconfig.hash} to active`);
+                    addConf["config"] = scopeConfig;
+                    addConf["name"] = scopeConfig.name;
+                    addConf["active"] = true;
+                    log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeConfig.hash} to active`);
                     process.env[hash] = "enabled";
                     log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finalizing config for ${file.name}`);
-                    CONFIG("scopes").push(addconf);
+                    CONFIG("scopes").push(addConf);
                     resolve();
                 }).catch(error => {
                     log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Failed to init ${file.name}`);
@@ -107,11 +107,11 @@ async function deployScope(file) {
             });
         } catch (error) {
             // set File to error
-            addconf["active"] = false;
+            addConf["active"] = false;
             process.env[hash] = false;
             log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error deploying ${file.name}`);
             log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
-            CONFIG("scopes").push(addconf);
+            CONFIG("scopes").push(addConf);
             reject(error);
         }
     });
@@ -120,25 +120,41 @@ async function deployScope(file) {
 // Init Scope
 async function initScope(scope) {
     return new Promise((resolve, reject) => {
-        const scopeconfig = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}config.json`);
-        log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scopeconfig.name} config loaded`);
+        const scopeConfig = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}config.json`);
+        log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scopeConfig.name} config loaded`);
         const { init } = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}actions`);
         init().then((init) => {
-            scopeconfig["init"] = init;
-            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Scope ${scopeconfig.name} initialized`);
-            scopeconfig["routes"] = this.initScopeRoutes(scope, scopeconfig.baseroute);
-            log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYMENTS", `${scopeconfig.name} Fully loaded!`);
-            resolve(scopeconfig);
+            scopeConfig["init"] = init;
+            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Scope ${scopeConfig.name} initialized`);
+            this.initScopeRoutes(scopeConfig.baseRoute, scopeConfig.routes, scope).then((configRoutes) => {
+                scopeConfig["routes"] = configRoutes;
+                log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYMENTS", `${scopeConfig.name} Fully loaded!`);
+                resolve(scopeConfig);
+            }).catch(error => {
+                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Failed to init routes for ${scopeConfig.name}`);
+                reject(error);
+            });
         }).catch(error => {
-            log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", `Error initializing ${scopeconfig.name}`);
+            log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", `Error initializing ${scopeConfig.name}`);
             reject(error);
         });
     });
 }
 
-function initScopeRoutes(scope, baseroute = scope) {
+async function initScopeRoutes(baseRoute, routes, scope) {
+    log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Initializing with base route ${baseRoute}`);
+    routes.map(route => {
+        route["path"] = `${this.workdir}${process.env.SEP}${scope}${process.env.SEP}${route.path}`;
+        route["route"] = "/" + route.route;
+        return route;
+    });
+    await addRouter(baseRoute, routes, scope);
+    return routes;
+}
+
+function initScopeRoutes_old(scope, baseRoute = scope) {
     log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} initializing scope routes`);
-    log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} baseroute defined as ${baseroute}`);
+    log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} baseRoute defined as ${baseRoute}`);
     const routes = [];
     const fs = require("fs");
     try {
@@ -146,7 +162,7 @@ function initScopeRoutes(scope, baseroute = scope) {
             if (file.endsWith('.js')) {
                 log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} initializing route ${file}`);
                 const router = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}routes${process.env.SEP}${file}`);
-                const route = file === 'routes.js' ? baseroute : `${baseroute}/${file.slice(0, -3)}`;
+                const route = file === 'routes.js' ? baseRoute : `${baseRoute}/${file.slice(0, -3)}`;
                 try {
                     addRouter(route, router);
                     routes.push(route);
@@ -170,7 +186,7 @@ function initScopeRoutes(scope, baseroute = scope) {
     return routes;
 }
 
-async function fileundeployScope(filename) {
+async function fileUndeployScope(filename) {
     log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Undeploying file deployment ${filename}`);
     return new Promise((resolve, reject) => {
         let error = new Error("Scope not found");
@@ -182,7 +198,7 @@ async function fileundeployScope(filename) {
                     resolve(this.undeployScope(scope.name));
                 }
             } catch (err) {
-                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error occured while checking ${scope}`);
+                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error occurred while checking ${scope}`);
                 error = err;
             }
         });
@@ -190,49 +206,49 @@ async function fileundeployScope(filename) {
     });
 }
 
-async function undeployScope(scopename) {
+async function undeployScope(scopeName) {
     // call uninit
     // unregister routes if possible/override router with 404 message
     // remove folder
     // update config
     return new Promise((resolve, reject) => {
-        log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Undeploying ${scopename}`);
-        const scopeconfig = CONFIG("scopes").find(scope => scope.name === scopename);
-        log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeconfig.hash} to inactive`);
-        process.env[scopeconfig.hash] = "disabled";
-        const unregister = removeRouter(scopename);
-        const shutdown = require(`${this.workdir}${process.env.SEP}${scopeconfig.hash}${process.env.SEP}actions`).shutdown();
-        const remove = removeFolder(`${this.workdir}${process.env.SEP}${scopeconfig.hash}`);
-        const updateconfig = removeFromConfig(scopeconfig.name);
+        log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Undeploying ${scopeName}`);
+        const scopeConfig = CONFIG("scopes").find(scope => scope.name === scopeName);
+        log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeConfig.hash} to inactive`);
+        process.env[scopeConfig.hash] = "disabled";
+        const unregister = removeRouter(scopeName);
+        const shutdown = require(`${this.workdir}${process.env.SEP}${scopeConfig.hash}${process.env.SEP}actions`).shutdown();
+        const remove = removeFolder(`${this.workdir}${process.env.SEP}${scopeConfig.hash}`);
+        const updateConfig = removeFromConfig(scopeConfig.name);
 
-        Promise.allSettled([unregister, shutdown, updateconfig, remove]).
+        Promise.allSettled([unregister, shutdown, updateConfig, remove]).
             then(() => {
-                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished undeploying ${scopename}`);
-                resolve(updateconfig);
+                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished undeploying ${scopeName}`);
+                resolve(updateConfig);
             }).catch((error) => {
-                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error undeploying ${scopename}`);
+                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error undeploying ${scopeName}`);
                 log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
-                CONFIG.scopes[scopename].active = false;
-                CONFIG.scopes[scopename].error = "Error Undeploying";
+                CONFIG.scopes[scopeName].active = false;
+                CONFIG.scopes[scopeName].error = "Error Undeploying";
                 reject();
             });
     });
 }
 
-async function removeFromConfig(scopename) {
+async function removeFromConfig(scopeName) {
     return new Promise((resolve, reject) => {
         try {
-            let newscopes = [];
-            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Removing ${scopename} from work-config`);
+            let newScopes = [];
+            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Removing ${scopeName} from work-config`);
             CONFIG("scopes").forEach(scope => {
-                if (scope.name !== scopename) {
-                    newscopes.push(scope);
+                if (scope.name !== scopeName) {
+                    newScopes.push(scope);
                 }
             });
-            CONFIG().scopes = newscopes;
+            CONFIG().scopes = newScopes;
             resolve();
         } catch (error) {
-            log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error removing ${scopename} from work-config`);
+            log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error removing ${scopeName} from work-config`);
             reject(error);
         }
     });
