@@ -16,13 +16,14 @@ module.exports = {
             // if(module === "logger") return;
             log(logLevel.INFO, "CORE-LOADER", `Found Module: ${module}`);
             const moduleconfig = require(`${modulesBase}${process.env.SEP}${module}${process.env.SEP}config.json`);
-            CONFIG().modules[moduleconfig.name.toUpperCase()] ??= moduleconfig.config;
+            const moduleName = moduleconfig.name.toUpperCase();
+            CONFIG().modules[moduleName] ??= moduleconfig.config;
             // CONFIG().paths.modules.push(`${modulesBase}${process.env.SEP}${module}`);
             const modFile = moduleconfig.file || "actions.js";
             // Also, thinking here - replace process.env with a config access
-            process.env[moduleconfig.name.toUpperCase()] = `${modulesBase}${process.env.SEP}${module}${process.env.SEP}${modFile}`;
-            foundmodules.push(moduleconfig.name.toUpperCase());
-            log(logLevel.INFO, "CORE-LOADER", `Loaded Module: ${module.name}, version ${module.version}`);
+            process.env[moduleName] = `${modulesBase}${process.env.SEP}${module}${process.env.SEP}${modFile}`;
+            foundmodules.push(moduleName);
+            log(logLevel.INFO, "CORE-LOADER", `Loaded Module: ${moduleName}, version ${moduleconfig.version}`);
             log(logLevel.FINE, "CORE-LOADER", `desc.: ${moduleconfig.description}`);
         });
         // dumpConfig();
@@ -30,19 +31,20 @@ module.exports = {
         const loadedModules = [];
         while(loadedModules.length !== foundmodules.length){
             for (let i = 0; i < foundmodules.length; i++) {
-                const module = require(process.env[foundmodules[i]]);
-                if(loadedModules.includes(foundmodules[i])) continue;
+                const moduleName = foundmodules[i];
+                const module = require(process.env[moduleName]);
+                if(loadedModules.includes(moduleName)) continue;
                 try {
-                    await module.init(foundmodules[i]);
+                    await module.init(moduleName);
                     // process.env[modInit[0].name] = modInit[1];
-                    loadedModules.push(foundmodules[i]);
-                    log(logLevel.INFO, "CORE-Loader", `Module ${foundmodules[i]} loaded`);
+                    loadedModules.push(moduleName);
+                    log(logLevel.INFO, "CORE-Loader", `Module ${moduleName} loaded`);
                 } catch (error) {
                     // if(error.message.startsWith("Missing module")){
-                    //     log(logLevel.DEBUG, "CORE-Loader", `Module ${foundmodules[i]} error: ${error.message}`);
+                    //     log(logLevel.DEBUG, "CORE-Loader", `Module ${moduleName} error: ${error.message}`);
                     //     continue;
                     // }
-                    log(logLevel.WARN, "CORE-Loader", `Failed to load Module ${foundmodules[i]}`);
+                    log(logLevel.WARN, "CORE-Loader", `Failed to load Module ${moduleName}`);
                     throw error;
                 }
             }

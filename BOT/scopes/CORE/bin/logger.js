@@ -6,8 +6,9 @@ const Style = require('./Style');
 function createLogFile(filePath) {
     try {
         if (!fs.existsSync(filePath)) {
-            fs.mkdirSync(filePath, { recursive: true })
-            fs.writeFileSync(logFiledest, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
+            fs.mkdirSync(filePath.split(process.env.SEP).slice(0, -1).join(process.env.SEP), { recursive: true });
+            fs.writeFileSync(filePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
+            console.log(`Log file created at ${filePath}`);
             return true;
         }
     } catch (err) {
@@ -39,17 +40,16 @@ function getMSG(level, scope, rawmsg) {
     }
 }
 
-let logFiledest;
+let logFileDest;
 
 module.exports = {
     initLogger: () => {
         const config = require(process.env.CONFIG).CONFIG().logging;
-        const inittime = new Date().toISOString().slice(0, -8).replace(/-/g, '.').replace(/T/g, '-').replace(/:/g, '.');
-        logFiledest = `${config.filePath}${process.env.SEP}eLog-${inittime}.log`;
+        const initTime = new Date().toISOString().slice(0, -8).replace(/-/g, '-').replace(/T/g, '_').replace(/:/g, '.');
+        logFileDest = `${config.filePath}${process.env.SEP}eLog-${initTime}.log`;
 
-        if (config.file_active) config.file_active = createLogFile(config.filePath);
+        if (config.file_active) config.file_active = createLogFile(logFileDest);
         else config.file_active = false;
-        return config;
     },
     log: (level, scope, rawmsg, forceConsole = false) => {
         const { logLevel, eLogEnabled, file_active, console_active } = require(process.env.CONFIG).CONFIG().logging;
@@ -58,10 +58,10 @@ module.exports = {
 
         if (eLogEnabled) {
             if (file_active) {
-                fs.appendFileSync(logFiledest, `${msg.slice(5, -4)}\n`, "utf8");
+                fs.appendFileSync(logFileDest, `${msg.slice(5, -4)}\n`, "utf8");
             }
             // if (DLOG && DBENABLED) {
-            //     creatlog(level.def, scope, rawmsg);
+            //     createLog(level.def, scope, rawmsg);
             // } else if (DLOG) {
             //     console.log(`${Style.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${Style.END}`);
             //     cLog = true;
