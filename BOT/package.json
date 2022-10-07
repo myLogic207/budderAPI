@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
     "start": "node src/core.js",
     "preinstall": "cd $(pwd)"
   },
@@ -26,8 +27,7 @@
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.27",
     "express": "^4.17.3",
-    "extract-zip": "^2.0.1",
-    "typescript": "^4.6.2"
+    "extract-zip": "^2.0.1"
   },
   "devDependencies": {
     "@discordjs/builders": "^0.12.0",
@@ -37,6 +37,7 @@
     "discord.js": "^13.6.0",
     "nodemon": "^2.0.20",
     "sequelize": "^6.17.0",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.2",
+    "typescript": "^4.8.4"
   }
 }
