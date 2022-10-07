@@ -9,7 +9,7 @@ const Scanner = require(process.env.SCANNER);
 class DeploymentScanner extends Scanner {
     constructor(path) {
         super('DEPLOYMENTS', path, 7000);
-        this.workdir = process.env.workdir + process.env.SEP + "tmp" + process.env.SEP + "deployments";
+        this.workdir = process.env.TMP + process.env.SEP + "tmp" + process.env.SEP + "deployments";
     }
 
     async handleFile(file) {

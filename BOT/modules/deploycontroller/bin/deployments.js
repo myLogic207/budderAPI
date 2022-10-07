@@ -8,7 +8,7 @@ const { removeFolder, unarchive, getSHA1ofInput} = require(process.env.UTILS);
 module.exports = {
     createDeployScanner: (config, dir) => {
         const deployScanner = require(process.env.SCANNER).newScanner(config.name, dir, config.interval);
-        const workdir = process.env.workdir + process.env.SEP + "tmp" + process.env.SEP + "deployments";
+        const workdir = process.env.TMP + process.env.SEP + "tmp" + process.env.SEP + "deployments";
         const fs = require("fs");
         if (!fs.existsSync(workdir)) {
             fs.mkdirSync(workdir, { recursive: true });

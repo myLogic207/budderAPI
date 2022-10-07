@@ -40,7 +40,7 @@ async function main(){
     process.env.ROOT = __filename;
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
-    require("./bin/utils").removeFolder(`${process.env.WORKDIR}${process.env.SEP}tmp`);
+    require("./bin/utils").removeFolder(`${process.env.TMP}${process.env.SEP}tmp`);
     
     await require("./bin/loader").start();
 

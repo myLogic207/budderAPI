@@ -32,7 +32,7 @@ module.exports = {
     init: async (name) => {
         log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
         const { CONFIG } = require(process.env.CONFIG);
-        CONFIG("modules")[name].workdir ??= `${process.env.workdir}${process.env.SEP}scopes`;
+        CONFIG("modules")[name].workdir ??= `${process.env.TMP}${process.env.SEP}scopes`;
         config = CONFIG("modules")[name];
         log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
     },
