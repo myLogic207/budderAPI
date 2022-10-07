@@ -1,19 +1,34 @@
 "use strict";
-const fs = require("fs");
+import fs from "fs";
 const { log, logLevel } = require(process.env.LOG);
 const CONFIGFILE = process.env.CONFIGFILE || "./config.json";
-let CONFIG;
 
-function checkConfig() {
-    // if(CONFIG.scopes.length > 0){
-        log(logLevel.INFO, "CORE-CONFIG", `Scopes checked`);
-        CONFIG.scopes = [];
-    // }
-    // if(CONFIG.modules.length > 0){
-        log(logLevel.INFO, "CORE-CONFIG", `Modules checked`);
-        CONFIG.modules = [];
-    // }
+type Scope = {
+    name: string,
+    hash: string,
+    file: string,
+    enabled: boolean,
+    config: any,
+    [routes: number]: any,
+
 }
+
+type Config = {
+    boot?: bootconfig,
+    scopes: Scope[],
+    modules: Module[],
+    logging: logging,
+}
+
+let CONFIG: Config = {
+    scopes: [],
+    modules: [],
+    logging: {
+        default: "logger",
+        logLevel: "info",
+        eLogEnabled: false,
+    }
+};
 
 function writeConfig() {
     try {
@@ -51,11 +66,11 @@ module.exports = {
         process.env.CONFIG = __filename;
         console.log(`Config handler loaded`);
     },
-    CONFIG: (range) => {
-        return CONFIG[range] ?? CONFIG;
+    CONFIG: (range?: keyof Config) => {
+        return range ? CONFIG[range] : CONFIG;
     },
     reloadConfig: async () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             log(logLevel.INFO, "CORE-CONFIG", `Reloading Config`);
             fs.readFile(CONFIGFILE, (err, data) => {
                 if (err) {
@@ -68,7 +83,7 @@ module.exports = {
         });
     },
     dumpConfig: async () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             log(logLevel.INFO, "CORE-CONFIG", `Dumping Config`);
             try {
                 writeConfig()
@@ -77,36 +92,6 @@ module.exports = {
                 log(logLevel.WARN, "CORE-CONFIG", `Failed to dump Config`);
                 reject(error);
             }
-            // fs.writeFile(process.env.CONFIGFILE, JSON.stringify(CONFIG, null, 4), (err) => {
-            //     if (err) {
-            //         log(logLevel.WARN, "CORE-CONFIG", `Failed to dump Config`);
-            //         reject(err);
-            //     };
-            //     log(logLevel.STATUS, "CORE-CONFIG", `Config dumped`);
-            //     resolve();
-            // });
         });
     },
-    /*
-    updateConfig: async (newConfig) => {
-        return new Promise((resolve, reject) => {
-            log(logLevel.INFO, "CORE", `Updating Config`);            
-            fs.writeFile(process.env.CONFIG, JSON.stringify(newConfig, null, 4), (err) => {
-                if (err){
-                    log(logLevel.ERROR, "CORE", `Failed to update Config`);
-                    reject(err);
-                };
-                log(logLevel.INFO, "CORE", `Config updated`);
-            }).then(() => {
-                this.reloadConfig().then(() => {
-                    log(logLevel.INFO, "CORE", `Config reloaded`);
-                    resolve();
-                }).catch((error) => {
-                    log(logLevel.ERROR, "CORE", `Failed to update Config`);
-                    reject(error);
-                })
-            })
-        });
-    }
-    */
 }
