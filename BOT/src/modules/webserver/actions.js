@@ -8,7 +8,7 @@ module.exports = {
     init: async (name) => {
         log(logLevel.INFO, "WEBSERVER", `Initializing Webserver`);
         const { CONFIG } = require(process.env.CONFIG);
-        const Webserver = require("./bin/webserver");
+        const Webserver = require("./libs/webserver");
         webServer = new Webserver(CONFIG().modules[name]);
         await webServer.startServer();
         log(logLevel.STATUS, "WEBSERVER", `Webserver initialized`);

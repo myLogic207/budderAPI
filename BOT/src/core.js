@@ -16,33 +16,33 @@ function Logo(){
 
 async function main(){
     const startTime = new Date();
-    process.env.LOG = `${__dirname}${process.env.SEP}bin${process.env.SEP}logger.js`;
+    process.env.LOG = `${__dirname}${process.env.SEP}libs${process.env.SEP}logger.js`;
     
     // log(logLevel.STATUS, "CORE", "Loading Config");
     require("./libs/config").initConfig();
-    // const { CONFIG } = require("./bin/config");
+    // const { CONFIG } = require("./libs/config");
     
-    require("./bin/logger").initLogger();
+    require("./libs/logger").initLogger();
     const { log, logLevel } = require(process.env.LOG);
     
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     
     log(logLevel.FINE, "CORE", `Initializing Utils`);
-    require("./bin/utils");
+    require("./libs/utils");
     process.env.UTILS = `${__dirname}${process.env.SEP}bin${process.env.SEP}utils`;
     
     // Load Modules
     log(logLevel.FINE, "CORE", `Loading Modules`);
-    await require("./bin/loader").initModules();
+    await require("./libs/loader").initModules();
 
     // Starting budder
     log(logLevel.FINE, "CORE", "Starting budder");
     process.env.ROOT = __filename;
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
-    require("./bin/utils").removeFolder(`${process.env.TMP}${process.env.SEP}tmp`);
+    require("./libs/utils").removeFolder(`${process.env.TMP}${process.env.SEP}tmp`);
     
-    await require("./bin/loader").start();
+    await require("./libs/loader").start();
 
     const startUpTime = new Date().getTime() - startTime.getTime();
     log(logLevel.STATUS, "CORE", `BOT started in ${startUpTime}ms`);

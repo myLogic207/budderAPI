@@ -1,8 +1,8 @@
 "use strict";
 
-const { isMarkerFile, State } = require("./bin/controller");
-const { createDeployScanner } = require("./bin/deployments");
-const { createMarkerScanner } = require("./bin/marker");
+const { isMarkerFile, State } = require("./libs/controller");
+const { createDeployScanner } = require("./libs/deployments");
+const { createMarkerScanner } = require("./libs/marker");
 
 const { log, logLevel } = require(process.env.LOG);
 

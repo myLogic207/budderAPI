@@ -1,6 +1,6 @@
 "use strict";
 
-const Scanner = require("./bin/scanner");
+const Scanner = require("./libs/scanner");
 
 const { log, logLevel } = require(process.env.LOG);
 

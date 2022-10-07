@@ -8,7 +8,7 @@ module.exports = {
     // Init Modules
     initModules: async () => {
         const foundmodules = [];
-        const modulesBase = process.env.MODULES || `${process.cwd()}${process.env.SEP}modules`
+        const modulesBase = process.env.MODULES || `${process.cwd()}${process.env.SEP}src${process.env.SEP}modules`
         fs.readdirSync(`${modulesBase}`, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
