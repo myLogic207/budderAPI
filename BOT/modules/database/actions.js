@@ -1,6 +1,7 @@
 "use strict";
 
 const { getRandomUUID } = require("../../scopes/CORE/bin/utils");
+const { connectMongoDB } = require("./bin/mongodb");
 
 const { log, logLevel } = require(process.env.LOG);
 
@@ -9,8 +10,8 @@ let dataBases = [];
 module.exports = {
     init: async (name) => {
         log(logLevel.INFO, "DATA", "Initializing DBMS");
-        const config = require(process.env.CONFIG);
-
+        const { CONFIG } = require(process.env.CONFIG);
+        CONFIG("modules")[name].
         log(logLevel.INFO, "DATA", "Finished initializing DBMS");
     },
     shutdown: async () => {
@@ -22,14 +23,20 @@ module.exports = {
         log(logLevel.STATUS, "DATA", "Successfully closed all database connections");
     },
     dbTypes: Object.freeze({
+        inmemory: "memory",
         integrated: "integrated",
-        sql: "sql",
+        sql: "sql", /* one of 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'oracle' */
         mongodb: "mongodb"
     }),
-    connectDB: async (connection, fields) => {
+    connectDB: async (fields, connection) => {
         connection = generateConnectionObject(connection);
         switch(connection.dialect){
-            case "sqlite":
+            case this.dbTypes.inmemory:
+                return connectInMemoryDB(fields);
+            case this.dbTypes.integrated:
+                return connectIntegratedDB(connection, fields);
+            case this.dbTypes.mongodb:
+                return await connectMongoDB(connection, fields);
 
         }
     },
@@ -39,19 +46,38 @@ module.exports = {
 };
 
 // Example:
+// postgres://user:pass@example.com:5432/dbname
 // mysql://10.10.10.10:1234/users
 // integrated:///test (integrated will auto select the data directory)
 function generateURL(connectionString) {
     const connectionParts = connectionString.split("/");
     const connection = {
         id: getRandomUUID(),
-        dialect: connectionParts[0].slice(0, -1),
-        host: connectionParts[2].split(":")[0] || "localhost",
-        port: connectionParts[2].split(":")[1],
-        path: connectionParts.slice(3).join("/"),
+        url: validateConnectionURL(connectionString),
     };
     if(connection.dialect === module.exports.dbTypes.integrated) {
         connection.storage = `${process.env.TMP}${process.env.SEP}data${process.env.SEP}${connection.path}.db`;
+    }
+}
+
+function validateConnectionURL(url) {
+    const { URL } = require("url");
+    const { log, logLevel } = require(process.env.LOG);
+
+    try {
+        const connectionURL = new URL(url);
+        const dialect = connectionURL.protocol.replace(":", "");
+        if(!module.exports.dbTypes[dialect]) {
+            log(logLevel.ERROR, "DATA", `Invalid dialect: ${dialect}`);
+            return false;
+        }
+        connectionURL.host ??= "localhost";
+        connectionURL.hostname ??= "localhost";
+        connectionURL.pathname ??= getRandomUUID();
+        return connectionURL;
+    } catch (error) {
+        log(logLevel.ERROR, "DATA", `Invalid connection URL: ${url}`);
+        return false;
     }
 }
 
