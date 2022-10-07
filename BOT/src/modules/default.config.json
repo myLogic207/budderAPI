@@ -1,0 +1,8 @@
+{
+    "name": "Name",
+    "version": "1.0.0",
+    "description": "Description",
+    "config": {
+        "key": "value"
+    }
+}
