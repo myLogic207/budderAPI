@@ -34,7 +34,7 @@ module.exports = class Webserver {
 
     async startServer() {
         this.#server = this.#app.listen(this.#port, this.#host, () => {
-            log(logLevel.STATUS, "WEBSERVER", `Server running at http://${this.host}:${this.port}/`);
+            log(logLevel.STATUS, "WEBSERVER", `Server running at http://${this.#host}:${this.#port}/`);
         });
     }
 
