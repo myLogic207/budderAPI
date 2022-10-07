@@ -19,7 +19,7 @@ async function main(){
     process.env.LOG = `${__dirname}${process.env.SEP}bin${process.env.SEP}logger.js`;
     
     // log(logLevel.STATUS, "CORE", "Loading Config");
-    require("./bin/config").initConfig();
+    require("./libs/config").initConfig();
     // const { CONFIG } = require("./bin/config");
     
     require("./bin/logger").initLogger();
