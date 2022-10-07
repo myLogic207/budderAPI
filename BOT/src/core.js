@@ -29,7 +29,7 @@ async function main(){
     
     log(logLevel.FINE, "CORE", `Initializing Utils`);
     require("./libs/utils");
-    process.env.UTILS = `${__dirname}${process.env.SEP}bin${process.env.SEP}utils`;
+    process.env.UTILS = `${__dirname}${process.env.SEP}libs${process.env.SEP}utils`;
     
     // Load Modules
     log(logLevel.FINE, "CORE", `Loading Modules`);
