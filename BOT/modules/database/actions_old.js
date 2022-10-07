@@ -9,7 +9,7 @@ module.exports = {
         log(logLevel.STATUS, "DATA", "Initialized");
     },
     useDB: (name, tags) => {
-        const { newDB } = require("./dbms/data");
+        const { newDB } = require("./bin/db_old");
         log(logLevel.INFO, "DATA", "Attempting to initialize new database");
         let DB = newDB(name, tags);
         dataBases.push(DB);
@@ -17,7 +17,7 @@ module.exports = {
     },
     initLogbank: () => {
         log(logLevel.DEBUG, "DATA", "Attempting to initialize logging database");
-        const { initLog } = require("./dbms/log");
+        const { initLog } = require("./bin/db_log_old");
         const logBase = initLog();
         dataBases.push(logBase);
         return logBase;
