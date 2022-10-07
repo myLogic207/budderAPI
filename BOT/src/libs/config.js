@@ -1,6 +1,7 @@
 "use strict";
 const fs = require("fs");
 const { log, logLevel } = require(process.env.LOG);
+const CONFIGFILE = process.env.CONFIGFILE || "./config.json";
 let CONFIG;
 
 function checkConfig() {
@@ -16,7 +17,7 @@ function checkConfig() {
 
 function writeConfig() {
     try {
-        fs.writeFileSync(process.env.CONFIGFILE, JSON.stringify(CONFIG, null, 4));
+        fs.writeFileSync(CONFIGFILE, JSON.stringify(CONFIG, null, 4));
         log(logLevel.FINE, "CORE-CONFIG", `Config written`);
     } catch (error) {
         log(logLevel.WARN, "CORE-CONFIG", "Failed to write to config file");
@@ -27,7 +28,7 @@ function writeConfig() {
 function createNewConfig() {
     const config = {};
     try {
-        fs.writeFileSync(process.env.CONFIG, JSON.stringify(config));
+        fs.writeFileSync(CONFIGFILE, JSON.stringify(config));
         console.log(`New Config created`);
     } catch (error) {
         console.error("Failed to create config file");
@@ -37,9 +38,9 @@ function createNewConfig() {
 
 module.exports = {
     initConfig: () => {
-        if(!fs.existsSync(process.env.CONFIGFILE)) createNewConfig();
+        if(!fs.existsSync(CONFIGFILE)) createNewConfig();
         try {
-            CONFIG = JSON.parse(fs.readFileSync(process.env.CONFIGFILE));
+            CONFIG = JSON.parse(fs.readFileSync(CONFIGFILE));
             // checkConfig();
             // writeConfig();
             CONFIG.scopes = [];
@@ -56,7 +57,7 @@ module.exports = {
     reloadConfig: async () => {
         return new Promise((resolve, reject) => {
             log(logLevel.INFO, "CORE-CONFIG", `Reloading Config`);
-            fs.readFile(process.env.CONFIGFILE, (err, data) => {
+            fs.readFile(CONFIGFILE, (err, data) => {
                 if (err) {
                     log(logLevel.WARN, "CORE-CONFIG", `Failed to reload Config`);
                     reject(err);
