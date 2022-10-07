@@ -1,10 +1,10 @@
 {
   "name": "budderbot",
   "bin": "core.js",
-  "version": "0.1.0",
+  "version": "2.3.0-SNAPSHOT_0.1.0",
   "description": "I can't believe it's not budder",
   "author": "Logic",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "private": true,
   "keywords": [
     "budder",
@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node scopes/CORE/core.js",
+    "start": "node src/core.js",
     "preinstall": "cd $(pwd)"
   },
   "pkg": {
