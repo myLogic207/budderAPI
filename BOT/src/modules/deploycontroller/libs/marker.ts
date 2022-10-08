@@ -60,7 +60,7 @@ async function updateState(this: any, memoryState: State | null, markerState: St
     log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Updating state for ${filename}`);
     log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Memory: ${memoryState}; Marker: ${markerState}`);
 
-    // if (memoryState === markerState) return;
+    if (memoryState === markerState) return;
     // If marker is ERROR set memory to ERROR
     if (memoryState && markerState === State.ERROR) {
         log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Setting ${filename} to ERROR`);

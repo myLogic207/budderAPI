@@ -26,7 +26,7 @@ type Scope = {
 
 export function createDeployScanner(config: {name: string, interval: number}, dir: string) {
     const deployScanner = require(env.SCANNER || '').newScanner(config.name, dir, config.interval);
-    const workdir: string = ensureEntry(`${env.WORKDIR}${env.SEP}deployments`);
+    const workdir: string = ensureEntry(`${env.WORKDIR}${env.SEP}tmp${env.SEP}deployments`);
     const fs = require("fs");
     if (!fs.existsSync(workdir)) {
         fs.mkdirSync(workdir, { recursive: true });
@@ -45,42 +45,46 @@ export function createDeployScanner(config: {name: string, interval: number}, di
 
 async function handleFile(this: any, file: {name: string}) {
     if (isMarkerFile(file.name)) return;
-    return new Promise<void>((resolve, reject) => {
-        let action: Promise<any> = Promise.resolve();
-        let state: State;
-        let msg: string;
-        switch (getState(file.name)) {
-            case State.TODO:
-                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now deploying`);
-                setState(file.name, State.INPROG);
-                state = State.DONE
-                action = this.deployScope(file);
-                msg = "deployed";
-                break;
-            case State.TODEL:
-                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now undeploying`);
-                msg = "undeployed";
-                state = State.OFF;
-                action = this.fileUndeployScope(file.name);
-                break;
-            default:
-                log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is in state ${getState(file.name)}`);
-                resolve();
-        }
-        action.then(() => {
-            log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} ${msg}`);
-            setState(file.name, state);
-        }).catch(error => {
-            log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYSCANNER", `Failed to (un)deploy ${file.name}`);
-            setState(file.name, State.ERROR);
-            reject(error);
-        }).finally(() => {
-            dumpConfig();
-            log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYSCANNER", `Operation finished`);
-            resolve();
-            // fs.unlinkSync(file);
-        });
-    });
+    let action: {action: () => Promise<void>, state: State, msg: string} | undefined;
+    switch (getState(file.name)) {
+        case State.TODO:
+            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now deploying`);
+            setState(file.name, State.INPROG);
+            
+            action = {
+                action: this.deployScope(file),
+                msg: "deployed",
+                state: State.DONE,
+            }
+            
+            break;
+        case State.TODEL:
+            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now undeploying`);
+            
+            action = {
+                msg: "undeployed",
+                state: State.OFF,
+                action: this.fileUndeployScope(file.name),
+            }
+
+            break;
+        default:
+            log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is in state ${getState(file.name)}`);
+            break;
+    }
+    if(action === undefined) return;
+    try {
+        await action.action;
+        log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} ${action.msg}`);
+        setState(file.name, action.state);
+    } catch (error) {
+        setState(file.name, State.ERROR);
+        log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYSCANNER", `Failed to (un)deploy ${file.name}`);
+        log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYSCANNER", error);
+    } finally {
+        dumpConfig();
+        log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYSCANNER", `Operation finished`);
+    }
 }
 
 async function deployScope( this: any, file: {name: string}) {

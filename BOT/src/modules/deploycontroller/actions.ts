@@ -1,7 +1,7 @@
 import { env } from "process";
 import { createDeployScanner } from "./libs/deployments";
 import { createMarkerScanner } from "./libs/marker";
-import { isMarkerFile, State } from "./libs/stateControl";
+import { isMarkerFile, State, setState, getFilenameFromMarker, getState, getMarkerState } from './libs/stateControl';
 
 const { log, logLevel } = require(env.LOG || '');
 
@@ -24,19 +24,24 @@ let config: dplConfig;
 
 async function clearMarkerDir(workdir: string){
     return new Promise<void>((resolve, reject) => {
-        log(logLevel.DEBUG, `DEPLOYCONTROL`, `Clearing marker directory`);
+        log(logLevel.DEBUG, "DEPLOYCONTROL", `Clearing marker directory`);
         const fs = require('fs');
         fs.readdir(workdir, (err: any, files: any[]) => {
             if (err) reject(err);
             files.forEach(file => {
-                if(isMarkerFile(file) && !file.startsWith(State.SKIP)){
-                    fs.unlink(`${workdir}${env.SEP}${file}`, (err: any) => {
-                        if (err) reject(err);
-                        log(logLevel.DEBUG, `DEPLOYCONTROL`, `Deleted ${file}`);
-                    });
+                if(isMarkerFile(file)){
+                    if(getMarkerState(file) === State.SKIP){
+                        log(logLevel.DEBUG, "DEPLOYCONTROL", `Set ${file} to SKIP`);
+                        setState(getFilenameFromMarker(file), State.SKIP);
+                    } else {
+                        fs.unlink(`${workdir}${env.SEP}${file}`, (err: any) => {
+                            if (err) reject(err);
+                            log(logLevel.DEBUG, "DEPLOYCONTROL", `Deleted ${file}`);
+                        });
+                    }
                 }
             });
-            log(logLevel.DEBUG, `DEPLOYCONTROL`, `Marker directory cleared`);
+            log(logLevel.DEBUG, "DEPLOYCONTROL", `Marker directory cleared`);
             resolve();
         });
     });
