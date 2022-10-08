@@ -26,4 +26,4 @@ export class logLevel {
     }
 }
 
-export type LogLevel = {def: string, value: number};
+type LogLevel = {def: string, value: number};

@@ -1,22 +1,22 @@
 import fs from 'fs';
 import { env } from 'process';
-import { logLevel } from './logLevels';
+import * as levels from './logLevels';
 import { ensureEntry, Style } from './utils'
 
-// function createLogFile(filePath: string) {
-//     try {
-//         if (!fs.existsSync(filePath)) {
-//             fs.mkdirSync(filePath.split(env.SEP || "/").slice(0, -1).join(env.SEP), { recursive: true });
-//             fs.writeFileSync(filePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
-//             console.log(`Log file created at ${filePath}`);
-//             return true;
-//         }
-//     } catch (err) {
-//         console.log("Error creating eLog file");
-//         console.error(err);
-//         return false;
-//     }
-// }
+function createLogFile(filePath: string) {
+    try {
+        if (!fs.existsSync(filePath)) {
+            fs.mkdirSync(filePath.split(env.SEP || "/").slice(0, -1).join(env.SEP), { recursive: true });
+            fs.writeFileSync(filePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
+            console.log(`Log file created at ${filePath}`);
+            return true;
+        }
+    } catch (err) {
+        console.log("Error creating eLog file");
+        console.error(err);
+        return false;
+    }
+}
 
 
 function getMSG(level: any, scope: string, rawmsg: Error | string) {
@@ -43,36 +43,37 @@ function getMSG(level: any, scope: string, rawmsg: Error | string) {
 
 let logFileDest: string;
 
-module.exports = {
-    initLogger: () => {
-        const config = require(env.CONFIG || '').CONFIG().logging;
-        const initTime = new Date().toISOString().slice(0, -8).replace(/-/g, '-').replace(/T/g, '_').replace(/:/g, '.');
-        logFileDest = `${config.filePath}${env.SEP}eLog-${initTime}.log`;
+export const logLevel = levels.logLevel;
 
-        if (config.file_active) config.file_active = ensureEntry(logFileDest);
-        else config.file_active = false;
-    },
-    log: (level: any, scope: string, rawmsg: string | Error, forceConsole?: boolean) => {
-        const { logLevel, eLogEnabled, file_active, console_active } = require(env.CONFIG || '').CONFIG("logging");
-        if (level.value < logLevel && env.NODE_ENV !== "development") return;
-        let msg = getMSG(level, scope, rawmsg);
+export function initLogger(){
+    const config = require(env.CONFIG || '').CONFIG().logging;
+    const initTime = new Date().toISOString().slice(0, -8).replace(/-/g, '-').replace(/T/g, '_').replace(/:/g, '.');
+    logFileDest = `${config.filePath}${env.SEP}eLog-${initTime}.log`;
 
-        if (eLogEnabled) {
-            if (file_active) {
-                fs.appendFileSync(logFileDest, `${msg.slice(5, -4)}\n`, "utf8");
-            }
-            // if (DLOG && DBENABLED) {
-            //     createLog(level.def, scope, rawmsg);
-            // } else if (DLOG) {
-            //     console.log(`${Style.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${Style.END}`);
-            //     cLog = true;
-            // }
-            if (console_active || (env.NODE_ENV === "development") || forceConsole) {
-                console.log(msg);
-            }
-        } else {
+    if (config.file_active) config.file_active = createLogFile(logFileDest);
+    else config.file_active = false;
+}
+
+
+export function log(level: any, scope: string, rawmsg: string | Error, forceConsole?: boolean){
+    const { logLevel, eLogEnabled, file_active, console_active } = require(env.CONFIG || '').CONFIG("logging");
+    if (level.value < logLevel && env.NODE_ENV !== "development") return;
+    let msg = getMSG(level, scope, rawmsg);
+
+    if (eLogEnabled) {
+        if (file_active) {
+            fs.appendFileSync(logFileDest, `${msg.slice(5, -4)}\n`, "utf8");
+        }
+        // if (DLOG && DBENABLED) {
+        //     createLog(level.def, scope, rawmsg);
+        // } else if (DLOG) {
+        //     console.log(`${Style.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${Style.END}`);
+        //     cLog = true;
+        // }
+        if (console_active || (env.NODE_ENV === "development") || forceConsole) {
             console.log(msg);
         }
-    },
-    logLevel,
+    } else {
+        console.log(msg);
+    }
 }

@@ -7,7 +7,7 @@ module.exports = {
     // Init Modules
     initModules: async () => {
         const foundmodules:string[] = [];
-        const modulesBase = env.MODULES || `${cwd()}${env.SEP}src${env.SEP}modules`
+        const modulesBase = env.MODULES || `${cwd()}${env.SEP}modules`
         fs.readdirSync(`${modulesBase}`, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
@@ -18,9 +18,9 @@ module.exports = {
             const moduleName = moduleconfig.name.toUpperCase();
             CONFIG().modules[moduleName] ??= moduleconfig.config;
             // CONFIG().paths.modules.push(`${modulesBase}${env.SEP}${module}`);
-            const modFile = moduleconfig.file || "actions.js";
+            const modFile = moduleconfig.file ?? "actions.js";
             // Also, thinking here - replace process.env with a config access
-            env[moduleName] = `${modulesBase}${env.SEP}${module}${env.SEP}${modFile}`;
+            env[moduleName] = `${modulesBase}${env.SEP}${module}${env.SEP}${modFile.replace(".js", "")}`;
             foundmodules.push(moduleName);
             log(logLevel.INFO, "CORE-LOADER", `Loaded Module: ${moduleName}, version ${moduleconfig.version}`);
             log(logLevel.FINE, "CORE-LOADER", `desc.: ${moduleconfig.description}`);
