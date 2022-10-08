@@ -1,50 +1,48 @@
-"use strict";
-const { CONFIG, dumpConfig } = require(process.env.CONFIG);
-const { isMarkerFile, setState, getState, State } = require("./controller");
-const { removeRouter, addRouter } = require(process.env.WEB);
-const { log, logLevel } = require(process.env.LOG);
-const { removeFolder, unarchive, getSHA1ofInput} = require(process.env.UTILS);
+import { env } from "process";
+import { State } from "./controller";
+const { CONFIG, dumpConfig } = require(env.CONFIG || '');
+const { removeRouter, addRouter } = require(env.WEB || '');
+const { log, logLevel } = require(env.LOG || '');
+const { removeFolder, unarchive, getSHA1ofInput} = require(env.UTILS || '');
 
-module.exports = {
-    createDeployScanner: (config, dir) => {
-        const deployScanner = require(process.env.SCANNER).newScanner(config.name, dir, config.interval);
-        const workdir = process.env.TMP + process.env.SEP + "tmp" + process.env.SEP + "deployments";
-        const fs = require("fs");
-        if (!fs.existsSync(workdir)) {
-            fs.mkdirSync(workdir, { recursive: true });
-        }
-        deployScanner.workdir = workdir;
-        deployScanner.handleFile = handleFile;
-        deployScanner.deployScope = deployScope;
-        deployScanner.initScope = initScope;
-        deployScanner.initScopeRoutes = initScopeRoutes;
-        deployScanner.fileUndeployScope = fileUndeployScope;
-        deployScanner.undeployScope = undeployScope;
-        deployScanner.removeFromConfig = removeFromConfig;
+export function createDeployScanner(config: {name: string, interval: number}, dir: string) {
+    const deployScanner: Scanner = require(env.SCANNER || '').newScanner(config.name, dir, config.interval);
+    const workdir: string = `${env.TMP}${env.SEP}deployments`;
+    const fs = require("fs");
+    if (!fs.existsSync(workdir)) {
+        fs.mkdirSync(workdir, { recursive: true });
+    }
+    deployScanner.workdir = workdir;
+    deployScanner.handleFile = handleFile;
+    deployScanner.deployScope = deployScope;
+    deployScanner.initScope = initScope;
+    deployScanner.initScopeRoutes = initScopeRoutes;
+    deployScanner.fileUndeployScope = fileUndeployScope;
+    deployScanner.undeployScope = undeployScope;
+    deployScanner.removeFromConfig = removeFromConfig;
 
-        return deployScanner;
-    },
+    return deployScanner;
 }
 
-async function handleFile(file) {
+async function handleFile(file: {name: string}) {
     if (isMarkerFile(file.name)) return;
-    return new Promise((resolve, reject) => {
-        let action;
-        let state;
-        let msg;
+    return new Promise<void>((resolve, reject) => {
+        let action: Promise<any>;
+        let state: State;
+        let msg: string;
         switch (getState(file.name)) {
             case State.TODO:
                 log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now deploying`);
                 setState(file.name, State.INPROG);
                 state = State.DONE
-                action = this.deployScope(file);
+                action = deployScope(file);
                 msg = "deployed";
                 break;
             case State.TODEL:
                 log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is now undeploying`);
                 msg = "undeployed";
                 state = State.OFF;
-                action = this.fileUndeployScope(file.name);
+                action = fileUndeployScope(file.name);
                 break;
             default:
                 log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYSCANNER", `${file.name} is in state ${getState(file.name)}`);
@@ -66,12 +64,12 @@ async function handleFile(file) {
     });
 }
 
-async function deployScope(file) {
-    return new Promise((resolve, reject) => {
+async function deployScope(file: {name: string}) {
+    return new Promise<void>((resolve, reject) => {
         log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYMENTS", `Deploying ${file.name}`);
         const hash = getSHA1ofInput(file.name)
         log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Hashed as ${hash}`);
-        const addConf = { "file": file.name, "hash": hash };
+        const addConf: Scope = { file: file.name, hash: hash, active: false };
         try {
             addConf["active"] = false;
 
@@ -108,7 +106,7 @@ async function deployScope(file) {
         } catch (error) {
             // set File to error
             addConf["active"] = false;
-            process.env[hash] = false;
+            env[hash] = 'false';
             log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error deploying ${file.name}`);
             log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
             CONFIG("scopes").push(addConf);
@@ -152,40 +150,6 @@ async function initScopeRoutes(baseRoute, routes, scope) {
         return route;
     });
     await addRouter(baseRoute, routes, scope);
-    return routes;
-}
-
-function initScopeRoutes_old(scope, baseRoute = scope) {
-    log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} initializing scope routes`);
-    log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} baseRoute defined as ${baseRoute}`);
-    const routes = [];
-    const fs = require("fs");
-    try {
-        fs.readdirSync(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}routes`).forEach(file => {
-            if (file.endsWith('.js')) {
-                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} initializing route ${file}`);
-                const router = require(`${this.workdir}${process.env.SEP}${scope}${process.env.SEP}routes${process.env.SEP}${file}`);
-                const route = file === 'routes.js' ? baseRoute : `${baseRoute}/${file.slice(0, -3)}`;
-                try {
-                    addRouter(route, router);
-                    routes.push(route);
-                } catch (error) {
-                    log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} failed to register route ${route}`);
-                    log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
-                }
-                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} routes for ${file.name} initialized`);
-            } else {
-                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `${scope} - ${file.name} is not a js file`);
-            }
-        });
-    } catch (error) {
-        if(error.message.startsWith("ENOENT: no such file or directory")) {
-            log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Did not find any routes for ${scope}`);
-        } else {
-            log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error with routes for ${scope}`);
-            log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
-        }
-    }
     return routes;
 }
 

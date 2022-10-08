@@ -1,22 +1,21 @@
-"use strict";
+import { env } from "process";
+// const { isMarkerFile, State } = require("./libs/controller");
+// const { createDeployScanner } = require("./libs/deployments");
+// const { createMarkerScanner } = require("./libs/marker");
 
-const { isMarkerFile, State } = require("./libs/controller");
-const { createDeployScanner } = require("./libs/deployments");
-const { createMarkerScanner } = require("./libs/marker");
+const { log, logLevel } = require(env.LOG || '');
 
-const { log, logLevel } = require(process.env.LOG);
+let config: dplConfig;
 
-let config;
-
-async function clearMarkerDir(workdir){
-    return new Promise((resolve, reject) => {
+async function clearMarkerDir(workdir: string){
+    return new Promise<void>((resolve, reject) => {
         log(logLevel.DEBUG, `DEPLOYCONTROL`, `Clearing marker directory`);
         const fs = require('fs');
-        fs.readdir(workdir, (err, files) => {
+        fs.readdir(workdir, (err: any, files: any[]) => {
             if (err) reject(err);
             files.forEach(file => {
                 if(isMarkerFile(file) && !file.startsWith(State.SKIP)){
-                    fs.unlink(`${workdir}${process.env.SEP}${file}`, err => {
+                    fs.unlink(`${workdir}${env.SEP}${file}`, (err: any) => {
                         if (err) reject(err);
                         log(logLevel.DEBUG, `DEPLOYCONTROL`, `Deleted ${file}`);
                     });
@@ -29,10 +28,10 @@ async function clearMarkerDir(workdir){
 }
 
 module.exports = {
-    init: async (name) => {
+    init: async (name: string) => {
         log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
-        const { CONFIG } = require(process.env.CONFIG);
-        CONFIG("modules")[name].workdir ??= `${process.env.TMP}${process.env.SEP}scopes`;
+        const { CONFIG } = require(env.CONFIG || '');
+        CONFIG("modules")[name].workdir ??= `${env.TMP}${env.SEP}scopes`;
         config = CONFIG("modules")[name];
         log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
     },
@@ -52,7 +51,7 @@ module.exports = {
             
             // const DeploymentScanner = require("./deployments");
             // const ds = new DeploymentScanner(workdir);
-            const ds = createDeployScanner(config.scanner.deploymentScanner, config.workdir);
+            const ds = createDeployScanner(config.scanner.deployScanner, config.workdir);
             log(logLevel.DEBUG, "DEPLOYCONTROL", `Scanner ${ds.name} registered with ID ${ds.scannerID}`);
             ds.start();
             log(logLevel.STATUS, "DEPLOYCONTROL", "Deployment handler started");
