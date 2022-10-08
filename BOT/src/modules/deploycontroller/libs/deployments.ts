@@ -103,7 +103,7 @@ async function deployScope( this: any, file: {name: string}) {
         log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished unpacking ${file.name}`);
         // Init Scope
         log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Initializing ${file.name}`);
-        const scopeConfig = await initScope(hash);
+        const scopeConfig = await this.initScope(hash);
         log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished initializing ${file.name}`);
         addConf["config"] = scopeConfig;
         addConf["name"] = scopeConfig.name;
@@ -133,7 +133,7 @@ async function initScope( this: any, scope: string) {
         throw error;
     });
     log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Scope ${scopeConfig.name} initialized`);
-    scopeConfig["routes"] = await initScopeRoutes(scopeConfig.baseRoute, scopeConfig.routes, scope).catch(error => {
+    scopeConfig["routes"] = await this.initScopeRoutes(scopeConfig.baseRoute, scopeConfig.routes, scope).catch((error: any) => {
         log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Failed to init routes for ${scopeConfig.name}`);
         throw error;
     });
@@ -178,31 +178,26 @@ async function undeployScope( this: any, scopeName: string) {
     // unregister routes if possible/override router with 404 message
     // remove folder
     // update config
-    return new Promise((resolve, reject) => {
-        log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Undeploying ${scopeName}`);
-        const scopeConfig = CONFIG("scopes").find((scope: Scope) => scope.name === scopeName);
-        log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeConfig.hash} to inactive`);
-        process.env[scopeConfig.hash] = "disabled";
-        const unregister = removeRouter(scopeName);
-        const shutdown = require(`${this.workdir}${process.env.SEP}${scopeConfig.hash}${process.env.SEP}actions`).shutdown();
-        const remove = removeFolder(`${this.workdir}${process.env.SEP}${scopeConfig.hash}`);
-        const updateConfig = removeFromConfig(scopeConfig.name);
-
-        Promise.allSettled([unregister, shutdown, updateConfig, remove]).
-            then(() => {
-                log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished undeploying ${scopeName}`);
-                resolve(updateConfig);
-            }).catch((error) => {
-                log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error undeploying ${scopeName}`);
-                log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
-                CONFIG.scopes[scopeName].active = false;
-                CONFIG.scopes[scopeName].error = "Error Undeploying";
-                reject();
-            });
+    log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Undeploying ${scopeName}`);
+    const scopeConfig = CONFIG("scopes").find((scope: Scope) => scope.name === scopeName);
+    log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeConfig.hash} to inactive`);
+    process.env[scopeConfig.hash] = "disabled";
+    const unregister = removeRouter(scopeName);
+    const shutdown = require(`${this.workdir}${process.env.SEP}${scopeConfig.hash}${process.env.SEP}actions`).shutdown();
+    const remove = removeFolder(`${this.workdir}${process.env.SEP}${scopeConfig.hash}`);
+    
+    await Promise.allSettled([unregister, shutdown, remove]).catch((error) => {
+        log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error undeploying ${scopeName}`);
+        log(logLevel.ERROR, "DEPLOYCONTROL-DEPLOYMENTS", error);
+        CONFIG.scopes[scopeName].active = false;
+        CONFIG.scopes[scopeName].error = "Error Undeploying";
+        throw new Error("Error Undeploying");
     });
+    log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finished undeploying ${scopeName}`);
+    this.removeFromConfig(scopeConfig.name);
 }
 
-async function removeFromConfig(scopeName: string) {
+function removeFromConfig(scopeName: string) {
     try {
         let newScopes: Scope[] = [];
         log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Removing ${scopeName} from work-config`);
