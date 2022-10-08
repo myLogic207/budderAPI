@@ -1,40 +1,40 @@
 "use strict";
 
-const Scanner = require("./libs/scanner");
+import { Scanner, ScannerConfig } from "./libs/scanner";
 
-const { log, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG || '');
 
 const Scanners = new Map();
-let baseconfig;
+let baseConfig: ScannerConfig;
 
-function register(scanner){
+function register(scanner: Scanner){
     log(logLevel.STATUS, "FILESCANNER", "Registered Scanner: " + scanner.name);
     Scanners.set(scanner.scannerID, scanner);
 }
 
 module.exports = {
-    init: async (name) => {
+    init: async (name: string) => {
         log(logLevel.INFO, "FILESCANNER", `Initializing File Scanner`);
-        const { CONFIG } = require(process.env.CONFIG);
-        baseconfig = CONFIG().modules[name];
+        const { CONFIG } = require(process.env.CONFIG || '');
+        baseConfig = CONFIG().modules[name];
         log(logLevel.STATUS, "FILESCANNER", `File Scanner initialized`);
     },
-    newScanner: (scannername, scannerdir, scannerinterval) => {
+    newScanner: (scannerName: string, scannerDir: string, scannerInterval: number) => {
         log(logLevel.WARN, "FILESCANNER", "Initializing new custom scanner");
-        const scanner = new Scanner(scannername, scannerdir, scannerinterval, baseconfig);
+        const scanner = new Scanner(scannerName, scannerDir, scannerInterval, baseConfig);
         register(scanner);
         return scanner;
     },
-    getScannerByName: (scannername) => {
-        log(logLevel.DEBUG, "FILESCANNER", `Getting scanner by name ${scannername}`);
-        return Scanners.keys(obj).find(key => Scanners[key] === scannername);
+    getScannerByName: (scannerName: string) => {
+        log(logLevel.DEBUG, "FILESCANNER", `Getting scanner by name ${scannerName}`);
+        return Object.keys(Scanners).find(key => Scanners.get(key) === scannerName);
     },    
-    getScannerByUUID: (scanneruuid) => {
-        log(logLevel.DEBUG, "FILESCANNER", `Getting scanner by UUID ${scanneruuid}`);
-        return Scanners.get(scanneruuid);
+    getScannerByUUID: (scannerID: string) => {
+        log(logLevel.DEBUG, "FILESCANNER", `Getting scanner by UUID ${scannerID}`);
+        return Scanners.get(scannerID);
     },
     shutdown: async () => {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             log(logLevel.INFO, "FILESCANNER", "Stopping Hotdeploy Scanners");
             Scanners.forEach(scanner => {
                 scanner.stop();
