@@ -1,16 +1,32 @@
 "use strict";
 
-const { log, logLevel } = require(process.env.LOG);
+const { log, logLevel } = require(process.env.LOG || '');
 
-module.exports = class Webserver {
+export type Route = {
+    type: string,
+    path: string,
+    route: string,
+    callback?: Function,
+}
 
-    #server;
+// type Port = Range<0, 65535>;
+type Port = number;
+type Host = string
+
+type ServerConfig = {
+    host: Host,
+    port: Port,
+}
+
+export class Webserver {
+
+    #server: any;
     #port;
     #host;
     #app = require("express")();
     #router = new Map();
 
-    #defaultRouter(req, res, next) {
+    #defaultRouter(req: any, res: any, next: any) {
         log(logLevel.FINE, "WEBSERVER", `Request for ${req.url}`);
         if (req.url === "/health") {
             res.status(200).send("I am alive!");
@@ -19,7 +35,7 @@ module.exports = class Webserver {
         }
     }
 
-    constructor(config) {
+    constructor(config: ServerConfig) {
         log(logLevel.INFO, "WEBSERVER", "Initializing Address");
         this.#port = config.port || 2070;
         log(logLevel.FINE, "WEBSERVER", `Registered Port: ${this.#port}`);
@@ -38,8 +54,8 @@ module.exports = class Webserver {
         });
     }
 
-    async addRouter(route, routes, name) {
-        return new Promise((resolve, reject) => {
+    async addRouter(route:string, routes: Route[], name: string) {
+        return new Promise<void>((resolve, reject) => {
             try {
                 const router = this.#assembleRouter(routes);
                 this.#app.use(`/${route}`, router);
@@ -53,7 +69,7 @@ module.exports = class Webserver {
         })
     }
 
-    #assembleRouter(routes) {
+    #assembleRouter(routes: Route[]) {
         const router = require("express").Router();
         routes.forEach(route => {
             switch (route.type) {
@@ -80,8 +96,8 @@ module.exports = class Webserver {
         return router;
     }
 
-    async removeRouter(router){
-        return new Promise((resolve, reject) => {
+    async removeRouter(router: string){
+        return new Promise<void>((resolve, reject) => {
             try {
                 // this.#app._router.stack = this.#app._router.stack.filter(r => r.name !== router);
                 this.#app.use(`${this.#router.get(router)}`, this.#defaultRouter);
@@ -96,7 +112,7 @@ module.exports = class Webserver {
     }
 
     async shutdown() {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             this.#server.close(() => {
                 log(logLevel.STATUS, "WEBSERVER", "Server closed");
                 resolve();
