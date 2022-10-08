@@ -1,9 +1,24 @@
 import { env } from "process";
-// const { isMarkerFile, State } = require("./libs/controller");
-// const { createDeployScanner } = require("./libs/deployments");
-// const { createMarkerScanner } = require("./libs/marker");
+import { createDeployScanner } from "./libs/deployments";
+import { createMarkerScanner } from "./libs/marker";
+import { isMarkerFile, State } from "./libs/stateControl";
 
 const { log, logLevel } = require(env.LOG || '');
+
+type dplConfig = {
+    hotdeploy: boolean,
+    workdir: string,
+    scanner: {
+        deployScanner : {
+            name: string,
+            interval: number,
+        },
+        markerScanner: {
+            name: string,
+            interval: number,
+        },
+    }
+}
 
 let config: dplConfig;
 
@@ -31,7 +46,7 @@ module.exports = {
     init: async (name: string) => {
         log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
         const { CONFIG } = require(env.CONFIG || '');
-        CONFIG("modules")[name].workdir ??= `${env.TMP}${env.SEP}scopes`;
+        CONFIG("modules")[name].workdir ??= `${env.WORKDIR}${env.SEP}scopes`;
         config = CONFIG("modules")[name];
         log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
     },
