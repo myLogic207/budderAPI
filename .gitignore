@@ -108,3 +108,7 @@ out
 # Budder Working Directory (Deployments, Config)
 workdir
 defaults
+
+# typscipt
+dist
+.tsbuildinfo

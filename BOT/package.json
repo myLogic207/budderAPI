@@ -1,10 +1,10 @@
 {
   "name": "budderbot",
   "bin": "core.js",
-  "version": "0.1.0",
+  "version": "3.0.0-SNAPSHOT_1.2",
   "description": "I can't believe it's not budder",
   "author": "Logic",
-  "license": "Apache-2.0",
+  "license": "MIT",
   "private": true,
   "keywords": [
     "budder",
@@ -13,8 +13,10 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node scopes/CORE/core.js",
-    "preinstall": "cd $(pwd)"
+    "dev": "ts-node src/core.ts",
+    "copy-other-files": "copyfiles -u 1 src/**/*.json dist/",
+    "build": "npm run copy-other-files && tsc",
+    "start": "npm run build && node dist/core.js"
   },
   "pkg": {
     "assets": [
@@ -23,20 +25,24 @@
     "output": "out"
   },
   "dependencies": {
+    "@types/node": "^18.8.3",
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.27",
     "express": "^4.17.3",
-    "extract-zip": "^2.0.1",
-    "typescript": "^4.6.2"
+    "extract-zip": "^2.0.1"
   },
   "devDependencies": {
     "@discordjs/builders": "^0.12.0",
     "@discordjs/rest": "^0.3.0",
     "@discordjs/voice": "^0.8.0",
+    "@types/express": "^4.17.14",
+    "copyfiles": "^2.4.1",
     "discord-api-types": "^0.29.0",
     "discord.js": "^13.6.0",
     "nodemon": "^2.0.20",
     "sequelize": "^6.17.0",
-    "sqlite3": "^5.0.2"
+    "sqlite3": "^5.0.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.8.4"
   }
 }

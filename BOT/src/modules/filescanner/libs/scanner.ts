@@ -1,18 +1,28 @@
 "use strict";
-const fs = require("fs");
-const { getRandomUUID } = require(process.env.UTILS);
-const { log, logLevel } = require(process.env.LOG);
+import fs from "fs";
+const { getRandomUUID } = require(process.env.UTILS || '');
+const { log, logLevel } = require(process.env.LOG || '');
 
-class Scanner {
-    constructor(scannername, scannerdir, scannerinterval, baseconfig) {
-        if (!scannerdir) {
+export type ScannerConfig = {
+    name: string,
+    interval: number,
+}
+export class Scanner {
+    name: any;
+    dir: string;
+    scannerID: any;
+    interval: number;
+    working: boolean = false;
+    files: any[] = [];
+    constructor(scannerName: string, scannerDir: string, scannerInterval: number, baseConfig: ScannerConfig) {
+        if (!scannerDir) {
             log(logLevel.ERROR, `FILESCANNER-${this.name}`, "Scanner directory not provided");
             throw new Error(`Failed Constructing "SCANNER-${this.name}": Scanner directory is required`);
         }
-        this.dir = scannerdir;
-        this.name = scannername ?? baseconfig.name;
+        this.dir = scannerDir;
+        this.name = scannerName ?? baseConfig.name;
         this.scannerID = getRandomUUID();
-        this.interval = scannerinterval ?? baseconfig.interval;
+        this.interval = scannerInterval ?? baseConfig.interval;
         log(logLevel.INFO, `FILESCANNER-${this.name}`, `Constructed new scanner`);
         log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner Dir: ${this.dir}`);
         log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner ID: ${this.scannerID}`);
@@ -37,7 +47,7 @@ class Scanner {
     }
 
     async loop() {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Waking");
             this.files = [];
             this.scan().then(() => {
@@ -53,7 +63,7 @@ class Scanner {
     }
     
     async scan() {
-        return new Promise((resolve, reject) => {
+        return new Promise<void>((resolve, reject) => {
             fs.readdir(this.dir, { withFileTypes: true }, (err, files) => {
                 if (err) throw err;
                 files.forEach(file => {
@@ -74,8 +84,8 @@ class Scanner {
         return; // log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found ${this.files.length} files`);
     }
 
-    async handleFile(file) {
-        return new Promise((resolve, reject) => {
+    async handleFile(file: any) {
+        return new Promise<void>((resolve, reject) => {
             log(logLevel.INFO, `FILESCANNER-${this.name}`, `Found new file ${file.name}`);
             this.files.push(file);
             setTimeout(() => {
@@ -85,5 +95,3 @@ class Scanner {
         });
     }
 }
-
-module.exports = Scanner;

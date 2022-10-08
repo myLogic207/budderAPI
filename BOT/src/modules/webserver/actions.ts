@@ -1,15 +1,16 @@
 "use strict";
 
-const { log, logLevel } = require(process.env.LOG);
+import { Route, Webserver } from "./libs/webserver";
 
-let webServer;
+const { log, logLevel } = require(process.env.LOG || '');
+
+let webServer: Webserver;
 
 module.exports = {
-    init: async (name) => {
+    init: async (name: string) => {
         log(logLevel.INFO, "WEBSERVER", `Initializing Webserver`);
-        const { CONFIG } = require(process.env.CONFIG);
-        const Webserver = require("./libs/webserver");
-        webServer = new Webserver(CONFIG().modules[name]);
+        const { CONFIG } = require(process.env.CONFIG || '');
+        webServer = new Webserver(CONFIG("modules")[name]);
         await webServer.startServer();
         log(logLevel.STATUS, "WEBSERVER", `Webserver initialized`);
     },
@@ -19,11 +20,11 @@ module.exports = {
         log(logLevel.INFO, "WEBSERVER", `Shutting down Webserver`);
         return webServer.shutdown();
     },
-    addRouter: async (route, router, routerName) => {
+    addRouter: async (route: string, router: Route[], routerName: string) => {
         log(logLevel.INFO, "WEBSERVER", `Registering Routes`);
         return webServer.addRouter(route, router, routerName);
     },
-    removeRouter: async (router) => {
+    removeRouter: async (router: string) => {
         log(logLevel.INFO, "WEBSERVER", `Unregister Router`);
         return webServer.removeRouter(router);
     }

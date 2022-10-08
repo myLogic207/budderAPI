@@ -1,7 +1,7 @@
 "use strict";
-require("dotenv").config();
-const { platform } = require("process");
-process.env.SEP = platform === "win32" ? "\\" : "/";
+import * as dotenv from 'dotenv';
+import { platform, chdir, cwd, env } from "process";
+env.SEP = platform === "win32" ? "\\" : "/";
 
 function Logo(){
     return `
@@ -14,22 +14,34 @@ function Logo(){
     `;
 }
 
+function checkEnv(){
+    if(!env.CONFIGFILE){
+        env.CONFIGFILE = `${__dirname}${env.SEP}config.json`;
+    }
+    if(!env.WORKDIR){
+        env.WORKDIR = `${__dirname}${env.SEP}tmp`;
+    }
+}
+
 async function main(){
     const startTime = new Date();
-    process.env.LOG = `${__dirname}${process.env.SEP}libs${process.env.SEP}logger.js`;
+    dotenv.config();
+    checkEnv();
+    chdir(__dirname);
+    env.LOG = `${cwd()}${env.SEP}libs${env.SEP}logger`;
     
     // log(logLevel.STATUS, "CORE", "Loading Config");
     require("./libs/config").initConfig();
     // const { CONFIG } = require("./libs/config");
     
     require("./libs/logger").initLogger();
-    const { log, logLevel } = require(process.env.LOG);
+    const { log, logLevel } = require(env.LOG);
     
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     
     log(logLevel.FINE, "CORE", `Initializing Utils`);
-    require("./libs/utils");
-    process.env.UTILS = `${__dirname}${process.env.SEP}libs${process.env.SEP}utils`;
+    const { removeFolder } = require("./libs/utils");
+    env.UTILS = `${cwd()}${env.SEP}libs${env.SEP}utils`;
     
     // Load Modules
     log(logLevel.FINE, "CORE", `Loading Modules`);
@@ -37,10 +49,10 @@ async function main(){
 
     // Starting budder
     log(logLevel.FINE, "CORE", "Starting budder");
-    process.env.ROOT = __filename;
+    env.ROOT = __filename;
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
-    require("./libs/utils").removeFolder(`${process.env.TMP}${process.env.SEP}tmp`);
+    removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
     
     await require("./libs/loader").start();
 
@@ -49,3 +61,11 @@ async function main(){
 }
 
 main()
+
+export type Module = {
+    name: any
+}
+
+export type Bootconfig = {
+    env?: string,
+}
