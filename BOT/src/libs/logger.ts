@@ -1,30 +1,31 @@
-"use strict";
-const fs = require('fs');
-const logLevel = require("./logLevels");
-const Style = require('./Style');
+import fs from 'fs';
+import { env } from 'process';
+import { logLevel } from './logLevels';
+import { ensureEntry, Style } from './utils'
 
-function createLogFile(filePath) {
-    try {
-        if (!fs.existsSync(filePath)) {
-            fs.mkdirSync(filePath.split(process.env.SEP).slice(0, -1).join(process.env.SEP), { recursive: true });
-            fs.writeFileSync(filePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
-            console.log(`Log file created at ${filePath}`);
-            return true;
-        }
-    } catch (err) {
-        console.log("Error creating eLog file");
-        console.error(err);
-        return false;
-    }
-}
+// function createLogFile(filePath: string) {
+//     try {
+//         if (!fs.existsSync(filePath)) {
+//             fs.mkdirSync(filePath.split(env.SEP || "/").slice(0, -1).join(env.SEP), { recursive: true });
+//             fs.writeFileSync(filePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
+//             console.log(`Log file created at ${filePath}`);
+//             return true;
+//         }
+//     } catch (err) {
+//         console.log("Error creating eLog file");
+//         console.error(err);
+//         return false;
+//     }
+// }
 
-function getMSG(level, scope, rawmsg) {
+
+function getMSG(level: any, scope: string, rawmsg: Error | string) {
     const logTime = new Date().toISOString().replace(/T/g, ' ').slice(0, -1);
     switch (level) {
         case logLevel.SEVERE:
             return `${Style.RED}${Style.BOLD}[${logTime}] [${scope}] ${rawmsg}${Style.END}`;
         case logLevel.ERROR:
-            return `${Style.RED}${logTime} [${level.def}] [${scope}] ${rawmsg.stack ?? rawmsg}${Style.END}`;
+            return `${Style.RED}${logTime} [${level.def}] [${scope}] ${rawmsg instanceof Error? rawmsg.stack : rawmsg}${Style.END}`;
         case logLevel.WARN:
             return `${Style.YELLOW}${logTime} [${level.def}] [${scope}] ${rawmsg}${Style.END}`;
         case logLevel.STATUS:
@@ -40,20 +41,20 @@ function getMSG(level, scope, rawmsg) {
     }
 }
 
-let logFileDest;
+let logFileDest: string;
 
 module.exports = {
     initLogger: () => {
-        const config = require(process.env.CONFIG).CONFIG().logging;
+        const config = require(env.CONFIG || '').CONFIG().logging;
         const initTime = new Date().toISOString().slice(0, -8).replace(/-/g, '-').replace(/T/g, '_').replace(/:/g, '.');
-        logFileDest = `${config.filePath}${process.env.SEP}eLog-${initTime}.log`;
+        logFileDest = `${config.filePath}${env.SEP}eLog-${initTime}.log`;
 
-        if (config.file_active) config.file_active = createLogFile(logFileDest);
+        if (config.file_active) config.file_active = ensureEntry(logFileDest);
         else config.file_active = false;
     },
-    log: (level, scope, rawmsg, forceConsole = false) => {
-        const { logLevel, eLogEnabled, file_active, console_active } = require(process.env.CONFIG).CONFIG().logging;
-        if (level.value < logLevel && process.env.NODE_ENV !== "development") return;
+    log: (level: any, scope: string, rawmsg: string | Error, forceConsole?: boolean) => {
+        const { logLevel, eLogEnabled, file_active, console_active } = require(env.CONFIG || '').CONFIG("logging");
+        if (level.value < logLevel && env.NODE_ENV !== "development") return;
         let msg = getMSG(level, scope, rawmsg);
 
         if (eLogEnabled) {
@@ -66,7 +67,7 @@ module.exports = {
             //     console.log(`${Style.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${Style.END}`);
             //     cLog = true;
             // }
-            if (console_active || (process.env.NODE_ENV === "development") || forceConsole) {
+            if (console_active || (env.NODE_ENV === "development") || forceConsole) {
                 console.log(msg);
             }
         } else {

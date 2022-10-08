@@ -1,6 +1,6 @@
 "use strict";
-require("dotenv").config();
-const { platform } = require("process");
+import * as dotenv from 'dotenv';
+import { platform } from "process";
 process.env.SEP = platform === "win32" ? "\\" : "/";
 
 function Logo(){
@@ -14,7 +14,18 @@ function Logo(){
     `;
 }
 
+function checkEnv(){
+    if(!process.env.CONFIGFILE){
+        process.env.CONFIGFILE = `${__dirname}${process.env.SEP}config.json`;
+    }
+    if(!process.env.TMP){
+        process.env.TMP = `${__dirname}${process.env.SEP}tmp`;
+    }
+}
+
 async function main(){
+    dotenv.config();
+    checkEnv();
     const startTime = new Date();
     process.env.LOG = `${__dirname}${process.env.SEP}libs${process.env.SEP}logger.js`;
     
@@ -49,3 +60,7 @@ async function main(){
 }
 
 main()
+
+export type Module = {
+    name: any
+}

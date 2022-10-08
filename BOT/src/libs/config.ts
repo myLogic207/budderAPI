@@ -1,23 +1,47 @@
-"use strict";
 import fs from "fs";
-const { log, logLevel } = require(process.env.LOG);
-const CONFIGFILE = process.env.CONFIGFILE || "./config.json";
+import { Module } from "../core";
+import { LogLevel } from "./logLevels";
+const { log, logLevel } = require(process.env.LOG ?? '');
+const CONFIGFILE = process.env.CONFIGFILE ?? '';
+
+// TODO: This into webserver
+type Route = {
+    type: string,
+    path: string,
+    route: string,
+}
 
 type Scope = {
+    file?: string,
     name: string,
     hash: string,
-    file: string,
-    enabled: boolean,
-    config: any,
-    [routes: number]: any,
+    active: boolean,
+    config: {
+        name: string,
+        baseRoute?: string,
+        routes?: Route[],
+    },
+}
 
+// TODO: This into CORE
+type Bootconfig = {
+    env?: string,
+}
+
+type Logging = {
+    default: string,
+    logLevel: LogLevel,
+    eLogEnabled?: boolean,
+    console_active?: boolean,
+    filePath?: string,
+    file_active?: boolean,
 }
 
 type Config = {
-    boot?: bootconfig,
+    boot?: Bootconfig,
     scopes: Scope[],
     modules: Module[],
-    logging: logging,
+    logging: Logging,
 }
 
 let CONFIG: Config = {
@@ -25,7 +49,7 @@ let CONFIG: Config = {
     modules: [],
     logging: {
         default: "logger",
-        logLevel: "info",
+        logLevel: logLevel.INFO,
         eLogEnabled: false,
     }
 };
@@ -55,7 +79,7 @@ module.exports = {
     initConfig: () => {
         if(!fs.existsSync(CONFIGFILE)) createNewConfig();
         try {
-            CONFIG = JSON.parse(fs.readFileSync(CONFIGFILE));
+            CONFIG = JSON.parse(fs.readFileSync(CONFIGFILE).toString('utf8'));
             // checkConfig();
             // writeConfig();
             CONFIG.scopes = [];
@@ -76,9 +100,9 @@ module.exports = {
                 if (err) {
                     log(logLevel.WARN, "CORE-CONFIG", `Failed to reload Config`);
                     reject(err);
-                }
+                } 
                 resolve();
-                CONFIG = JSON.parse(data);
+                CONFIG = JSON.parse(data.toString('utf8', 0, data.length));
             });
         });
     },

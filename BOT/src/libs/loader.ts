@@ -1,38 +1,38 @@
-"use strict";
-
-const fs = require("fs");
-const { dumpConfig, CONFIG } = require(process.env.CONFIG);
-const { log, logLevel } = require(process.env.LOG);
+import fs from "fs";
+import { env, cwd } from 'process'
+const { dumpConfig, CONFIG } = require(env.CONFIG ?? '');
+const { log, logLevel } = require(env.LOG ?? '');
 
 module.exports = {
     // Init Modules
     initModules: async () => {
-        const foundmodules = [];
-        const modulesBase = process.env.MODULES || `${process.cwd()}${process.env.SEP}src${process.env.SEP}modules`
+        const foundmodules:string[] = [];
+        const modulesBase = env.MODULES || `${cwd()}${env.SEP}src${env.SEP}modules`
         fs.readdirSync(`${modulesBase}`, { withFileTypes: true })
             .filter(dirent => dirent.isDirectory())
             .map(dirent => dirent.name)
             .forEach((module) => {
             // if(module === "logger") return;
             log(logLevel.INFO, "CORE-LOADER", `Found Module: ${module}`);
-            const moduleconfig = require(`${modulesBase}${process.env.SEP}${module}${process.env.SEP}config.json`);
+            const moduleconfig = require(`${modulesBase}${env.SEP}${module}${env.SEP}config.json`);
             const moduleName = moduleconfig.name.toUpperCase();
             CONFIG().modules[moduleName] ??= moduleconfig.config;
-            // CONFIG().paths.modules.push(`${modulesBase}${process.env.SEP}${module}`);
+            // CONFIG().paths.modules.push(`${modulesBase}${env.SEP}${module}`);
             const modFile = moduleconfig.file || "actions.js";
             // Also, thinking here - replace process.env with a config access
-            process.env[moduleName] = `${modulesBase}${process.env.SEP}${module}${process.env.SEP}${modFile}`;
+            env[moduleName] = `${modulesBase}${env.SEP}${module}${env.SEP}${modFile}`;
             foundmodules.push(moduleName);
             log(logLevel.INFO, "CORE-LOADER", `Loaded Module: ${moduleName}, version ${moduleconfig.version}`);
             log(logLevel.FINE, "CORE-LOADER", `desc.: ${moduleconfig.description}`);
         });
         // dumpConfig();
             
-        const loadedModules = [];
+        const loadedModules:string[] = [];
         while(loadedModules.length !== foundmodules.length){
             for (let i = 0; i < foundmodules.length; i++) {
                 const moduleName = foundmodules[i];
-                const module = require(process.env[moduleName]);
+                if(!env[moduleName]) continue;
+                const module = require(env[moduleName] || '');
                 if(loadedModules.includes(moduleName)) continue;
                 try {
                     await module.init(moduleName);
@@ -55,14 +55,14 @@ module.exports = {
     },
     start: async () => {
         // Start Modules
-        // const { CONFIG } = require(process.env.CONFIG);
+        // const { CONFIG } = require(env.CONFIG);
         Object.entries(CONFIG("modules")).forEach(async ([module, config]) => {
             log(logLevel.INFO, "CORE", `Starting ${module} Module`);
             try {
-                require(process.env[module]).start().catch((err) => {
+                require(env[module] ?? '').start().catch((err: any) => {
                     throw err;
                 });
-            } catch (error) {
+            } catch (error: any) {
                 if(error.message === "require(...).start is not a function"){
                     log(logLevel.WARN, "CORE", `Module ${module} has no start function`);
                 } else {
