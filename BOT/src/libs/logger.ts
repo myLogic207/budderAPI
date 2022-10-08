@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { env } from 'process';
-import * as levels from './logLevels';
-import { ensureEntry, Style } from './utils'
+import {logLevel as levels} from './logLevels';
+import { Styles as Style } from './style';
 
 function createLogFile(filePath: string) {
     try {
@@ -43,7 +43,7 @@ function getMSG(level: any, scope: string, rawmsg: Error | string) {
 
 let logFileDest: string;
 
-export const logLevel = levels.logLevel;
+export const logLevel = levels;
 
 export function initLogger(){
     const config = require(env.CONFIG || '').CONFIG().logging;

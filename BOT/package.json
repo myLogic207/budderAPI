@@ -1,7 +1,7 @@
 {
   "name": "budderbot",
   "bin": "core.js",
-  "version": "2.3.0-SNAPSHOT_0.1.0",
+  "version": "3.0.0-SNAPSHOT_1.2",
   "description": "I can't believe it's not budder",
   "author": "Logic",
   "license": "MIT",
@@ -13,9 +13,10 @@
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc",
-    "start": "ts-node src/core.ts",
-    "preinstall": "cd $(pwd)"
+    "dev": "ts-node src/core.ts",
+    "copy-other-files": "copyfiles -u 1 src/**/*.json dist/",
+    "build": "npm run copy-other-files && tsc",
+    "start": "npm run build && node dist/core.js"
   },
   "pkg": {
     "assets": [
@@ -35,6 +36,7 @@
     "@discordjs/rest": "^0.3.0",
     "@discordjs/voice": "^0.8.0",
     "@types/express": "^4.17.14",
+    "copyfiles": "^2.4.1",
     "discord-api-types": "^0.29.0",
     "discord.js": "^13.6.0",
     "nodemon": "^2.0.20",

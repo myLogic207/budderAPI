@@ -1,36 +1,11 @@
 import fs from "fs";
-import { Module } from "../core";
-import { LogLevel } from "./logLevels";
-const { log, logLevel } = require(process.env.LOG ?? '');
-const CONFIGFILE = process.env.CONFIGFILE ?? '';
-
-// TODO: This into webserver
-type Route = {
-    type: string,
-    path: string,
-    route: string,
-}
-
-type Scope = {
-    file?: string,
-    name: string,
-    hash: string,
-    active: boolean,
-    config: {
-        name: string,
-        baseRoute?: string,
-        routes?: Route[],
-    },
-}
-
-// TODO: This into CORE
-type Bootconfig = {
-    env?: string,
-}
+import { Bootconfig } from "../core";
+const { log, logLevel } = require(process.env.LOG || '');
+const CONFIGFILE = process.env.CONFIGFILE || '';
 
 type Logging = {
     default: string,
-    logLevel: LogLevel,
+    logLevel: keyof typeof logLevel,
     eLogEnabled?: boolean,
     console_active?: boolean,
     filePath?: string,
@@ -39,12 +14,12 @@ type Logging = {
 
 type Config = {
     boot?: Bootconfig,
-    scopes: Scope[],
-    modules: Module[],
+    scopes: any[],
+    modules: any[],
     logging: Logging,
 }
 
-let CONFIG: Config = {
+let CONFIGURATION: Config = {
     scopes: [],
     modules: [],
     logging: {
@@ -56,7 +31,7 @@ let CONFIG: Config = {
 
 function writeConfig() {
     try {
-        fs.writeFileSync(CONFIGFILE, JSON.stringify(CONFIG, null, 4));
+        fs.writeFileSync(CONFIGFILE, JSON.stringify(CONFIGURATION, null, 4));
         log(logLevel.FINE, "CORE-CONFIG", `Config written`);
     } catch (error) {
         log(logLevel.WARN, "CORE-CONFIG", "Failed to write to config file");
@@ -65,9 +40,8 @@ function writeConfig() {
 }
 
 function createNewConfig() {
-    const config = {};
     try {
-        fs.writeFileSync(CONFIGFILE, JSON.stringify(config));
+        fs.writeFileSync(CONFIGFILE, JSON.stringify(CONFIGURATION));
         console.log(`New Config created`);
     } catch (error) {
         console.error("Failed to create config file");
@@ -75,47 +49,44 @@ function createNewConfig() {
     }
 }
 
-module.exports = {
-    initConfig: () => {
-        if(!fs.existsSync(CONFIGFILE)) createNewConfig();
-        try {
-            CONFIG = JSON.parse(fs.readFileSync(CONFIGFILE).toString('utf8'));
-            // checkConfig();
-            // writeConfig();
-            CONFIG.scopes = [];
-        } catch (error) {
-            console.error("Failed to load config file");
-            throw error;
-        }
-        process.env.CONFIG = __filename;
-        console.log(`Config handler loaded`);
-    },
-    CONFIG: (range?: keyof Config) => {
-        return range ? CONFIG[range] : CONFIG;
-    },
-    reloadConfig: async () => {
-        return new Promise<void>((resolve, reject) => {
-            log(logLevel.INFO, "CORE-CONFIG", `Reloading Config`);
-            fs.readFile(CONFIGFILE, (err, data) => {
-                if (err) {
-                    log(logLevel.WARN, "CORE-CONFIG", `Failed to reload Config`);
-                    reject(err);
-                } 
-                resolve();
-                CONFIG = JSON.parse(data.toString('utf8', 0, data.length));
-            });
-        });
-    },
-    dumpConfig: async () => {
-        return new Promise<void>((resolve, reject) => {
-            log(logLevel.INFO, "CORE-CONFIG", `Dumping Config`);
-            try {
-                writeConfig()
-                resolve();
-            } catch (error) {
-                log(logLevel.WARN, "CORE-CONFIG", `Failed to dump Config`);
-                reject(error);
-            }
-        });
-    },
+export function initConfig() {
+    if(!fs.existsSync(CONFIGFILE)) createNewConfig();
+    try {
+        CONFIGURATION = JSON.parse(fs.readFileSync(CONFIGFILE).toString('utf8'));
+        // checkConfig();
+        // writeConfig();
+        CONFIGURATION.scopes = [];
+    } catch (error) {
+        console.error("Failed to load config file");
+        throw error;
+    }
+    process.env.CONFIG = __filename;
+    console.log(`Config handler loaded`);
+}
+
+export function CONFIG(range?: keyof Config): Config | any {
+    return range ? CONFIGURATION[range] : CONFIGURATION;
+}
+
+export async function reloadConfig() {
+    log(logLevel.INFO, "CORE-CONFIG", `Reloading Config`);
+    fs.readFile(CONFIGFILE, (err, data) => {
+        if (err) {
+            log(logLevel.WARN, "CORE-CONFIG", `Failed to reload Config`);
+            throw err;
+        } 
+        CONFIGURATION = JSON.parse(data.toString('utf8', 0, data.length));
+        return;
+    });
+}
+
+export async function dumpConfig(){
+    log(logLevel.INFO, "CORE-CONFIG", `Dumping Config`);
+    try {
+        writeConfig()
+        return;
+    } catch (error) {
+        log(logLevel.WARN, "CORE-CONFIG", `Failed to dump Config`);
+        throw error;
+    }
 }

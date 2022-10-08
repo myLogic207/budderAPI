@@ -5,10 +5,10 @@ import fs from "fs";
 
 const { log, logLevel } = require(env.LOG || '');
 
-
 export const Style = Styles;
 
-export function getRandomUUID(){
+type uuid = string;
+export function getRandomUUID(): uuid{
     try {
         return crypto.randomUUID();
     } catch (error) {
@@ -55,7 +55,8 @@ export function removeFolder(path: string){
 
 export function ensureEntry(path: string){
     log(logLevel.FINE, "UTIL", "Ensuring entry: " + path);
-    if (path.split(env.SEP|| "/")[-1].split(".").length > 1) {
+    if (path.split(env.SEP || "/").slice(-1).toString().includes(".")) {
+        log(logLevel.FINE, "UTIL", "Found '.' assuming file");
         const dir = path.split(env.SEP || "/").slice(0, -1).join(env.SEP);
         createDirStruct(dir);
         try {

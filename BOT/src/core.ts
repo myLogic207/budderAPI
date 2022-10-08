@@ -18,8 +18,8 @@ function checkEnv(){
     if(!env.CONFIGFILE){
         env.CONFIGFILE = `${__dirname}${env.SEP}config.json`;
     }
-    if(!env.TMP){
-        env.TMP = `${__dirname}${env.SEP}tmp`;
+    if(!env.WORKDIR){
+        env.WORKDIR = `${__dirname}${env.SEP}tmp`;
     }
 }
 
@@ -40,7 +40,7 @@ async function main(){
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     
     log(logLevel.FINE, "CORE", `Initializing Utils`);
-    require("./libs/utils");
+    const { removeFolder } = require("./libs/utils");
     env.UTILS = `${cwd()}${env.SEP}libs${env.SEP}utils`;
     
     // Load Modules
@@ -52,7 +52,7 @@ async function main(){
     env.ROOT = __filename;
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
-    require("./libs/utils").removeFolder(`${env.TMP}${env.SEP}tmp`);
+    removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
     
     await require("./libs/loader").start();
 
@@ -66,8 +66,6 @@ export type Module = {
     name: any
 }
 
-export function resolveMod(mod: string): string {
-    const path = env[mod]; 
-    if(!path) throw new Error("No module with this name found");
-    return path;
+export type Bootconfig = {
+    env?: string,
 }
