@@ -1,5 +1,5 @@
 import { env } from 'process';
-const { log, logLevel } = require(env.LOG || '');
+const { log, logLevel } = require(env.LOG!);
 
 export enum State {
     TODO = "dodeploy",

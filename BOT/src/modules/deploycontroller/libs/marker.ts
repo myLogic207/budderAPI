@@ -1,10 +1,10 @@
 import fs from "fs";
 import { getFilenameFromMarker, getMarkerState, getState, isMarkerFile, setState, State } from "./stateControl";
 // import { ScannerConfig } from '../../filescanner/libs/scanner';
-const { log, logLevel } = require(process.env.LOG || '');
+const { log, logLevel } = require(process.env.LOG!);
 
 export function createMarkerScanner(config: {name: string, interval: number}, dir: string){
-    const markerScanner = require(process.env.SCANNER || '').newScanner(config.name, dir, config.interval);
+    const markerScanner = require(process.env.SCANNER!).newScanner(config.name, dir, config.interval);
     markerScanner.deployments = [];
     markerScanner.handleFile = handleFile;
     markerScanner.afterScan = afterScan;

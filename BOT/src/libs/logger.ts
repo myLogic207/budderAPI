@@ -3,18 +3,16 @@ import { env } from 'process';
 import {logLevel as levels} from './logLevels';
 import { Styles as Style } from './style';
 
-function createLogFile(filePath: string) {
+function ensureLogFile(filePath: string) {
     try {
         if (!fs.existsSync(filePath)) {
             fs.mkdirSync(filePath.split(env.SEP || "/").slice(0, -1).join(env.SEP), { recursive: true });
             fs.writeFileSync(filePath, "===eLog2 Log File - enjoy extended logging functionality===\n", "utf8");
             console.log(`Log file created at ${filePath}`);
-            return true;
         }
     } catch (err) {
         console.log("Error creating eLog file");
         console.error(err);
-        return false;
     }
 }
 
@@ -46,17 +44,17 @@ let logFileDest: string;
 export const logLevel = levels;
 
 export function initLogger(){
-    const config = require(env.CONFIG || '').CONFIG().logging;
+    const config = require(env.CONFIG!).CONFIG().logging;
     const initTime = new Date().toISOString().slice(0, -8).replace(/-/g, '-').replace(/T/g, '_').replace(/:/g, '.');
     logFileDest = `${config.filePath}${env.SEP}eLog-${initTime}.log`;
 
-    if (config.file_active) config.file_active = createLogFile(logFileDest);
+    if (config.file_active) config.file_active = ensureLogFile(logFileDest);
     else config.file_active = false;
 }
 
 
 export function log(level: any, scope: string, rawmsg: string | Error, forceConsole?: boolean){
-    const { logLevel, eLogEnabled, file_active, console_active } = require(env.CONFIG || '').CONFIG("logging");
+    const { logLevel, eLogEnabled, file_active, console_active } = require(env.CONFIG!).CONFIG("logging");
     if (level.value < logLevel && env.NODE_ENV !== "development") return;
     let msg = getMSG(level, scope, rawmsg);
 

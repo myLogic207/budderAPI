@@ -2,7 +2,7 @@
 
 import { Scanner, ScannerConfig } from "./libs/scanner";
 
-const { log, logLevel } = require(process.env.LOG || '');
+const { log, logLevel } = require(process.env.LOG!);
 
 const Scanners = new Map();
 let baseConfig: ScannerConfig;
@@ -15,7 +15,7 @@ function register(scanner: Scanner){
 module.exports = {
     init: async (name: string) => {
         log(logLevel.INFO, "FILESCANNER", `Initializing File Scanner`);
-        const { CONFIG } = require(process.env.CONFIG || '');
+        const { CONFIG } = require(process.env.CONFIG!);
         baseConfig = CONFIG().modules[name];
         log(logLevel.STATUS, "FILESCANNER", `File Scanner initialized`);
     },
@@ -34,13 +34,10 @@ module.exports = {
         return Scanners.get(scannerID);
     },
     shutdown: async () => {
-        return new Promise<void>((resolve, reject) => {
-            log(logLevel.INFO, "FILESCANNER", "Stopping Hotdeploy Scanners");
-            Scanners.forEach(scanner => {
-                scanner.stop();
-            });
-            log(logLevel.STATUS, "FILESCANNER", "Hotdeploy Scanners stopped");
-            resolve();
+        log(logLevel.INFO, "FILESCANNER", "Stopping Hotdeploy Scanners");
+        await Scanners.forEach(scanner => {
+            scanner.stop();
         });
+        log(logLevel.STATUS, "FILESCANNER", "Hotdeploy Scanners stopped");
     },
 }

@@ -1,7 +1,7 @@
 import fs from "fs";
 import { Bootconfig } from "../core";
-const { log, logLevel } = require(process.env.LOG || '');
-const CONFIGFILE = process.env.CONFIGFILE || '';
+const { log, logLevel } = require(process.env.LOG!);
+const CONFIGFILE = process.env.CONFIGFILE!;
 
 type Logging = {
     default: string,

@@ -1,6 +1,6 @@
 "use strict";
 
-const { log, logLevel } = require(process.env.LOG || '');
+const { log, logLevel } = require(process.env.LOG!);
 
 export type Route = {
     type: string,
@@ -55,18 +55,15 @@ export class Webserver {
     }
 
     async addRouter(route:string, routes: Route[], name: string) {
-        return new Promise<void>((resolve, reject) => {
-            try {
-                const router = this.#assembleRouter(routes);
-                this.#app.use(`/${route}`, router);
-                this.#router.set(name, route);
-                log(logLevel.FINE, "WEBSERVER", `Registered route ${route} for ${name}`);
-                resolve();
-            } catch (error) {
-                log(logLevel.WARN, "WEBSERVER", `Failed to register Routes`);
-                reject(error);
-            }
-        })
+        try {
+            const router = this.#assembleRouter(routes);
+            this.#app.use(`/${route}`, router);
+            this.#router.set(name, route);
+            log(logLevel.FINE, "WEBSERVER", `Registered route ${route} for ${name}`);
+        } catch (error) {
+            log(logLevel.WARN, "WEBSERVER", `Failed to register Routes`);
+            throw error;
+        }
     }
 
     #assembleRouter(routes: Route[]) {
@@ -97,26 +94,20 @@ export class Webserver {
     }
 
     async removeRouter(router: string){
-        return new Promise<void>((resolve, reject) => {
-            try {
-                // this.#app._router.stack = this.#app._router.stack.filter(r => r.name !== router);
-                this.#app.use(`${this.#router.get(router)}`, this.#defaultRouter);
-                this.#router.delete(router);
-                log(logLevel.INFO, "WEBSERVER", `Unregistered Module`);
-                resolve();
-            } catch (error) {
-                log(logLevel.WARN, "WEBSERVER", `Failed to unregister Module`);
-                reject(error);
-            }
-        })
+        try {
+            // this.#app._router.stack = this.#app._router.stack.filter(r => r.name !== router);
+            await this.#app.use(`${this.#router.get(router)}`, this.#defaultRouter);
+            this.#router.delete(router);
+            log(logLevel.INFO, "WEBSERVER", `Unregistered Module`);
+        } catch (error) {
+            log(logLevel.WARN, "WEBSERVER", `Failed to unregister Module`);
+            throw error;
+        }
     }
 
     async shutdown() {
-        return new Promise<void>((resolve, reject) => {
-            this.#server.close(() => {
-                log(logLevel.STATUS, "WEBSERVER", "Server closed");
-                resolve();
-            });
+        await this.#server.close(() => {
+            log(logLevel.STATUS, "WEBSERVER", "Server closed");
         });
     }
 };

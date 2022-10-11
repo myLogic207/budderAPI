@@ -32,7 +32,7 @@ module.exports = {
             for (let i = 0; i < foundmodules.length; i++) {
                 const moduleName = foundmodules[i];
                 if(!env[moduleName]) continue;
-                const module = require(env[moduleName] || '');
+                const module = require(env[moduleName]!);
                 if(loadedModules.includes(moduleName)) continue;
                 try {
                     await module.init(moduleName);
@@ -56,10 +56,10 @@ module.exports = {
     start: async () => {
         // Start Modules
         // const { CONFIG } = require(env.CONFIG);
-        Object.entries(CONFIG("modules")).forEach(async ([module, config]) => {
+        Object.entries(CONFIG("modules")).forEach(async (module: any) => {
             log(logLevel.INFO, "CORE", `Starting ${module} Module`);
             try {
-                require(env[module] ?? '').start().catch((err: any) => {
+                require(env[module[0]] ?? '').start(module[1].start).catch((err: any) => {
                     throw err;
                 });
             } catch (error: any) {

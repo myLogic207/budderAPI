@@ -1,7 +1,7 @@
 "use strict";
 import fs from "fs";
-const { getRandomUUID } = require(process.env.UTILS || '');
-const { log, logLevel } = require(process.env.LOG || '');
+const { getRandomUUID } = require(process.env.UTILS!);
+const { log, logLevel } = require(process.env.LOG!);
 
 export type ScannerConfig = {
     name: string,
@@ -47,34 +47,27 @@ export class Scanner {
     }
 
     async loop() {
-        return new Promise<void>((resolve, reject) => {
-            log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Waking");
-            this.files = [];
-            this.scan().then(() => {
-                log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Executing after scan");
-                this.afterScan();
-                log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Sleeping");
-                resolve();
-            }).catch((error) => {
-                log(logLevel.WARN, `FILESCANNER-${this.name}`, "Failed to scan");
-                reject(error);
-            });
+        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Waking");
+        this.files = [];
+        await this.scan().catch((error) => {
+            log(logLevel.WARN, `FILESCANNER-${this.name}`, "Failed to scan");
+            throw error;
         });
+        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Executing after scan");
+        this.afterScan();
+        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Sleeping");
     }
     
     async scan() {
-        return new Promise<void>((resolve, reject) => {
-            fs.readdir(this.dir, { withFileTypes: true }, (err, files) => {
-                if (err) throw err;
-                files.forEach(file => {
-                    log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found file ${file.name}`);
-                    this.handleFile(file).then(() => {
-                        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Handled file ${file.name}`);
-                        resolve();
-                    }).catch((error) => {
-                        log(logLevel.WARN, `FILESCANNER-${this.name}`, `Failed to handle file ${file.name}`);
-                        reject(error);
-                    });
+        await fs.readdir(this.dir, { withFileTypes: true }, (err, files) => {
+            if (err) throw err;
+            files.forEach(file => {
+                log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found file ${file.name}`);
+                this.handleFile(file).then(() => {
+                    log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Handled file ${file.name}`);
+                }).catch((error) => {
+                    log(logLevel.WARN, `FILESCANNER-${this.name}`, `Failed to handle file ${file.name}`);
+                    throw error;
                 });
             });
         });
@@ -85,13 +78,10 @@ export class Scanner {
     }
 
     async handleFile(file: any) {
-        return new Promise<void>((resolve, reject) => {
-            log(logLevel.INFO, `FILESCANNER-${this.name}`, `Found new file ${file.name}`);
-            this.files.push(file);
-            setTimeout(() => {
-                log(logLevel.INFO, `FILESCANNER-${this.name}`, `Processed file ${file.name}`);
-                resolve();
-            }, 1000);
-        });
+        log(logLevel.INFO, `FILESCANNER-${this.name}`, `Found new file ${file.name}`);
+        this.files.push(file);
+        await setTimeout(() => {
+            log(logLevel.INFO, `FILESCANNER-${this.name}`, `Processed file ${file.name}`);
+        }, 1000);
     }
 }

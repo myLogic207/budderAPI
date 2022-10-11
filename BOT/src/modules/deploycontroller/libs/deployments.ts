@@ -1,16 +1,16 @@
 import { env } from "process";
 import { getState, isMarkerFile, setState, State } from "./stateControl";
 
-const { CONFIG, dumpConfig } = require(env.CONFIG || '');
-const { removeRouter, addRouter } = require(env.WEB || '');
-const { log, logLevel } = require(env.LOG || '');
-const { removeFolder, unarchive, getSHA1ofInput, ensureEntry} = require(env.UTILS || '');
+const { CONFIG, dumpConfig } = require(env.CONFIG!);
+const { removeRouter, addRouter } = require(env.WEB!);
+const { log, logLevel } = require(env.LOG!);
+const { removeFolder, unarchive, getSHA1ofInput, ensureEntry} = require(env.UTILS!);
 
-type DeployScanner = {
-    dir: string,
-    workdir: string,
-    interval: number,
-}
+// type DeployScanner = {
+//     dir: string,
+//     workdir: string,
+//     interval: number,
+// }
 
 type Scope = {
     file?: string,
@@ -25,7 +25,7 @@ type Scope = {
 }
 
 export function createDeployScanner(config: {name: string, interval: number}, dir: string) {
-    const deployScanner = require(env.SCANNER || '').newScanner(config.name, dir, config.interval);
+    const deployScanner = require(env.SCANNER!).newScanner(config.name, dir, config.interval);
     const workdir: string = ensureEntry(`${env.WORKDIR}${env.SEP}tmp${env.SEP}deployments`);
     const fs = require("fs");
     if (!fs.existsSync(workdir)) {

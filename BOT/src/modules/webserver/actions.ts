@@ -2,14 +2,14 @@
 
 import { Route, Webserver } from "./libs/webserver";
 
-const { log, logLevel } = require(process.env.LOG || '');
+const { log, logLevel } = require(process.env.LOG!);
 
 let webServer: Webserver;
 
 module.exports = {
     init: async (name: string) => {
         log(logLevel.INFO, "WEBSERVER", `Initializing Webserver`);
-        const { CONFIG } = require(process.env.CONFIG || '');
+        const { CONFIG } = require(process.env.CONFIG!);
         webServer = new Webserver(CONFIG("modules")[name]);
         await webServer.startServer();
         log(logLevel.STATUS, "WEBSERVER", `Webserver initialized`);

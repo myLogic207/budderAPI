@@ -1,9 +1,9 @@
 import { env } from "process";
 import { createDeployScanner } from "./libs/deployments";
 import { createMarkerScanner } from "./libs/marker";
-import { isMarkerFile, State, setState, getFilenameFromMarker, getState, getMarkerState } from './libs/stateControl';
+import { isMarkerFile, State, setState, getFilenameFromMarker, getMarkerState } from './libs/stateControl';
 
-const { log, logLevel } = require(env.LOG || '');
+const { log, logLevel } = require(env.LOG!);
 
 type dplConfig = {
     hotdeploy: boolean,
@@ -23,34 +23,31 @@ type dplConfig = {
 let config: dplConfig;
 
 async function clearMarkerDir(workdir: string){
-    return new Promise<void>((resolve, reject) => {
-        log(logLevel.DEBUG, "DEPLOYCONTROL", `Clearing marker directory`);
-        const fs = require('fs');
-        fs.readdir(workdir, (err: any, files: any[]) => {
-            if (err) reject(err);
-            files.forEach(file => {
-                if(isMarkerFile(file)){
-                    if(getMarkerState(file) === State.SKIP){
-                        log(logLevel.DEBUG, "DEPLOYCONTROL", `Set ${file} to SKIP`);
-                        setState(getFilenameFromMarker(file), State.SKIP);
-                    } else {
-                        fs.unlink(`${workdir}${env.SEP}${file}`, (err: any) => {
-                            if (err) reject(err);
-                            log(logLevel.DEBUG, "DEPLOYCONTROL", `Deleted ${file}`);
-                        });
-                    }
+    log(logLevel.DEBUG, "DEPLOYCONTROL", `Clearing marker directory`);
+    const fs = require('fs');
+    fs.readdir(workdir, (err: any, files: any[]) => {
+        if (err) throw err;
+        files.forEach(file => {
+            if(isMarkerFile(file)){
+                if(getMarkerState(file) === State.SKIP){
+                    log(logLevel.DEBUG, "DEPLOYCONTROL", `Set ${file} to SKIP`);
+                    setState(getFilenameFromMarker(file), State.SKIP);
+                } else {
+                    fs.unlink(`${workdir}${env.SEP}${file}`, (err: any) => {
+                        if (err) throw err;
+                        log(logLevel.DEBUG, "DEPLOYCONTROL", `Deleted ${file}`);
+                    });
                 }
-            });
-            log(logLevel.DEBUG, "DEPLOYCONTROL", `Marker directory cleared`);
-            resolve();
+            }
         });
+        log(logLevel.DEBUG, "DEPLOYCONTROL", `Marker directory cleared`);
     });
 }
 
 module.exports = {
     init: async (name: string) => {
         log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
-        const { CONFIG } = require(env.CONFIG || '');
+        const { CONFIG } = require(env.CONFIG!);
         CONFIG("modules")[name].workdir ??= `${env.WORKDIR}${env.SEP}scopes`;
         config = CONFIG("modules")[name];
         log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);

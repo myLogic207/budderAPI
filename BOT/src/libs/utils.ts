@@ -3,7 +3,7 @@ import { env } from 'process';
 import crypto from 'crypto';
 import fs from "fs";
 
-const { log, logLevel } = require(env.LOG || '');
+const { log, logLevel } = require(env.LOG!);
 
 export const Style = Styles;
 
@@ -41,7 +41,7 @@ export async function unarchive(archive: string, dest?: string, force?: boolean)
     }
 
     log(logLevel.INFO, "UTIL", "Attempting to unarchive " + archive);
-    return decompress(archive, dest, force);
+    await decompress(archive, dest, force);
 }
 
 export function removeFolder(path: string){
@@ -97,7 +97,6 @@ async function decompress(src: string, dest: string, force = false) {
         log(logLevel.DEBUG, "UTIL-DEZIP", `Extracting ${src} to ${dest}`);
         await extract(src, { dir: dest });
         log(logLevel.DEBUG, "UTIL-DEZIP", "Unarchiving finished: " + src);
-        return dest;
     } catch (error) {
         log(logLevel.WARN, "UTIL-DEZIP", `Error extracting ${src} to ${dest}`);
         if (!force) {
