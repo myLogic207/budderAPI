@@ -10,12 +10,14 @@ export enum State {
     ERROR = "error",
     OFF = "undeployed"
 };
-const States = new Map();
+
+const States = new Map<string, State>();
     
-export function getState(filename: string){
+export function getState(filename: string): State | undefined {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting state for ${filename}`);
-    if(filename) return States.has(filename) ? States.get(filename) : null;
-    else return States;
+    // if(filename) return 
+    return States.has(filename) ? States.get(filename) : undefined;
+    // else return States;
 }
 
 export function setState(filename: string, state: State) {
@@ -23,26 +25,26 @@ export function setState(filename: string, state: State) {
     log(logLevel.STATUS, "DEPLOYCONTROL", `Set state of ${filename} to ${state}`);
 }
 
-export function isMarkerFile(filename: string){
+export function isMarkerFile(filename: string): boolean {
     // return file.includes('deploy');
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Checking if ${filename} is a marker file`);
     // return DeployController.#getMarkerFromFile(filename) in State;
     return Object.values(State).includes(getMarkerFromFile(filename) as State);
 }
 
-export function getMarkerState(filename: string){
+export function getMarkerState(filename: string): State | undefined {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting marker state for ${filename}`);
     return getMarkerFromFile(filename) as State;
     // const state = Object.keys(DeployController.State).find(key => DeployController.State[key] === mark);
     // return State[mark] || null;
 }
 
-export function getMarkerFromFile(filename: string){
+export function getMarkerFromFile(filename: string): string | undefined {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting marker for ${filename}`);
     return filename.split('.').pop();
 }
 
-export function getFilenameFromMarker(filename: string){
+export function getFilenameFromMarker(filename: string): string {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting file from marker ${filename}`);
     return filename.split('.').slice(0, -1).join('.');
 }

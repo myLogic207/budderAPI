@@ -2,12 +2,12 @@ import { Styles } from './style';
 import { env } from 'process';
 import crypto from 'crypto';
 import fs from "fs";
+import { uuid } from './lib.types';
 
 const { log, logLevel } = require(env.LOG!);
 
 export const Style = Styles;
 
-type uuid = string;
 export function getRandomUUID(): uuid{
     try {
         return crypto.randomUUID();
@@ -53,7 +53,7 @@ export function removeFolder(path: string){
     }
 }
 
-export function ensureEntry(path: string){
+export function ensureEntry(path: string): string | undefined {
     log(logLevel.FINE, "UTIL", "Ensuring entry: " + path);
     if (path.split(env.SEP || "/").slice(-1).toString().includes(".")) {
         log(logLevel.FINE, "UTIL", "Found '.' assuming file");
@@ -75,7 +75,7 @@ export function ensureEntry(path: string){
     return path;
 }
 
-export function cleanPath(path: string) {
+export function cleanPath(path: string): string {
     const sep = env.SEP || "/";
     return path.replace(/\\/g, sep).replace(/\//g, sep);
 }
@@ -91,11 +91,10 @@ function createDirStruct(dest: string) {
 }
 
 async function decompress(src: string, dest: string, force = false) {
-    const extract = require('extract-zip')
     log(logLevel.DEBUG, "UTIL-DEZIP", "Reading archive: " + src);
     try {
         log(logLevel.DEBUG, "UTIL-DEZIP", `Extracting ${src} to ${dest}`);
-        await extract(src, { dir: dest });
+        await require('extract-zip')(src, { dir: dest });
         log(logLevel.DEBUG, "UTIL-DEZIP", "Unarchiving finished: " + src);
     } catch (error) {
         log(logLevel.WARN, "UTIL-DEZIP", `Error extracting ${src} to ${dest}`);

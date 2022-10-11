@@ -3,7 +3,7 @@ import * as dotenv from 'dotenv';
 import { platform, chdir, cwd, env } from "process";
 env.SEP = platform === "win32" ? "\\" : "/";
 
-function Logo(){
+function Logo(): string {
     return `
      _               _     _            _    ____ ___ 
     | |__  _   _  __| | __| | ___ _ __ / \\  |  _ \\_ _|
@@ -14,7 +14,7 @@ function Logo(){
     `;
 }
 
-function checkEnv(){
+function checkEnv(): void {
     if(!env.CONFIGFILE){
         env.CONFIGFILE = `${__dirname}${env.SEP}config.json`;
     }
@@ -23,7 +23,7 @@ function checkEnv(){
     }
 }
 
-async function main(){
+async function main() : Promise<void> {
     const startTime = new Date();
     dotenv.config();
     checkEnv();
@@ -60,12 +60,8 @@ async function main(){
     log(logLevel.STATUS, "CORE", `BOT started in ${startUpTime}ms`);
 }
 
-main()
+// Start the bot
+(async () => {
+ await main()
+})()
 
-export type Module = {
-    name: any
-}
-
-export type Bootconfig = {
-    env?: string,
-}

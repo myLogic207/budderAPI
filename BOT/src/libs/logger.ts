@@ -17,7 +17,7 @@ function ensureLogFile(filePath: string) {
 }
 
 
-function getMSG(level: any, scope: string, rawmsg: Error | string) {
+function getMSG(level: any, scope: string, rawmsg: Error | string): string {
     const logTime = new Date().toISOString().replace(/T/g, ' ').slice(0, -1);
     switch (level) {
         case logLevel.SEVERE:

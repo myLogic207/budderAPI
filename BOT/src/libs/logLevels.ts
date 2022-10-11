@@ -8,15 +8,15 @@ export class logLevel {
     static ERROR: LogLevel = new logLevel("ERROR", 500);
     static SEVERE: LogLevel = new logLevel("SEVERE", 600);
 
-    def
-    value
+    def;
+    value;
 
     constructor(def: string, value: number) {
         this.def = def;
         this.value = value;
     }
 
-    getLevel(level: any) {
+    getLevel(level: any): LogLevel | number {
         if (level instanceof logLevel) {
             return level.value;
         } else {
