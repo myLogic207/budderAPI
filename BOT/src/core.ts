@@ -31,10 +31,10 @@ async function main() : Promise<void> {
     env.LOG = `${cwd()}${env.SEP}libs${env.SEP}logger`;
     
     // log(logLevel.STATUS, "CORE", "Loading Config");
-    require("./libs/config").initConfig();
+    await require("./libs/config").initConfig();
     // const { CONFIG } = require("./libs/config");
-    
-    require("./libs/logger").initLogger();
+    delete require.cache[require.resolve(env.LOG)]
+    await require("./libs/logger").initLogger();
     const { log, logLevel } = require(env.LOG);
     
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    

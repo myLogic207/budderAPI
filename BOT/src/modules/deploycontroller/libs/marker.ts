@@ -180,7 +180,6 @@ async function updateState(this: any, memoryState: State | null, markerState: St
             throw err;
         });
         log(logLevel.DEBUG, "DEPLOYCONTROL-MARKERSCANNER", `Set ${filename} marker to ${newMarker}`);
-        return;
     }
 }
 
@@ -192,7 +191,6 @@ async function setMarkerState(this: any, filename: string, state: State) {
             throw err;
         }
         log(logLevel.STATUS, "DEPLOYCONTROL-MARKERSCANNER", `Set marker ${filename}.${state}`);
-        return;
     });
     const files = fs.readdirSync(`${this.dir}`);
     // if (err) {
