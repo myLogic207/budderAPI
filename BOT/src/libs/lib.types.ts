@@ -1,4 +1,4 @@
-import { Bootconfig, Module, Scope } from "../types";
+import { Bootconfig, Scope } from "../types";
 import { logLevel } from "./logLevels";
 
 export type Logging = {
@@ -13,7 +13,7 @@ export type Logging = {
 export type Config = {
     boot?: Bootconfig,
     scopes: Scope[],
-    modules: Module[],
+    modules: any,
     logging: Logging,
 }
 

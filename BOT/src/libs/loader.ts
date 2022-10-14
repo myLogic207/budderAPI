@@ -1,5 +1,6 @@
 import fs from "fs";
 import { env, cwd } from 'process'
+import { Module } from "../types";
 const { dumpConfig, CONFIG } = require(env.CONFIG ?? '');
 const { log, logLevel } = require(env.LOG ?? '');
 
@@ -56,7 +57,7 @@ module.exports = {
     start: async () => {
         // Start Modules
         // const { CONFIG } = require(env.CONFIG);
-        Object.entries(CONFIG("modules")).forEach(async (module: any) => {
+        Object.entries(CONFIG("modules")).forEach(async (module: Module) => {
             log(logLevel.INFO, "CORE", `Starting ${module} Module`);
             try {
                 require(env[module[0]] ?? '').start(module[1].start).catch((err: any) => {

@@ -1,6 +1,8 @@
 import { env } from 'process';
 const { log, logLevel } = require(env.LOG!);
 
+export type Marker = `${string}.${State}`;
+
 export enum State {
     TODO = "dodeploy",
     TODEL = "undeploying",
@@ -12,7 +14,7 @@ export enum State {
 };
 
 const States = new Map<string, State>();
-    
+
 export function getState(filename: string): State | undefined {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting state for ${filename}`);
     // if(filename) return 
@@ -32,7 +34,7 @@ export function isMarkerFile(filename: string): boolean {
     return Object.values(State).includes(getMarkerFromFile(filename) as State);
 }
 
-export function getMarkerState(filename: string): State | undefined {
+export function getMarkerState(filename: Marker): State | undefined {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting marker state for ${filename}`);
     return getMarkerFromFile(filename) as State;
     // const state = Object.keys(DeployController.State).find(key => DeployController.State[key] === mark);
@@ -44,7 +46,7 @@ export function getMarkerFromFile(filename: string): string | undefined {
     return filename.split('.').pop();
 }
 
-export function getFilenameFromMarker(filename: string): string {
+export function getFilenameFromMarker(filename: Marker): string {
     log(logLevel.DEBUG, `DEPLOYCONTROL`, `Getting file from marker ${filename}`);
     return filename.split('.').slice(0, -1).join('.');
 }

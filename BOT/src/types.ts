@@ -1,12 +1,33 @@
+// TODO: Clean up this into types.ts
+import { Route } from "./modules/webserver/libs/webserver";
+
 export type ValueOf<T> = T[keyof T];
 
 export type Scope = {
-    name: string,
+    file?: string,
+    name?: string,
+    hash: string,
+    active: boolean,
+    config?: ScopeConfig,
 }
 
-export type Module = {
-    name: any
+export type ScopeConfig = {
+    name: string,
+    baseRoute?: string,
+    routes?: Route[],
 }
+
+type ModuleKey = string;
+type ModuleCfg = any;
+export type Module = [ModuleKey, ModuleCfg];
+// {
+    
+//     // name: string,
+//     // description?: string,
+//     // version: string,
+//     // require?: string[],
+//     // config?: {},
+// }
 
 export type Bootconfig = {
     env?: string,

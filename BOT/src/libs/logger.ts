@@ -1,6 +1,6 @@
 import fs from 'fs';
 import { env } from 'process';
-import {logLevel as levels} from './logLevels';
+import {logLevel as levels, LogLevel} from './logLevels';
 import { Styles as Style } from './style';
 
 function ensureLogFile(filePath: string) {
@@ -17,7 +17,7 @@ function ensureLogFile(filePath: string) {
 }
 
 
-function getMSG(level: any, scope: string, rawmsg: Error | string): string {
+function getMSG(level: LogLevel, scope: string, rawmsg: Error | string): string {
     const logTime = new Date().toISOString().replace(/T/g, ' ').slice(0, -1);
     switch (level) {
         case logLevel.SEVERE:
@@ -53,7 +53,7 @@ export function initLogger(){
 }
 
 
-export function log(level: any, scope: string, rawmsg: string | Error, forceConsole?: boolean){
+export function log(level: LogLevel, scope: string, rawmsg: string | Error, forceConsole?: boolean){
     const { logLevel, eLogEnabled, file_active, console_active } = require(env.CONFIG!).CONFIG("logging");
     if (level.value < logLevel && env.NODE_ENV !== "development") return;
     let msg = getMSG(level, scope, rawmsg);
