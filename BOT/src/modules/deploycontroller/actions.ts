@@ -44,37 +44,39 @@ async function clearMarkerDir(workdir: string){
     });
 }
 
-module.exports = {
-    init: async (name: string) => {
-        log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
-        const { CONFIG } = require(env.CONFIG!);
-        CONFIG("modules")[name].workdir ??= `${env.WORKDIR}${env.SEP}scopes`;
-        config = CONFIG("modules")[name];
-        log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
-    },
-    start: async () => {
-        if(!config.hotdeploy) return;
-        try {
-            log(logLevel.INFO, "DEPLOYCONTROL", "Preparing directories");
-            await clearMarkerDir(config.workdir);
-            log(logLevel.INFO, "DEPLOYCONTROL", "Starting Hotdeploy Scanners");
-            
-            // const MarkerScanner = require("./marker");
-            // const ms = new MarkerScanner(workdir);
-            const ms = createMarkerScanner(config.scanner.markerScanner, config.workdir);
-            log(logLevel.DEBUG, "DEPLOYCONTROL", `Scanner ${ms.name} registered with ID ${ms.scannerID}`);
-            ms.start();
-            log(logLevel.STATUS, "DEPLOYCONTROL", "State scanner started");
-            
-            // const DeploymentScanner = require("./deployments");
-            // const ds = new DeploymentScanner(workdir);
-            const ds = createDeployScanner(config.scanner.deployScanner, config.workdir);
-            log(logLevel.DEBUG, "DEPLOYCONTROL", `Scanner ${ds.name} registered with ID ${ds.scannerID}`);
-            ds.start();
-            log(logLevel.STATUS, "DEPLOYCONTROL", "Deployment handler started");
-        } catch (error) {
-            log(logLevel.WARN, "DEPLOYCONTROL", `Error starting Hotdeploy Scanners`);
-            throw error;
-        }
-    },
-};
+export async function init(name: string) {
+    log(logLevel.INFO, "DEPLOYCONTROL", `Initializing Deploy Control`);
+    const { CONFIG } = require(env.CONFIG!);
+    CONFIG("modules")[name].workdir ??= `${env.WORKDIR}${env.SEP}scopes`;
+    config = CONFIG("modules")[name];
+    log(logLevel.STATUS, "DEPLOYCONTROL", `Deploy Control initialized`);
+}
+
+export async function start(){
+    if(!config.hotdeploy) return;
+    try {
+        log(logLevel.INFO, "DEPLOYCONTROL", "Preparing directories");
+        await clearMarkerDir(config.workdir).catch((err: any) => {
+            log(logLevel.ERROR, "DEPLOYCONTROL", `Error while preparing directories: ${err}`);
+            throw err;
+        });
+        log(logLevel.INFO, "DEPLOYCONTROL", "Starting Hotdeploy Scanners");
+        
+        // const MarkerScanner = require("./marker");
+        // const ms = new MarkerScanner(workdir);
+        const ms = createMarkerScanner(config.scanner.markerScanner, config.workdir);
+        log(logLevel.DEBUG, "DEPLOYCONTROL", `Scanner ${ms.name} registered with ID ${ms.scannerID}`);
+        ms.start();
+        log(logLevel.STATUS, "DEPLOYCONTROL", "State scanner started");
+        
+        // const DeploymentScanner = require("./deployments");
+        // const ds = new DeploymentScanner(workdir);
+        const ds = createDeployScanner(config.scanner.deployScanner, config.workdir);
+        log(logLevel.DEBUG, "DEPLOYCONTROL", `Scanner ${ds.name} registered with ID ${ds.scannerID}`);
+        ds.start();
+        log(logLevel.STATUS, "DEPLOYCONTROL", "Deployment handler started");
+    } catch (error) {
+        log(logLevel.WARN, "DEPLOYCONTROL", `Error starting Hotdeploy Scanners`);
+        throw error;
+    }
+}
