@@ -5,9 +5,24 @@ const { cleanPath } = require("../../../scopes/CORE/bin/utils");
 const { log, logLevel } = require(process.env.LOG);
 
 module.exports = {
+    initInMemoryDB: async (dbFile) => {
+        log(logLevel.INFO, "DATA", "Initializing in-memory database");
+        const imdb = require('sqlite3').verbose();
+        return new imdb.Database(`${dbFile}::memory:`, (err) => {
+            if (err) {
+                log(logLevel.ERROR, "DATA", `Failed to initialize in-memory database: ${err}`);
+                return;
+            }
+            log(logLevel.INFO, "DATA", "Successfully initialized in-memory database");
+        });
+    },
     connectInMemory: async () => {
         log(logLevel.DEBUG, "DATABASE-SQL", "Connecting to in-memory database");
         return new Sequelize('sqlite::memory:');
+    },
+    shutdownInMemoryDB: async () => {
+        log(logLevel.DEBUG, "DATABASE-SQL", "Shutting down in-memory database");
+
     },
     connectSQL: async (connection) => {
         log(logLevel.DEBUG, "DATABASE-SQL", "Attempting to connect to SQL database");

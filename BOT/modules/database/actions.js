@@ -1,6 +1,7 @@
 "use strict";
 
 const { getRandomUUID } = require("../../scopes/CORE/bin/utils");
+const { initInMemoryDB, shutdownInMemoryDB } = require("./bin/dbms_sql");
 const { connectMongoDB } = require("./bin/mongodb");
 
 const { log, logLevel } = require(process.env.LOG);
@@ -11,11 +12,13 @@ module.exports = {
     init: async (name) => {
         log(logLevel.INFO, "DATA", "Initializing DBMS");
         const { CONFIG } = require(process.env.CONFIG);
-        CONFIG("modules")[name].
+        // CONFIG("modules")[name]
+        await initInMemoryDB();
         log(logLevel.INFO, "DATA", "Finished initializing DBMS");
     },
     shutdown: async () => {
         log(logLevel.INFO, "DATA", "Shutting down DBMS");
+        await shutdownInMemoryDB();
         dataBases.forEach(db => {
             log(logLevel.INFO, "DATA", `Shutting down database ${db.name}`);
             db.close();
