@@ -1,7 +1,7 @@
 import { env } from "process";
 import { Scope, ScopeConfig } from "../../../types";
 import { Scanner } from "../../filescanner/libs/scanner";
-import { Route } from "../../webserver/libs/webserver";
+import { Route } from "../../webserver/types";
 import { getState, isMarkerFile, setState, State } from "./stateControl";
 
 const { CONFIG, dumpConfig } = require(env.CONFIG!);

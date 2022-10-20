@@ -1,5 +1,4 @@
-// TODO: Clean up this into types.ts
-import { Route } from "./modules/webserver/libs/webserver";
+import { Route } from "./modules/webserver/types";
 
 export type ValueOf<T> = T[keyof T];
 
