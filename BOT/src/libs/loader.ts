@@ -1,4 +1,4 @@
-import fs from "fs";
+import fs from "fs/promises";
 import { env, cwd } from 'process'
 import { Module } from "../types";
 const { dumpConfig, CONFIG } = require(env.CONFIG ?? '');
@@ -6,10 +6,11 @@ const { log, logLevel } = require(env.LOG ?? '');
 
     // Init Modules
 export async function initModules(){
-    const foundmodules:string[] = [];
+    const foundmodules: Map<string, string[]> = new Map();
     const modulesBase = env.MODULES || `${cwd()}${env.SEP}modules`
-    fs.readdirSync(`${modulesBase}`, { withFileTypes: true })
-        .filter(dirent => dirent.isDirectory())
+    const moduleDir = await fs.readdir(`${modulesBase}`, { withFileTypes: true })
+    
+    moduleDir.filter(dirent => dirent.isDirectory())
         .map(dirent => dirent.name)
         .forEach((module) => {
         // if(module === "logger") return;
@@ -21,32 +22,33 @@ export async function initModules(){
         const modFile = moduleconfig.file ?? "actions.js";
         // Also, thinking here - replace process.env with a config access
         env[moduleName] = `${modulesBase}${env.SEP}${module}${env.SEP}${modFile.replace(".js", "")}`;
-        foundmodules.push(moduleName);
-        log(logLevel.INFO, "CORE-LOADER", `Loaded Module: ${moduleName}, version ${moduleconfig.version}`);
-        log(logLevel.FINE, "CORE-LOADER", `desc.: ${moduleconfig.description}`);
+        foundmodules.set(moduleName, moduleconfig.dependencies);
+        log(logLevel.INFO, "CORE-LOADER", `Found Module: ${moduleName}, version ${moduleconfig.version}`);
+        log(logLevel.FINE, "CORE-LOADER", `desc: ${moduleconfig.description}`);
     });
     // dumpConfig();
         
     const loadedModules:string[] = [];
-    while(loadedModules.length !== foundmodules.length){
-        for (let i = 0; i < foundmodules.length; i++) {
-            const moduleName = foundmodules[i];
-            if(!env[moduleName]) continue;
-            const module = require(env[moduleName]!);
+    while(loadedModules.length !== foundmodules.keys.length){
+        for (let [moduleName, dependencies] of foundmodules) {
             if(loadedModules.includes(moduleName)) continue;
-            try {
-                await module.init(moduleName);
-                // process.env[modInit[0].name] = modInit[1];
-                loadedModules.push(moduleName);
-                log(logLevel.INFO, "CORE-Loader", `Module ${moduleName} loaded`);
-            } catch (error) {
-                // if(error.message.startsWith("Missing module")){
-                //     log(logLevel.DEBUG, "CORE-Loader", `Module ${moduleName} error: ${error.message}`);
-                //     continue;
-                // }
-                log(logLevel.WARN, "CORE-Loader", `Failed to load Module ${moduleName}`);
-                throw error;
-            }
+            if(!loadedModules.every((loaded) => dependencies.includes(loaded))) continue;
+
+            await fs.access(env[moduleName]!, fs.constants.R_OK).catch((err) => {
+                log(logLevel.WARN, "CORE-LOADER", `Cannot access ${moduleName}'s entry file!`);
+                log(logLevel.ERROR, "CORE-LOADER", err);
+                foundmodules.delete(moduleName);   
+            });
+            
+            const module = require(env[moduleName]!);
+            await module.init(moduleName).catch((error: any) => {
+                log(logLevel.WARN, "CORE-LOADER", `Failed to init Module ${moduleName}`);
+                log(logLevel.ERROR, "CORE-LOADER", error);
+                foundmodules.delete(moduleName);
+            });
+
+            log(logLevel.INFO, "CORE-LOADER", `Module ${moduleName} loaded`);
+            loadedModules.push(moduleName);
         }
     }
 
