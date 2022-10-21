@@ -1,29 +1,14 @@
-"use strict";
+import { Route, ServerConfig } from "../types";
+import express from "express";
 
 const { log, logLevel } = require(process.env.LOG!);
-
-export type Route = {
-    type: string,
-    path: string,
-    route: string,
-    callback?: Function,
-}
-
-// type Port = Range<0, 65535>;
-type Port = number;
-type Host = string
-
-type ServerConfig = {
-    host: Host,
-    port: Port,
-}
 
 export class Webserver {
 
     #server: any;
     #port;
     #host;
-    #app = require("express")();
+    #app = express();
     #router = new Map();
 
     #defaultRouter(req: any, res: any, next: any) {
@@ -59,7 +44,7 @@ export class Webserver {
             const router = this.#assembleRouter(routes);
             this.#app.use(`/${route}`, router);
             this.#router.set(name, route);
-            log(logLevel.FINE, "WEBSERVER", `Registered route ${route} for ${name}`);
+            log(logLevel.FINE, "WEBSERVER", `Registered route '/${route}' for ${name}`);
         } catch (error) {
             log(logLevel.WARN, "WEBSERVER", `Failed to register Routes`);
             throw error;
@@ -67,28 +52,31 @@ export class Webserver {
     }
 
     #assembleRouter(routes: Route[]) {
-        const router = require("express").Router();
-        routes.forEach(route => {
+        const router = express.Router();
+        // @ts-expect-error ts(7030) - Wrong routes returns null | might error
+        routes.forEach((route: Route) => {
             switch (route.type) {
                 case "static":
-                    router.use(route.route, require("express").static(route.path));
+                    log(logLevel.DEBUG, "WEBSERVER", `Registered static route dir '${route.path!}'`);
+                    router.use(route.route, express.static(route.path!));
                     break;
                 case "get":
-                    router.get(route.route, route.callback);
+                    router.get(route.route, route.callback!);
                     break;
                 case "post":
-                    router.post(route.route, route.callback);
+                    router.post(route.route, route.callback!);
                     break;
                 case "put":
-                    router.put(route.route, route.callback);
+                    router.put(route.route, route.callback!);
                     break;
                 case "delete":
-                    router.delete(route.route, route.callback);
+                    router.delete(route.route, route.callback!);
                     break;
                 default:
                     log(logLevel.WARN, "WEBSERVER", `Unknown Route Type: ${route.type}`);
-                    break;
+                    return null;
             }
+            log(logLevel.DEBUG, "WEBSERVER", `Registered '${route.type}' type Route '${route.route}'`);
         });
         return router;
     }
