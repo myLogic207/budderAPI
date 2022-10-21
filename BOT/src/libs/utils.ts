@@ -2,7 +2,7 @@ import { Styles } from './style';
 import { env } from 'process';
 import crypto from 'crypto';
 import fs from "fs";
-import { uuid } from './lib.types';
+import { uuid } from '../types';
 
 const { log, logLevel } = require(env.LOG!);
 
