@@ -1,82 +1,123 @@
-import { existsSync } from "fs";
 import fs from "fs/promises";
-import { Config, ValueOf } from "../types";
-const { log, logLevel } = require(process.env.LOG!);
-const CONFIGFILE = process.env.CONFIGFILE!;
+import { Config, ValueOf } from '../types';
 
-let CONFIGURATION: Config = {
-    scopes: [],
-    modules: [],
-    logging: {
-        default: "logger",
-        logLevel: logLevel.INFO,
-        eLogEnabled: false,
-    }
-};
+let CONFIGURATION: Config;
 
-async function writeConfig() {
-    if(!CONFIGURATION) throw new Error("CONFIGURATION ERROR");
-    await fs.writeFile(CONFIGFILE, JSON.stringify(CONFIGURATION, null, 4)).catch(error => {
-        log(logLevel.WARN, "CORE-CONFIG", "Failed to write to config file");
-        throw error;
-    });
-    log(logLevel.FINE, "CORE-CONFIG", `Config written`);
+const configHandler = {
+    ownKeys(target: Config) {
+        return Object.keys(target).filter((key) => {
+            return key !== "boot"; 
+        });
+    },
+    deleteProperty(_: Config, prop: string) {
+        console.warn(`Cannot delete property ${prop} from config`, "CONFIGERROR");
+        return false;
+    },
+    get: (target: Config, prop: keyof Config): ValueOf<Config> => {
+        if(prop in target) {
+            if(prop === "boot") {
+                console.warn("Try to access boot config", "CONFIGERROR");
+                return target.boot ? target.boot : null;
+            }
+            return target[prop];
+        }
+        return undefined;
+    },
+    /*
+     * TODO: #22 Add checks to write to config
+     */
+    set: (target: Config, prop: keyof Config, value: ValueOf<Config>): boolean => {
+        if(prop in target) {
+            target[prop] = value;
+            return true; 
+        }
+        return false;
+    },
+}
+let configfile: string;
+
+export async function initConfig(file: string) {
+    let tmpConf = await readConfig(file);
+    tmpConf = checkConfig(tmpConf);
+    configfile = file;
+    process.env.CONFIG = __filename;
+    CONFIGURATION = new Proxy(tmpConf, configHandler);
+    console.info("Config handler loaded", "CONFIGFINE");
 }
 
-async function createNewConfig() {
-    await fs.writeFile(CONFIGFILE, JSON.stringify(CONFIGURATION)).catch(error => {
-        console.error("Failed to create config file");
-        throw error;
-    });
-    console.log(`New Config created`);
-}
-
-function checkConfig(config: Config) {
+/*
+ * TODO: #22 There has to be a better way then just overwriting the config
+ */
+function checkConfig(config: any): Config {
     if(!config.scopes) config.scopes = [];
     if(!config.modules) config.modules = [];
     if(!config.logging) config.logging = {
-        default: "logger",
-        logLevel: logLevel.INFO,
-        eLogEnabled: false,
+        logger: "default",
+        logLevel: "INFO"
     };
-    
+    return config;
 }
 
-export async function initConfig() {
-    if(!existsSync(CONFIGFILE)) createNewConfig();
-    const data: string = await fs.readFile(CONFIGFILE, 'utf8').catch(error => {
-        console.error("Failed to load config file");
-        throw error;
+function newConfig(): Config {
+    return {
+        scopes: [],
+        modules: [],
+        logging: {
+            logger: "default",
+            logLevel: "INFO"
+        }
+    };
+}
+
+async function readConfig(configfile: string): Promise<Config> {
+    const file = await fs.open(configfile).catch((err) => {
+        console.error(`Failed to open config file ${configfile}`, "CONFIGERROR");
+        console.error(err);
+        return;
     });
 
-    CONFIGURATION = JSON.parse(data ?? "{}") as Config;
-    // checkConfig();
-    // writeConfig();
-    checkConfig(CONFIGURATION);
-    process.env.CONFIG = __filename;
-    console.log(`Config handler loaded`);
+    const data = await file!.readFile("utf-8").catch((error) => {
+        console.error("Failed to read config file", "CONFIGERROR");
+        console.error(error);
+        return;
+    }).finally(() => {
+        file!.close();   
+    });
+
+    return validateSyntax(data!.toString());
+
 }
 
-export function CONFIG(range?: keyof Config): Config | ValueOf<Config> | undefined {
-    return range ? CONFIGURATION[range] : CONFIGURATION;
+function validateSyntax(config: string): Config {
+    try {
+        return JSON.parse(config) as Config;
+    } catch (error) {
+        console.warn("Config file is not valid (JSON)", "CONFIGWARN");
+        return newConfig();
+    }
+}
+
+export function CONFIG(prop?: keyof Config): Config | ValueOf<Config> | undefined {
+    return prop ? CONFIGURATION[prop] : {...CONFIGURATION};
 }
 
 export async function reloadConfig() {
-    log(logLevel.DEBUG, "CORE-CONFIG", `Reloading Config`);
-    const data = await fs.readFile(CONFIGFILE).catch((err) => {
-        log(logLevel.WARN, "CORE-CONFIG", `Failed to reload Config`);
+    const data = await fs.readFile(configfile).catch((err) => {
+        console.error("Failed to reload config file", "CONFIGERROR");
         throw err;
     } 
     );
     CONFIGURATION = JSON.parse(data.toString('utf8', 0, data.length));
-    log(logLevel.INFO, "CORE-CONFIG", `Config reloaded`);
+    console.info("Config reloaded", "CONFIGFINE");
 }
 
 export async function dumpConfig() {
-    log(logLevel.INFO, "CORE-CONFIG", `Dumping Config`);
-    await writeConfig().catch((err) => {
-        log(logLevel.WARN, "CORE-CONFIG", `Failed to dump Config`);
-        throw err;
-    });
-    log(logLevel.INFO, "CORE-CONFIG", `Config dumped`);
+    try {
+        const config = checkConfig({...CONFIGURATION});
+        await fs.writeFile(configfile, JSON.stringify(config, null, 4));
+        console.info("Config dumped", "CONFIGFINE");
+    } catch (error) {
+        console.error("Failed to dump config", "CONFIGERROR");
+        throw error;        
+    }
 }

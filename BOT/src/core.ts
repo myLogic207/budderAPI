@@ -1,7 +1,9 @@
-"use strict";
-import * as dotenv from 'dotenv';
-import { platform, chdir, cwd, env } from "process";
+#!/usr/bin/env node
+import { platform, chdir, env, cwd } from "process";
 env.SEP = platform === "win32" ? "\\" : "/";
+env.UTILS = `${__dirname}${env.SEP}libs${env.SEP}utils`;
+import * as dotenv from 'dotenv';
+import { CONFIG, initConfig } from "./libs/config";
 
 function Logo(): string {
     return `
@@ -23,45 +25,41 @@ function checkEnv(): void {
     }
 }
 
+function resolveLogger(logger: string): string {
+    if(logger === "default") return `${cwd()}${env.SEP!}logger${env.SEP!}logger`
+    else return logger;
+}
+
 async function main() : Promise<void> {
     const startTime = new Date();
     dotenv.config();
     checkEnv();
     chdir(__dirname);
-    env.LOG = `${cwd()}${env.SEP}libs${env.SEP}logger`;
+    await initConfig(env.CONFIGFILE!);
     
-    // log(logLevel.STATUS, "CORE", "Loading Config");
-    await require("./libs/config").initConfig();
-    // const { CONFIG } = require("./libs/config");
-    delete require.cache[require.resolve(env.LOG)]
-    await require("./libs/logger").initLogger();
-    const { log, logLevel } = require(env.LOG);
-    
+    await require(resolveLogger(CONFIG("logging").logger)).initLogger();
+    const { log, logLevel } = require(env.LOG!);
+   
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
-    
-    log(logLevel.FINE, "CORE", `Initializing Utils`);
-    const { removeFolder } = require("./libs/utils");
-    env.UTILS = `${cwd()}${env.SEP}libs${env.SEP}utils`;
-    
     // Load Modules
     log(logLevel.FINE, "CORE", `Loading Modules`);
-    await require("./libs/loader").initModules();
+    const { initModules, start } = require("./libs/loader")
+    await initModules();
 
     // Starting budder
     log(logLevel.FINE, "CORE", "Starting budder");
     env.ROOT = __filename;
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
-    removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
+    await require("./libs/utils").removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
     
-    await require("./libs/loader").start();
+    await start();
 
     const startUpTime = new Date().getTime() - startTime.getTime();
-    log(logLevel.STATUS, "CORE", `BOT started in ${startUpTime}ms`);
+    log(logLevel.STATUS, "CORE", `budder BOT served in ${startUpTime}ms`);
 }
 
 // Start the bot
 (async () => {
- await main()
+    await main()
 })()
-

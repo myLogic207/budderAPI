@@ -33,7 +33,7 @@ export type Module = [ModuleKey, ModuleCfg];
 // }
 
 export type Bootconfig = {
-    env?: string,
+    env: string,
 }
 
 export type Config = {
@@ -44,11 +44,11 @@ export type Config = {
 }
 
 export type LogConfig = {
-    default: string,
-    logLevel: LogLevel,
+    logger: string,
+    logLevel: keyof typeof LogLevel,
     filePath?: string,
     fileActive?: boolean,
-    console_active?: boolean,
+    consoleActive?: boolean,
 }
 
 export type uuid = string;
