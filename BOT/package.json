@@ -12,11 +12,12 @@
     "budderbot"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node src/core.ts",
-    "copy-other-files": "copyfiles -u 1 src/**/*.json dist/",
-    "build": "npm run copy-other-files && tsc",
-    "start": "npm run build && node dist/core.js"
+    "rimraf": "./node_modules/rimraf/bin.js",
+    "clean": "rimraf dist/",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copy-other-files": "copyfiles -u 1 src/**/*.json src/**/*.html src/**/*.css src/**/*.js dist/",
+    "start": "npm run clean && (tsc & npm run copy-other-files) && node dist/core.js"
   },
   "pkg": {
     "assets": [
@@ -40,9 +41,12 @@
     "discord-api-types": "^0.29.0",
     "discord.js": "^13.6.0",
     "nodemon": "^2.0.20",
+    "rimraf": "^3.0.2",
     "sequelize": "^6.17.0",
     "sqlite3": "^5.0.2",
     "ts-node": "^10.9.1",
-    "typescript": "^4.8.4"
+    "typescript": "^4.8.4",
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
   }
 }
