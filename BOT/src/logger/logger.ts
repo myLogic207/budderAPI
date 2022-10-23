@@ -21,7 +21,7 @@ async function ensureLogFile(filePath: string): Promise<boolean> {
     }
 }
 
-function getMSG(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error | string): string {
+export function getMSG(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error | string): string {
     switch (level) {
         case LogLevel.SEVERE:
             return `${Style.RED}${Style.BOLD}[${logTime}] [${scope}] ${rawmsg}${Style.END}`;
@@ -42,47 +42,26 @@ function getMSG(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error 
     }
 }
 
-function getJSONmsg(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error | string): string {
+export function getJSONmsg(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error | string): string {
     return JSON.stringify({
-
+        time: logTime,
+        level: level.def,
+        scope: scope,
+        msg: rawmsg instanceof Error? rawmsg.stack : rawmsg,
     });
 }
 
-let config: eLogConfig;
+export let config: eLogConfig;
 
 export async function initLogger(){
     config = require(env.CONFIG!).CONFIG("logging");
     const initTime = new Date().toISOString().slice(0, -8).replace(/-/g, '-').replace(/T/g, '_').replace(/:/g, '.');
     
     if (config.fileActive!){
-        config.logFileDest = `${config.filePath!}${env.SEP}eLog-${initTime}.log`;  
+        config.logFileDest = `${config.filePath}${env.SEP}eLog-${initTime}.log`;  
         config.fileActive = await ensureLogFile(config.logFileDest);
     } else config.fileActive! = false;
+    env.LOG = `${__dirname}${env.SEP}main`;
+    console.log(`${Style.GREEN}${initTime} [FINE] [UTIL] eLog2 initialized${Style.END}`);
 }
 
-
-export function log(level: LogLevel, scope: string, rawmsg: string | Error, forceConsole?: boolean){
-    if (level.value < config.logLevel.value && env.NODE_ENV !== "development") return;
-    const logTime = new Date().toISOString().replace(/T/g, ' ').slice(0, -1);
-    let msg = (config.json ? getJSONmsg : getMSG)(logTime, level, scope, rawmsg);
-    //let msg = config.json ? getJSONmsg(logTime, level, scope, rawmsg) : getMSG(logTime, level, scope, rawmsg).slice(5, -4);
-
-    if (config.eLogEnabled) {
-        if (config.fileActive) {
-            fs.appendFile(config.logFileDest, `${msg}\n`, "utf8");
-        }
-        // if (DLOG && DBENABLED) {
-        //     createLog(level.def, scope, rawmsg);
-        // } else if (DLOG) {
-        //     console.log(`${Style.YELLOW}[UTIL] eLog (DATABASE) is enabled but scope DATABASE is not${Style.END}`);
-        //     cLog = true;
-        // }
-        if (config.console_active || (env.NODE_ENV === "development") || forceConsole) {
-            console.log(msg);
-        }
-    } else {
-        console.log(msg);
-    }
-}
-
-export { LogLevel as logLevel } from './logLevels';

@@ -1,4 +1,4 @@
-import { digit as d, LogConfig } from '../types';
+import { LogConfig } from '../types';
 
 export type _LogLevel = {def: string, value: number};
 
