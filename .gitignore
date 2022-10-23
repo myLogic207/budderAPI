@@ -102,6 +102,9 @@ config.json
 # For that reasons, sql dumps should be used instead; include them with `.read [name].sql`
 # *.sql
 
+# Remove setup for now
+setup
+
 # Output/build folder for the application
 out
 
