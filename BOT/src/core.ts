@@ -2,6 +2,7 @@
 import { platform, chdir, env, cwd } from "process";
 env.SEP = platform === "win32" ? "\\" : "/";
 env.UTILS = `${__dirname}${env.SEP}libs${env.SEP}utils`;
+env.FILES = `${__dirname}${env.SEP}libs${env.SEP}files`;
 import * as dotenv from 'dotenv';
 import { CONFIG, initConfig } from "./libs/config";
 
@@ -21,7 +22,7 @@ function checkEnv(): void {
         env.CONFIGFILE = `${__dirname}${env.SEP}config.json`;
     }
     if(!env.WORKDIR){
-        env.WORKDIR = `${__dirname}${env.SEP}tmp`;
+        env.WORKDIR = `${__dirname}${env.SEP}workdir`;
     }
 }
 
@@ -37,13 +38,14 @@ async function main() : Promise<void> {
     chdir(__dirname);
     await initConfig(env.CONFIGFILE!);
     
-    await require(resolveLogger(CONFIG("logging").logger)).initLogger();
-    const { log, logLevel } = require(env.LOG!);
+    const logger = await import(resolveLogger(CONFIG("logging").logger))
+    await logger.initLogger();
+    const { log, logLevel } = await import(env.LOG!);
    
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     // Load Modules
     log(logLevel.FINE, "CORE", `Loading Modules`);
-    const { initModules, start } = require("./libs/loader")
+    const { initModules, start } = await import("./libs/loader")
     await initModules();
 
     // Starting budder
@@ -51,9 +53,10 @@ async function main() : Promise<void> {
     env.ROOT = __filename;
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
-    await require("./libs/utils").removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
+    const utils = await import("./libs/utils")
+    await utils.removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
     
-    await start();
+    start();
 
     const startUpTime = new Date().getTime() - startTime.getTime();
     log(logLevel.STATUS, "CORE", `budder BOT served in ${startUpTime}ms`);

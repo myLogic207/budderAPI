@@ -5,7 +5,7 @@ import { CONFIG, dumpConfig } from "./config";
 
 const { log, logLevel } = require(env.LOG!);
 
-    // Init Modules
+// Init Modules
 export async function initModules(){
     log(logLevel.INFO, "CORE-LOADER", "Loading Modules");
     
@@ -15,7 +15,7 @@ export async function initModules(){
     await loadModules(foundModules);
     log(logLevel.STATUS, "CORE-Loader", "All modules loaded, dumping config");
     
-    await dumpConfig();
+    dumpConfig();
 }
 
 async function loadModules(modules: Map<string, string[]>) {
@@ -23,7 +23,13 @@ async function loadModules(modules: Map<string, string[]>) {
     while(loadedModules.length < modules.size) {
         for (let [moduleName, dependencies] of modules) {
             if(loadedModules.includes(moduleName)) continue;
-            if(!loadedModules.every((loaded) => loaded.split(':')[0] === "optional" ? dependencies.includes(loaded) : true)) continue;
+            log(logLevel.DEBUG, "CORE-LOADER", `Checking Module: ${moduleName}`);
+            if(dependencies) log(logLevel.DEBUG, "CORE-LOADER", `Module ${moduleName} has dependencies: ${dependencies}`);
+            // TODO: Check if dependencies are loaded
+            if(dependencies && !allDependenciesLoaded(loadedModules, dependencies)) {
+                log(logLevel.DEBUG, "CORE-LOADER", `Module ${moduleName} has unmet dependencies, skipping`);
+                continue;
+            }
 
             try {
                 // await fs.access(env[moduleName]!, fs.constants.R_OK);
@@ -38,12 +44,23 @@ async function loadModules(modules: Map<string, string[]>) {
                     log(logLevel.ERROR, "CORE-LOADER", error);
                 }
                 modules.delete(moduleName);
+                continue;
             }
 
             log(logLevel.INFO, "CORE-LOADER", `Module ${moduleName} loaded`);
             loadedModules.push(moduleName);
         }
     }
+}
+
+function allDependenciesLoaded(loaded: string[], dependencies: string[], optional: boolean = false): boolean {
+    // @ts-ignore ts(7030) - This is intentional
+    return dependencies.every((dep) => (dep.startsWith("optional:") && optional && !loaded.includes(dep)) || loaded.includes(dep));
+    // dependencies.forEach((dependency: string) => {
+    //     if((dependency.startsWith("optional:") && optional && !loaded.includes(dependency)) || !loaded.includes(dependency))
+    //         return false;
+    // });
+    // return true;
 }
 
 async function findModules(): Promise<Map<string, string[]>> {
@@ -97,13 +114,12 @@ export async function start() {
         log(logLevel.INFO, "CORE", `Starting Module ${module[0]}`);
         
         try {
-            await require(env[module[0]]!).start(module[1].start).catch((error: any) => {
-                throw error;
-            });
+            const mod = await import(env[module[0]]!);
+            mod.start(module[1].start);
         } catch (error: any) {
             if(error.code === "MODULE_NOT_FOUND"){
-                log(logLevel.WARN, "CORE", `Module ${module[0]} has no entry file`);
-            } else if(error.message === "require(...).start is not a function"){
+                log(logLevel.WARN, "CORE", `Module ${module[0]} has no start file`);
+            } else if(error.message === "mod.start is not a function"){
                 log(logLevel.WARN, "CORE", `Module ${module[0]} has no start function`);
             } else {
                 log(logLevel.WARN, "CORE-LOADER", `Cannot start module ${module[0]}`);
