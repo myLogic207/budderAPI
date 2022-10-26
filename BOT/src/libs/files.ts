@@ -1,13 +1,29 @@
+import { Dirent } from "fs";
 import fs from "fs/promises";
 import { env } from 'process';
 const { log, logLevel } = require(env.LOG!);
 
-export async function writeFile(file: string, content: string) {
-    await fs.writeFile(file, content).catch(error => {
+export async function writeFile(file: string, content?: string) {
+    await fs.writeFile(file, content ?? "").catch(error => {
         log(logLevel.WARN, "FILES", "Failed to write config file");
         log(logLevel.WARN, "FILES", error);
     });
     log(logLevel.INFO, "FILES", "File written");
+}
+
+export async function readEntry(path: string): Promise<string | Dirent[]> {
+    log(logLevel.DEBUG, "FILES", `Reading entry ${path}`);
+    const entry = await fs.stat(path);
+    if (entry.isDirectory()) {
+        log(logLevel.DEBUG, "FILES", "Entry is a directory");
+        return fs.readdir(path, { withFileTypes: true })
+    }
+    if (entry.isFile()) {
+        log(logLevel.DEBUG, "FILES", "Entry is a file");
+        return fs.readFile(path, "utf-8");
+    }
+    log(logLevel.WARN, "FILES", "Unknown entry type");
+    throw new Error("Unknown entry type");
 }
 
 export async function ensureEntry(ent: string, counter = 0): Promise<string> {
@@ -23,8 +39,9 @@ export async function ensureEntry(ent: string, counter = 0): Promise<string> {
     await fs.access(ent, fs.constants.W_OK).catch(async (error: any) => {
         if(error.code !== "ENOENT") throw new Error("Invalid access: " + ent);
         // TODO: #20 Breaking Change - Extends ensure files/folders
-        if (path.pop()!.includes(".")) {
-            log(logLevel.FINE, "UTIL", "Found '.' assuming file");
+        const entry = await fs.stat(ent);
+        if (entry.isFile()) {
+            log(logLevel.FINE, "UTIL", "Found file");
             const dir = path.slice(0, -1).join(env.SEP!);
             await ensureEntry(dir, counter++);
             
@@ -32,12 +49,15 @@ export async function ensureEntry(ent: string, counter = 0): Promise<string> {
                 log(logLevel.ERROR, "UTIL", "Failed to create file: " + ent);
                 throw error;
             });
-        } else {
-            log(logLevel.FINE, "UTIL", "Found no '.' assuming folder");
+        } else if (entry.isDirectory()) {
+            log(logLevel.FINE, "UTIL", "Found folder");
             await fs.mkdir(ent, { recursive: true }).catch(error => {
                 log(logLevel.WARN, "UTIL", "Failed to create directory: " + path);
                 throw error;
             });
+        } else {
+            log(logLevel.WARN, "UTIL", "Unknown entry type");
+            throw new Error("Unknown entry type: " + ent);
         }
     });
     log(logLevel.DEBUG, "UTIL", "Ensured Read Entry: " + ent);

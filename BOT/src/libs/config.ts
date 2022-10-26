@@ -37,11 +37,15 @@ const configHandler = {
 let configfile: string;
 
 export async function initConfig(file: string) {
-    let tmpConf = await readConfig(file);
-    tmpConf = checkConfig(tmpConf);
+    try {
+        let tmpConf = await readConfig(file);
+        tmpConf = checkConfig(tmpConf);
+        CONFIGURATION = new Proxy(tmpConf, configHandler);
+    } catch (error) {
+        throw new Error(`Failed to init config: ${error}`);
+    }
     configfile = file;
     process.env.CONFIG = __filename;
-    CONFIGURATION = new Proxy(tmpConf, configHandler);
     console.info("Config handler loaded", "CONFIGFINE");
 }
 
@@ -50,7 +54,7 @@ export async function initConfig(file: string) {
  */
 function checkConfig(config: any): Config {
     if(!config.scopes) config.scopes = [];
-    if(!config.modules) config.modules = [];
+    if(!config.modules) config.modules = {};
     if(!config.logging) config.logging = {
         logger: "default",
         logLevel: "INFO"
@@ -61,7 +65,7 @@ function checkConfig(config: any): Config {
 function newConfig(): Config {
     return {
         scopes: [],
-        modules: [],
+        modules: {},
         logging: {
             logger: "default",
             logLevel: "INFO"
@@ -70,22 +74,19 @@ function newConfig(): Config {
 }
 
 async function readConfig(configfile: string): Promise<Config> {
-    const file = await fs.open(configfile).catch((err) => {
-        console.error(`Failed to open config file ${configfile}`, "CONFIGERROR");
-        console.error(err);
-        return;
-    });
-
-    const data = await file!.readFile("utf-8").catch((error) => {
-        console.error("Failed to read config file", "CONFIGERROR");
-        console.error(error);
-        return;
-    }).finally(() => {
-        file!.close();   
-    });
-
-    return validateSyntax(data!.toString());
-
+    try {
+        const file = await fs.open(configfile);
+        const data = await file!.readFile("utf-8");
+        return validateSyntax(data!.toString());
+    } catch (error: any) {
+        if(error.code === "ENOENT"){
+            console.warn("Config file not found", "CONFIGWARN");
+            return newConfig();
+        } else {
+            console.error(`Failed to open config file ${configfile}`, "CONFIGERROR");
+            throw error;
+        }
+    }
 }
 
 function validateSyntax(config: string): Config {
@@ -114,7 +115,7 @@ export async function reloadConfig() {
 export async function dumpConfig() {
     try {
         const config = checkConfig({...CONFIGURATION});
-        await fs.writeFile(configfile, JSON.stringify(config, null, 4));
+        await fs.writeFile(configfile, JSON.stringify(config, null , 4));
         console.info("Config dumped", "CONFIGFINE");
     } catch (error) {
         console.error("Failed to dump config", "CONFIGERROR");
