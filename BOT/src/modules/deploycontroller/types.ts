@@ -1,13 +1,11 @@
 import { ScopeConfig } from "../../types";
-import { Scanner } from "../filescanner/libs/scanner";
+import { CustomScanner } from "../filescanner/types";
 import { Route } from "../webserver/types";
 import { State } from "./libs/stateControl";
 
 // export type Marker = `${string}.${State}`;
 
-export interface DeployScanner extends Scanner {
-    workdir: string,
-    interval: number,
+export interface DeployScanner extends CustomScanner {
     handleFile: (file: {name: string}) => Promise<void>,
     deployScope: (file: {name: string}) => Promise<void>,
     initScope: (hash: string) => Promise<ScopeConfig>,
@@ -18,12 +16,26 @@ export interface DeployScanner extends Scanner {
     removeFromConfig: (scopeName: string) => void,
 }
 
-export interface MarkerScanner extends Scanner {
-    workdir: string,
-    interval: number,
-    deployments: string[],
+export interface MarkerScanner extends CustomScanner {
     handleFile: (file: {name: string}) => Promise<void>,
-    updateState: (memoryState: State, markerState: State, filename: string) => Promise<void>,
+    updateState: (filename: string, newState: State) => Promise<void>,
     afterScan: () => Promise<void>,
-    setMarkerState: (filename: string, state: State) => Promise<void>,
+    setMarkerState: (marker: Marker) => Promise<void>,
 }
+
+export interface DeployConfig {
+    hotdeploy: boolean,
+    workdir: string,
+    scanner: {
+        deployScanner : {
+            name: string,
+            interval: number,
+        },
+        markerScanner: {
+            name: string,
+            interval: number,
+        },
+    }
+}
+
+export type Marker = [name: string, state: State];
