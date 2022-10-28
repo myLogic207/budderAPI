@@ -89,6 +89,7 @@ export class MarkerFileScanner extends customScanner implements MarkerScanner {
             return;
         }
 
+        // TODO: #23 Undeployment not working
         let newMarker: State;
         // If memory is in fixed state, ensure marker
         if(curState && [State.TODEL, State.INPROG].includes(curState)) {
