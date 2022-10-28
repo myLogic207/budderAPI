@@ -54,7 +54,7 @@ async function main() : Promise<void> {
     log("budder", "CORE", `Printing Logo...${Logo()}`);
     log(logLevel.DEBUG, "CORE", "Clearing tmp workdir");
     const utils = await import("./libs/utils")
-    await utils.removeFolder(`${env.WORKDIR}${env.SEP}tmp`);
+    await utils.removeFolder(`${env.WORKDIR}${env.SEP}tmp`, true, true);
     
     start();
 

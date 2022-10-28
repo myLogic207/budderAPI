@@ -44,8 +44,8 @@ export async function unarchive(archive: string, dest?: string){
     await decompress(archive, dest);
 }
 
-export async function removeFolder(path: string){
-    return rmDir(path, false, true);
+export async function removeFolder(path: string, force: boolean = false, recursive: boolean = false) {
+    return await rmDir(path, force, recursive);
 }
 
 export async function ensureEntry(ent: string): Promise<string | null> {
