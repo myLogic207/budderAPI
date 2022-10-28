@@ -1,85 +1,95 @@
-"use strict";
-import fs from "fs";
-const { getRandomUUID } = require(process.env.UTILS!);
+import { FileScanner } from '../types';
+
+const { readEntry } = require(process.env.FILES!);
 const { log, logLevel } = require(process.env.LOG!);
 
-export type ScannerConfig = {
-    name: string,
-    interval: number,
-}
-export class Scanner {
-    name: any;
-    dir: string;
-    scannerID: any;
-    interval: number;
-    working: boolean = false;
-    files: any[] = [];
-    constructor(scannerName: string, scannerDir: string, scannerInterval: number, baseConfig: ScannerConfig) {
+export class Scanner implements FileScanner {
+    name: string;
+
+    #dir: string;
+    #working: boolean = false;
+    #interval: number;
+    #files: string[] = [];
+
+    constructor(scannerDir: string, scannerName: string, scannerInterval: number) {
+        this.name = scannerName;
         if (!scannerDir) {
             log(logLevel.ERROR, `FILESCANNER-${this.name}`, "Scanner directory not provided");
             throw new Error(`Failed Constructing "SCANNER-${this.name}": Scanner directory is required`);
         }
-        this.dir = scannerDir;
-        this.name = scannerName ?? baseConfig.name;
-        this.scannerID = getRandomUUID();
-        this.interval = scannerInterval ?? baseConfig.interval;
+        this.#dir = scannerDir;
+        this.#interval = scannerInterval!;
         log(logLevel.INFO, `FILESCANNER-${this.name}`, `Constructed new scanner`);
-        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner Dir: ${this.dir}`);
-        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner ID: ${this.scannerID}`);
-        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner Interval: ${this.interval}`);
+        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner Dir: ${this.#dir}`);
+        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Scanner Interval: ${this.#interval}`);
+    }
+
+    get dir(): string {
+        return this.#dir;
+    }
+
+    set dir(_) {
+        log(logLevel.WARN, `FILESCANNER-${this.name}`, "Cannot change scanner directory");
+    }
+
+    get files(): any[] {
+        return this.#files;
+    }
+
+    set files(_) {
+        this.#files = _;
     }
 
     async start() {
         log(logLevel.INFO, `FILESCANNER-${this.name}`, `Starting scanner`);
-        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `in directory ${this.dir}`);
-        this.working = true;
-        while (this.working) {
+        log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `in directory ${this.#dir}`);
+        this.#working = true;
+        while (this.#working) {
             await this.loop().catch((error) => {
                 log(logLevel.ERROR, `FILESCANNER-${this.name}`, `Error in scanner loop`);
                 log(logLevel.ERROR, `FILESCANNER-${this.name}`, error);
             });
-            await new Promise((resolve) => setTimeout(resolve, this.interval));
+            await new Promise((resolve) => setTimeout(resolve, this.#interval));
         }
     }
 
-    stop() {
-        this.working = false;
+    stop(): void {
+        this.#working = false;
     }
 
     async loop() {
         log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Waking");
-        this.files = [];
+        this.#files = [];
         await this.scan().catch((error) => {
             log(logLevel.WARN, `FILESCANNER-${this.name}`, "Failed to scan");
             throw error;
         });
         log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Executing after scan");
-        this.afterScan();
+        await this.afterScan()?.catch((error) => {
+            log(logLevel.WARN, `FILESCANNER-${this.name}`, "Failed after scan");
+            throw error;
+        });
         log(logLevel.DEBUG, `FILESCANNER-${this.name}`, "Sleeping");
     }
     
     async scan() {
-        await fs.readdir(this.dir, { withFileTypes: true }, (err, files) => {
-            if (err) throw err;
-            files.forEach(file => {
-                log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found file ${file.name}`);
-                this.handleFile(file).then(() => {
-                    log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Handled file ${file.name}`);
-                }).catch((error) => {
-                    log(logLevel.WARN, `FILESCANNER-${this.name}`, `Failed to handle file ${file.name}`);
-                    throw error;
-                });
+        const files = await readEntry(this.#dir);
+        if(!Array.isArray(files)) throw new Error("Scanner dir is not a directory");
+        for (const file of files) {
+            log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found file ${file.name}`);
+            await this.handleFile(file).catch((error) => {
+                log(logLevel.WARN, `FILESCANNER-${this.name}`, `Failed to handle file ${file.name}`);
+                throw error;
             });
-        });
+            log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Handled file ${file.name}`);
+        };
     }
 
-    afterScan() {
-        return; // log(logLevel.DEBUG, `FILESCANNER-${this.name}`, `Found ${this.files.length} files`);
-    }
+    async afterScan(): Promise<void> {};
 
-    async handleFile(file: any) {
+    async handleFile(file: { name: string }) {
         log(logLevel.INFO, `FILESCANNER-${this.name}`, `Found new file ${file.name}`);
-        this.files.push(file);
+        this.#files.push(file.name);
         await setTimeout(() => {
             log(logLevel.INFO, `FILESCANNER-${this.name}`, `Processed file ${file.name}`);
         }, 1000);
