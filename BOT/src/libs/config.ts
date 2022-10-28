@@ -74,8 +74,9 @@ function newConfig(): Config {
 }
 
 async function readConfig(configfile: string): Promise<Config> {
+    let file;
     try {
-        const file = await fs.open(configfile);
+        file = await fs.open(configfile);
         const data = await file!.readFile("utf-8");
         return validateSyntax(data!.toString());
     } catch (error: any) {
@@ -86,6 +87,8 @@ async function readConfig(configfile: string): Promise<Config> {
             console.error(`Failed to open config file ${configfile}`, "CONFIGERROR");
             throw error;
         }
+    } finally {
+        await file?.close();
     }
 }
 
