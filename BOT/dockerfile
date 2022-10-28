@@ -1,0 +1,16 @@
+# syntax=docker/dockerfile:experimental
+FROM node:19.0.0
+# RUN apk add --no-cache python3 g++ make
+WORKDIR /app
+
+COPY package.json .
+COPY tsconfig.json .
+COPY src/ ./src/
+RUN npm install
+RUN npm run build
+
+ENV NODE_ENV=development
+ENV STD_SLEEP=10000
+
+CMD ["node", "dist/core.js"]
+EXPOSE 2070

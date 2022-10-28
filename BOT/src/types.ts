@@ -16,6 +16,8 @@ export type Scope = {
 
 export type ScopeConfig = {
     name: string,
+    active: boolean,
+    init?: string,
     baseRoute?: string,
     routes?: Route[],
 }

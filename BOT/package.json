@@ -1,7 +1,7 @@
 {
   "name": "budderbot",
   "bin": "core.js",
-  "version": "3.0.0-SNAPSHOT_1.2",
+  "version": "3.0.0-SNAPSHOT_3.2",
   "description": "I can't believe it's not budder",
   "author": "Logic",
   "license": "MIT",
@@ -12,12 +12,13 @@
     "budderbot"
   ],
   "scripts": {
-    "dev": "ts-node src/core.ts",
+    "dev": "ts-node src/core.ts --trace-warnings",
     "rimraf": "./node_modules/rimraf/bin.js",
     "clean": "rimraf dist/",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copy-other-files": "copyfiles -u 1 src/**/*.json src/**/*.html src/**/*.css src/**/*.js dist/",
-    "start": "npm run clean && (tsc & npm run copy-other-files) && node dist/core.js"
+    "copy-other-files": "copyfiles -u 1 src/**/*.json src/**/*.html src/**/*.css src/**/*.js dist",
+    "build": "npm run clean && npm run copy-other-files && tsc -p .",
+    "start": "npm run build && node dist/core.js"
   },
   "pkg": {
     "assets": [
@@ -26,7 +27,7 @@
     "output": "out"
   },
   "dependencies": {
-    "@types/node": "^18.8.3",
+    "@types/node": "^18.11.7",
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.27",
     "express": "^4.17.3",
