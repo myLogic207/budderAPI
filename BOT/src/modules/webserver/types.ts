@@ -1,11 +1,11 @@
+import { Methods } from "./libs/methods";
+
 export type Route = {
-    type: method,
+    type: string | Methods,
     route: string,
     path?: string,
     callback?: (req?: any, res?: any, next?: any) => any,
 }
-
-type method = "static" | "get" | "post" | "put" | "delete";
 
 type Range<N extends number, M extends number> = number & { ___brand: [N, M] };
 
