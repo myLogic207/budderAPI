@@ -4,6 +4,16 @@ import { Styles as Style } from '../libs/style';
 import { LogLevel } from './logLevels';
 import { eLogConfig, LogTime } from './types';
 
+const levelColorMap = new Map<LogLevel, string>([
+    [LogLevel.DEBUG, Style.PURPLE],
+    [LogLevel.FINE, Style.GREEN],
+    [LogLevel.INFO, Style.WHITE],
+    [LogLevel.STATUS, Style.BLUE],
+    [LogLevel.WARN, Style.YELLOW],
+    [LogLevel.ERROR, Style.RED],
+    [LogLevel.SEVERE, Style.RED + Style.BOLD],
+]);
+
 async function ensureLogFile(filePath: string): Promise<boolean> {
     let counter = 0;
     while(await fs.stat(filePath) && counter < 10) {
@@ -22,9 +32,16 @@ async function ensureLogFile(filePath: string): Promise<boolean> {
 }
 
 export function getMSG(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error | string): string {
+    
+    const logColor = levelColorMap.has(level) ? levelColorMap.get(level) : Style.CYAN;
+    return `${logColor}[${logTime}]${
+        levelColorMap.has(level) ? "" : "[UNSUPPORTED LEVEL: " + level + "] "
+    }[${scope}] ${rawmsg}${Style.END}`;
+    
+    /*
     switch (level) {
         case LogLevel.SEVERE:
-            return `${Style.RED}${Style.BOLD}[${logTime}] [${scope}] ${rawmsg}${Style.END}`;
+            return `${Style.RED}${Style.BOLD}${logTime} [${level.def}] [${scope}] ${rawmsg}${Style.END}`;
         case LogLevel.ERROR:
             return `${Style.RED}${logTime} [${level.def}] [${scope}] ${rawmsg instanceof Error? rawmsg.stack : rawmsg}${Style.END}`;
         case LogLevel.WARN:
@@ -40,6 +57,7 @@ export function getMSG(logTime: LogTime, level: LogLevel, scope: string, rawmsg:
         default:
             return `${Style.CYAN}${logTime} [UNSUPPORTED LEVEL: ${level}] [${scope}] ${rawmsg}${Style.END}`;
     }
+    */
 }
 
 export function getJSONmsg(logTime: LogTime, level: LogLevel, scope: string, rawmsg: Error | string): string {
