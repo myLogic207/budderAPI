@@ -1,0 +1,14 @@
+{
+  "name": "budderDCBOT",
+  "version": "1.0.0",
+  "description": "A Discord bot module for Budder",
+  "main": "index.js",
+  "author": "Logic",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "discord.js": "^14.6.0"
+  }
+}
