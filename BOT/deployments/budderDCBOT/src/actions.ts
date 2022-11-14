@@ -16,7 +16,6 @@ export async function init(name: string) {
 
 export async function stop() {
     log(logLevel.INFO, "DISCORD", "Stopping DISCORD...");
-    const { discordLogout } = require("./main");
-    discordLogout();
+    
     log(logLevel.INFO, "DISCORD", "Stopped DISCORD");
 }
