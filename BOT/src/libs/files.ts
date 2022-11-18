@@ -5,6 +5,19 @@ const zipExtractor = require('extract-zip');
 
 const { log, logLevel } = require(env.LOG!);
 
+export async function checkEntry(path: string): Promise<boolean> {
+    try {
+        await await fs.access(path, fs.constants.R_OK)
+        return true;
+    } catch (err: any) {
+        if (err.code !== "ENOENT") {
+            log(logLevel.ERROR, "CORE-LOADER", `Error while checking entry ${path}`);
+            log(logLevel.ERROR, "CORE-LOADER", err);
+        }
+    }
+    return false;
+}
+
 export async function writeFile(file: string, content?: string) {
     await fs.writeFile(file, content ?? "").catch(error => {
         log(logLevel.WARN, "FILES", "Failed to write config file");
