@@ -1,0 +1,9 @@
+{
+    "name": "SCANNER",
+    "version": "1.0.0",
+    "description": "Framework to scan directories for files",
+    "config": {
+        "name": "FSCAN-DEFAULT",
+        "interval": 10000
+    }
+}

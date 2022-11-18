@@ -1,0 +1,9 @@
+{
+    "name": "WEB",
+    "version": "1.2.0",
+    "description": "A simple webserver for the budder BOT",
+    "config": {
+        "host": "localhost",
+        "port": "2070"
+    }
+}
