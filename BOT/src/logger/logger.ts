@@ -36,7 +36,7 @@ export function getMSG(logTime: LogTime, level: LogLevel, scope: string, rawmsg:
     const logColor = levelColorMap.has(level) ? levelColorMap.get(level) : Style.CYAN;
     return `${logColor}[${logTime}]${
         levelColorMap.has(level) ? "" : "[UNSUPPORTED LEVEL: " + level + "] "
-    }[${scope}] ${rawmsg}${Style.END}`;
+    } [${scope}] ${rawmsg}${Style.END}`;
     
     /*
     switch (level) {
@@ -82,4 +82,3 @@ export async function initLogger(){
     env.LOG = `${__dirname}${env.SEP}main`;
     console.log(`${Style.GREEN}${initTime} [FINE] [UTIL] eLog2 initialized${Style.END}`);
 }
-
