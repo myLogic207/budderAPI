@@ -5,6 +5,8 @@ env.UTILS = `${__dirname}${env.SEP}libs${env.SEP}utils`;
 env.FILES = `${__dirname}${env.SEP}libs${env.SEP}files`;
 import * as dotenv from 'dotenv';
 import { CONFIG, initConfig } from "./libs/config";
+import { Bootconfig } from "./types";
+import BootLoader from "./libs/boot";
 
 function Logo(): string {
     return `
@@ -31,8 +33,7 @@ function resolveLogger(logger: string): string {
     else return logger;
 }
 
-async function main() : Promise<void> {
-    const startTime = new Date();
+async function init(): Promise<Bootconfig> {
     dotenv.config();
     checkEnv();
     chdir(__dirname);
@@ -40,8 +41,16 @@ async function main() : Promise<void> {
     
     const logger = await import(resolveLogger(CONFIG("logging").logger))
     await logger.initLogger();
-    const { log, logLevel } = await import(env.LOG!);
-   
+    return CONFIG(".boot") as Bootconfig;
+}
+
+async function main(){
+    const startTime = new Date();
+    const boot = await init();
+    BootLoader.start(boot);
+    
+    const { log, logLevel } = require(env.LOG!);
+
     log(logLevel.STATUS, "CORE", `Starting BOT at ${startTime}`);    
     // Load Modules
     log(logLevel.FINE, "CORE", `Loading Modules`);
@@ -60,9 +69,10 @@ async function main() : Promise<void> {
 
     const startUpTime = new Date().getTime() - startTime.getTime();
     log(logLevel.STATUS, "CORE", `budder BOT served in ${startUpTime}ms`);
+    BootLoader.finishUp();
 }
 
 // Start the bot
 (async () => {
-    await main()
+    await main(); 
 })()

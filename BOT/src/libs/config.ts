@@ -1,12 +1,12 @@
 import fs from "fs/promises";
-import { Config, ValueOf } from '../types';
+import { Config, Module, ValueOf } from '../types';
 
 let CONFIGURATION: Config;
 
 const configHandler = {
     ownKeys(target: Config) {
         return Object.keys(target).filter((key) => {
-            return key !== "boot"; 
+            return key !== ".boot"; 
         });
     },
     deleteProperty(_: Config, prop: string) {
@@ -15,9 +15,9 @@ const configHandler = {
     },
     get: (target: Config, prop: keyof Config): ValueOf<Config> => {
         if(prop in target) {
-            if(prop === "boot") {
+            if(prop === ".boot") {
                 console.warn("Try to access boot config", "CONFIGERROR");
-                return target.boot ? target.boot : null;
+                return target[".boot"] ?? null;
             }
             return target[prop];
         }
@@ -46,6 +46,7 @@ export async function initConfig(file: string) {
     }
     configfile = file;
     process.env.CONFIG = __filename;
+    await dumpConfig();
     console.info("Config handler loaded", "CONFIGFINE");
 }
 
@@ -54,12 +55,33 @@ export async function initConfig(file: string) {
  */
 function checkConfig(config: any): Config {
     if(!config.scopes) config.scopes = [];
+    else {
+        for (let scope of config.scopes) {
+            scope.active = false;
+        }
+    }
     if(!config.modules) config.modules = {};
+    else {
+        if(typeof config.modules !== "object") config.modules = {};
+        else for (let module of Object.values(config.modules)) {
+            let cMod = checkModule(module) as Module;
+            config.modules[cMod.name] = cMod;
+        }
+    }
     if(!config.logging) config.logging = {
         logger: "default",
         logLevel: "INFO"
     };
     return config;
+}
+
+function checkModule(module: any): Module {
+    if(!module.name) module.name = "unknown";
+    else { module.name = module.name.toString().trim().toUpperCase(); }
+    if(!module.version) module.version = "unknown";
+    if(!module.dependencies) module.dependencies = [];
+    if(!module.config) module.config = {};
+    return module;
 }
 
 function newConfig(): Config {
@@ -101,8 +123,10 @@ function validateSyntax(config: string): Config {
     }
 }
 
-export function CONFIG(prop?: keyof Config): Config | ValueOf<Config> | undefined {
-    return prop ? CONFIGURATION[prop] : {...CONFIGURATION};
+export function CONFIG(prop?: keyof Config, value?: any): Config | ValueOf<Config> | boolean | undefined {
+    if (!prop) return { ...CONFIGURATION };
+    if(!value) return CONFIGURATION[prop];  
+    return (CONFIGURATION[prop] = value);
 }
 
 export async function reloadConfig() {
