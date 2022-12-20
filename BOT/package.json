@@ -27,13 +27,13 @@
     "output": "out"
   },
   "dependencies": {
-    "@types/node": "^18.11.7",
     "dotenv": "^16.0.0",
     "esbuild": "^0.14.27",
     "express": "^4.17.3",
     "extract-zip": "^2.0.1"
   },
   "devDependencies": {
+    "@types/node": "^18.11.7",
     "@discordjs/builders": "^0.12.0",
     "@discordjs/rest": "^0.3.0",
     "@discordjs/voice": "^0.8.0",
