@@ -1,0 +1,19 @@
+{
+    "name": "DPL-CTL",
+    "version": "1.0.0",
+    "description": "Main deployment controller for budder Modules",
+    "config": {
+        "hotdeploy": false,
+        "workdir": "../workdir/modules",
+        "scanner": {
+            "deployScanner" : {
+                "name": "DPL-FS-MODULE",
+                "interval": 10000
+            },
+            "markerScanner": {
+                "name": "DPL-FS-MARKER",
+                "interval": 5000
+            }
+    }
+    }
+}

@@ -79,7 +79,7 @@ export class DeployFileScanner extends customScanner implements DeployScanner {
         log(logLevel.STATUS, "DEPLOYCONTROL-DEPLOYMENTS", `Deploying ${file.name}`);
         const hash = getSHA1ofInput(file.name)
         log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Hashed as ${hash}`);
-        const addConf: Scope = { file: file.name, hash: hash, active: false };
+        const addConf = { file: file.name, hash: hash, active: false, name: hash } as Scope;
         try {
             addConf["active"] = false;
             
@@ -102,15 +102,15 @@ export class DeployFileScanner extends customScanner implements DeployScanner {
             addConf["active"] = true;
             log(logLevel.DEBUG, "DEPLOYCONTROL-DEPLOYMENTS", `Setting ${scopeConfig.name} to active`);
             process.env[hash] = "enabled";
-            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finalizing config for ${file.name}`);
-            CONFIG("scopes").push(addConf);
         } catch (error) {
             // set File to error
             addConf["active"] = false;
-            env[hash] = 'false';
-            log(logLevel.WARN, "DEPLOYCONTROL-DEPLOYMENTS", `Error deploying ${file.name}`);
-            CONFIG("scopes").push(addConf);
+            env[hash] = 'disabled';
             throw error;
+        } finally {
+            CONFIG("scopes").push(addConf);
+            log(logLevel.INFO, "DEPLOYCONTROL-DEPLOYMENTS", `Finalizing ${file.name}`);
+            
         }
     }
 

@@ -4,7 +4,7 @@ export type Route = {
     type: string | Methods,
     route: string,
     path?: string,
-    callback?: (req?: any, res?: any, next?: any) => any,
+    callback?(req?: any, res?: any, next?: any): any,
 }
 
 type Range<N extends number, M extends number> = number & { ___brand: [N, M] };

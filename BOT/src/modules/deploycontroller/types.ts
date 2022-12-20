@@ -17,10 +17,10 @@ export interface DeployScanner extends CustomScanner {
 }
 
 export interface MarkerScanner extends CustomScanner {
-    handleFile: (file: {name: string}) => Promise<void>,
-    updateState: (filename: string, newState: State) => Promise<void>,
-    afterScan: () => Promise<void>,
-    setMarkerState: (marker: Marker) => Promise<void>,
+    handleFile(file: {name: string}): Promise<void>,
+    updateState(filename: string, newState: State): Promise<void>,
+    afterScan(): Promise<void>,
+    setMarkerState(marker: Marker): Promise<void>,
 }
 
 export interface DeployConfig {
