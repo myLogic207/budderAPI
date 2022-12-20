@@ -3,6 +3,7 @@ import { env, cwd } from 'process'
 import { Module } from "../types";
 import { CONFIG, dumpConfig } from "./config";
 import { readEntry } from "./files";
+import { checkJson } from './utils';
 
 const { log, logLevel } = require(env.LOG!);
 
@@ -71,20 +72,31 @@ async function findModules(): Promise<Map<string, string[]>> {
     if (typeof moduleDir === 'string') throw new Error(`Module directory not found: ${modulesBase}`);
     await Promise.all(moduleDir
         .filter(dirent => dirent.isDirectory())
+        .map(folder => folder.name)
         .map(async (module) => {
             // if(module === "logger") return;
-            log(logLevel.DEBUG, "CORE-LOADER", `Found Module: ${module.name}`);
-            const moduleconfig = require(`${modulesBase}${env.SEP}${module.name}${env.SEP}config.json`);
-            const moduleName = moduleconfig.name.toUpperCase();
+            log(logLevel.DEBUG, "CORE-LOADER", `Found Module: ${module}`);
+            const configfile = await readEntry(`${modulesBase}${env.SEP}${module}${env.SEP}config.json`);
+            if (typeof configfile !== 'string') {
+                console.log(typeof configfile);
+                log(logLevel.WARN, "CORE-LOADER", `Module ${module} has no config file`);
+                return;
+            }
+            if (!checkJson(configfile)) {
+                log(logLevel.WARN, "CORE-LOADER", `Module ${module} has invalid config file`);
+                return;
+            }
+            const moduleConfig = await JSON.parse(configfile);
+            const moduleName = moduleConfig.name.toUpperCase();
             log(logLevel.DEBUG, "CORE-LOADER", `Module Name: ${moduleName}`);
-            CONFIG("modules")[moduleName] ??= moduleconfig.config;
+            CONFIG("modules")[moduleName] ??= moduleConfig.config;
             // CONFIG().paths.modules.push(`${modulesBase}${env.SEP}${module}`);
-            const modFile = moduleconfig.file ?? "actions";
+            const modFile = moduleConfig.file ?? "actions";
             // Also, thinking here - replace process.env with a config access
-            env[moduleName] = `${modulesBase}${env.SEP}${module.name}${env.SEP}${modFile}`;
-            foundModules.set(moduleName, moduleconfig.dependencies);
-            log(logLevel.INFO, "CORE-LOADER", `Found Module: ${moduleName}, version ${moduleconfig.version}`);
-            log(logLevel.FINE, "CORE-LOADER", `desc: ${moduleconfig.description}`);
+            env[moduleName] = `${modulesBase}${env.SEP}${module}${env.SEP}${modFile}`;
+            foundModules.set(moduleName, moduleConfig.dependencies);
+            log(logLevel.INFO, "CORE-LOADER", `Found Module: ${moduleName}, version ${moduleConfig.version}`);
+            log(logLevel.FINE, "CORE-LOADER", `desc: ${moduleConfig.description}`);
         }));
     return foundModules;
 }

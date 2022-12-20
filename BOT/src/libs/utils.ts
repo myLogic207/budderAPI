@@ -24,11 +24,7 @@ export function checkJson(str: string): boolean {
     try {
         JSON.parse(str);
     } catch (e) {
-        try {
-            JSON.stringify(str);
-        } catch (e) {
-            return false;
-        }
+        return false;
     }
     return true;
 }
